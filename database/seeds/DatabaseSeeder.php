@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
         $this->call(ServiceSeeder::class);
         $this->call(CallSeeder::class);
         $this->call(SmsSeeder::class);
+		
+        $this->call(PartnerSeeder::class);
+        $this->call(CompanySeeder::class);
+        $this->call(BranchSeeder::class);
 
         Model::reguard();
     }
