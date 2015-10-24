@@ -34,4 +34,9 @@ class Service extends Model
                             , 'user_id'
                             , 'user_type'
                         ];
+
+    public function branch(){
+        //1 service is related to one branch
+        return $this->belongsTo('App\Branch');
+    }
 }

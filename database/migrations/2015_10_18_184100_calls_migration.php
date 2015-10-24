@@ -23,6 +23,8 @@ class CallsMigration extends Migration
             $table->integer('service_id')->unsigned();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('service_id')->references('id')->on('services');
         });
     }
 

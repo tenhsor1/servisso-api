@@ -20,6 +20,8 @@ class ServicesMigration extends Migration
             $table->tinyInteger('user_type');
             $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('branch_id')->references('id')->on('branches');
         });
     }
 

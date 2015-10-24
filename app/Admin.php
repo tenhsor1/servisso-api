@@ -14,4 +14,9 @@ class Admin extends Model
 
     protected $hidden = ['password','state_id','country_id','role_id','created_at','updated_at'];
 
+    public function news()
+    {
+        // 1 admin can have multiple news
+        return $this->hasMany('App\News');
+    }
 }

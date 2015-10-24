@@ -28,7 +28,7 @@ class NewSeeder extends Seeder {
         for ($i=0; $i < 20; $i++) {
             News::create(
                 [
-                    'admin_id'=>$faker->unique()->numberBetween(1,$numAdmins),
+                    'admin_id'=>$faker->numberBetween(1,$numAdmins),
                     'title'=>$faker->text(45),
                     'content'=>$faker->text(1545),
                     'image'=>$faker->text(145),

@@ -27,4 +27,10 @@ class Call extends Model
      * @var array
      */
     protected $hidden = ['service_id'];
+
+    public function service()
+    {
+        // 1 call is related to one service
+        return $this->belongsTo('App\Service');
+    }
 }

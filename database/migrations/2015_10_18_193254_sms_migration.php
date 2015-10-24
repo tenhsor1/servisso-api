@@ -19,6 +19,8 @@ class SmsMigration extends Migration
             $table->string('to', 20);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('service_id')->references('id')->on('services');
         });
     }
 
