@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class BranchesTable extends Migration
+class CompaniesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,17 +12,16 @@ class BranchesTable extends Migration
      */
     public function up()
     {
-        Schema::create('branches', function (Blueprint $table) {
+        Schema::create('companies', function (Blueprint $table) {
             $table->increments('id');
-			$table->integer('company_id')->unsigned();
-			$table->string('address',70);
-			$table->string('phone',20);
-			$table->double('latitude',11,7);
-			$table->double('longitude',11,7);
-			$table->integer('state_id')->unsigned();
-			$table->string('schedule',100);
+            $table->integer('partner_id')->unsigned();
+			$table->string('name',60);
+			$table->string('description',500);
+			$table->integer('category_id')->unsigned();
 			$table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('partner_id')->references('id')->on('partners');
         });
     }
 
@@ -33,6 +32,6 @@ class BranchesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('branches');
+        Schema::drop('companies');
     }
 }

@@ -38,6 +38,6 @@ class PartnersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('parters');
+        Schema::drop('partners');
     }
 }

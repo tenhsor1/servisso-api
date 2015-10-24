@@ -13,4 +13,10 @@ class NewComment extends Model
 
 
     protected $hidden = ['user_type','created_at','updated_at'];
+
+    public function new()
+    {
+        // 1 comment is related to one new
+        return $this->belongsTo('App\News');
+    }
 }

@@ -20,6 +20,9 @@ class NewsMigration extends Migration
             $table->string('image',145);
             $table->integer('status')->unsigned();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('admin_id')->references('id')->on('admins');
         });
     }
 

@@ -19,6 +19,9 @@ class NewsCommentsMigration extends Migration
             $table->string('comment',145);
             $table->integer('user_type')->unsigned();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('new_id')->references('id')->on('news');
         });
     }
 

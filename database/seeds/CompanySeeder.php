@@ -17,55 +17,50 @@ class CompanySeeder extends Seeder
     {
 		// Create a faker instance
         $faker = Faker::create();
-		
+
 		$partnerIds = 5;//default;
 		$categoryIds = 5;//default
-		
+
 		//Verify if the tables exists in the database to retrieve the data
 		if(Schema::hasTable('companies'))
 			$partnerIds = Partner::all()->count();
-		
+
 		if(Schema::hasTable('categories'))
 			$categoryIds = Category::all()->count();
-		
+
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-			'companiescol' => $faker->text(30),			
 		]);
-		
+
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-			'companiescol' => $faker->text(30),			
 		]);
-		
+
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-			'companiescol' => $faker->text(30),			
 		]);
-		
+
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-			'companiescol' => $faker->text(30),			
 		]);
-		
+
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-			'companiescol' => $faker->text(30),			
 		]);
     }
 }

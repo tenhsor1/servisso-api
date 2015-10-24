@@ -32,7 +32,7 @@ class AdminSeeder extends Seeder {
                 'name'=>'Radames',
                 'last_name'=>'Ramirez',
                 'phone'=>$faker->phoneNumber,
-                'address'=>$faker->optional()->address,
+                'address'=>$faker->address,
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
@@ -65,8 +65,8 @@ class AdminSeeder extends Seeder {
                 'address'=>$faker->address,
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>$faker->unique()->numberBetween(1,$countryIds),
-                'role_id'=>$faker->unique()->numberBetween(1,$roleIds)
+                'country_id'=>$faker->numberBetween(1,$countryIds),
+                'role_id'=>$faker->numberBetween(1,$roleIds)
             ]
         );
     }

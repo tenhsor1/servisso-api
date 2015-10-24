@@ -16,65 +16,17 @@ class BranchSeeder extends Seeder
     {
 		// Create a faker instance
         $faker = Faker::create();
-		
+
 		$companyIds = 5;//default
 		$stateIds = 5;//default
-		
+
 		//Verify if the tables exists in the database to retrieve the data
 		if(Schema::hasTable('companies'))
 			$companyIds = Company::all()->count();
-		
+
 		if(Schema::hasTable('states'))
 			$stateIds = State::all()->count();
-		
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-		
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-		
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-		
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-		
+
 		Branch::create(
 			[
 				'company_id' => $faker->numberBetween(1,$companyIds),
@@ -87,6 +39,54 @@ class BranchSeeder extends Seeder
 			]
 		);
 
-		
+		Branch::create(
+			[
+				'company_id' => $faker->numberBetween(1,$companyIds),
+				'address' => $faker->address,
+				'phone' => $faker->phoneNumber,
+				'latitude' => $faker->latitude,
+				'longitude' => $faker->longitude,
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'schedule' => $faker->text(50)
+			]
+		);
+
+		Branch::create(
+			[
+				'company_id' => $faker->numberBetween(1,$companyIds),
+				'address' => $faker->address,
+				'phone' => $faker->phoneNumber,
+				'latitude' => $faker->latitude,
+				'longitude' => $faker->longitude,
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'schedule' => $faker->text(50)
+			]
+		);
+
+		Branch::create(
+			[
+				'company_id' => $faker->numberBetween(1,$companyIds),
+				'address' => $faker->address,
+				'phone' => $faker->phoneNumber,
+				'latitude' => $faker->latitude,
+				'longitude' => $faker->longitude,
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'schedule' => $faker->text(50)
+			]
+		);
+
+		Branch::create(
+			[
+				'company_id' => $faker->numberBetween(1,$companyIds),
+				'address' => $faker->address,
+				'phone' => $faker->phoneNumber,
+				'latitude' => $faker->latitude,
+				'longitude' => $faker->longitude,
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'schedule' => $faker->text(50)
+			]
+		);
+
+
     }
 }
