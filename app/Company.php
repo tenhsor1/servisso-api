@@ -10,7 +10,7 @@ class Company extends Model
 
 	protected $fillable = ['name','description','companiescol','partner_id','category_id'];
 
-	public function service()
+	public function partner()
     {
         // 1 company is related to one partner
         return $this->belongsTo('App\Partner');

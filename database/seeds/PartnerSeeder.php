@@ -18,21 +18,21 @@ class PartnerSeeder extends Seeder
     {
 		// Create a faker instance
 		$faker = Faker::create();
-		
+
 		$stateIds = 5;//default
 		$countryIds = 5;//default
 		$planIds = 5;//default
-		
+
 		//Verify if the tables exists in the database to retrieve the data
 		if(Schema::hasTable('states'))
 			$stateIds = State::all()->count();
-		
+
 		if(Schema::hasTable('countries'))
 			$countryIds = Country::all()->count();
-			
+
 		if(Schema::hasTable('plans'))
 			$planIds = Plan::all()->count();
-		
+
 		Partner::create([
 			'email' => $faker->email,
 			'password' => $faker->password,
@@ -47,7 +47,7 @@ class PartnerSeeder extends Seeder
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
 		]);
-		
+
 		Partner::create([
 			'email' => $faker->email,
 			'password' => $faker->password,
@@ -62,7 +62,7 @@ class PartnerSeeder extends Seeder
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
 		]);
-		
+
 		Partner::create([
 			'email' => $faker->email,
 			'password' => $faker->password,
@@ -77,7 +77,7 @@ class PartnerSeeder extends Seeder
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
 		]);
-		
+
 		Partner::create([
 			'email' => $faker->email,
 			'password' => $faker->password,
@@ -92,7 +92,7 @@ class PartnerSeeder extends Seeder
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
 		]);
-		
+
 		Partner::create([
 			'email' => $faker->email,
 			'password' => $faker->password,
@@ -107,6 +107,6 @@ class PartnerSeeder extends Seeder
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
 		]);
-		
+
     }
 }
