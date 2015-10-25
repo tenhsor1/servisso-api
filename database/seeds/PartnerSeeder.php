@@ -34,8 +34,8 @@ class PartnerSeeder extends Seeder
 			$planIds = Plan::all()->count();
 
 		Partner::create([
-			'email' => $faker->email,
-			'password' => $faker->password,
+			'email' => 'tenhsor@hotmail.com',
+			'password' => bcrypt('Tenhsor123'),
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -49,8 +49,8 @@ class PartnerSeeder extends Seeder
 		]);
 
 		Partner::create([
-			'email' => $faker->email,
-			'password' => $faker->password,
+			'email' => 'ricardo.romo.ramirez@gmail.com',
+			'password' => bcrypt('Testing123'),
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -64,8 +64,8 @@ class PartnerSeeder extends Seeder
 		]);
 
 		Partner::create([
-			'email' => $faker->email,
-			'password' => $faker->password,
+			'email' => 'radames.ramirez.perez@gmail.com',
+			'password' => bcrypt('Radames123'),
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -79,8 +79,8 @@ class PartnerSeeder extends Seeder
 		]);
 
 		Partner::create([
-			'email' => $faker->email,
-			'password' => $faker->password,
+			'email' => 'ernesto.soft45@gmail.com',
+			'password' => bcrypt('Ernesto123'),
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -94,8 +94,8 @@ class PartnerSeeder extends Seeder
 		]);
 
 		Partner::create([
-			'email' => $faker->email,
-			'password' => $faker->password,
+			'email' => 'pilondev@gmail.com',
+			'password' => bcrypt('Pilon123'),
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
