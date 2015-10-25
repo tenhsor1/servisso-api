@@ -201,4 +201,6 @@ return [
 
     ],
 
+    'api_url' => 'http://localhost/v1/',
+
 ];

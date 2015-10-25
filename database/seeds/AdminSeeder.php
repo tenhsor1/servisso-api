@@ -28,7 +28,7 @@ class AdminSeeder extends Seeder {
         Admin::create(
             [
                 'email'=>'radames.ramirez.perez@gmail.com',
-                'password'=> bcrypt('rada.123'),
+                'password'=> 'rada.123',
                 'name'=>'Radames',
                 'last_name'=>'Ramirez',
                 'phone'=>$faker->phoneNumber,
@@ -43,7 +43,7 @@ class AdminSeeder extends Seeder {
         Admin::create(
             [
                 'email'=>'ernesto.noriega@gmail.com',
-                'password'=>bcrypt('neto.123'),
+                'password'=>'neto.123',
                 'name'=>'Ernesto',
                 'last_name'=>'Noriega',
                 'phone'=>$faker->phoneNumber,
@@ -58,7 +58,7 @@ class AdminSeeder extends Seeder {
         Admin::create(
             [
                 'email'=>'rodrigo.gutierrez@gmail.com',
-                'password'=>bcrypt('rongo.123'),
+                'password'=>'rongo.123',
                 'name'=>'Rodrigo',
                 'last_name'=>'Gutierrez',
                 'phone'=>$faker->phoneNumber,

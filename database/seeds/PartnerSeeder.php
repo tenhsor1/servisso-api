@@ -35,7 +35,7 @@ class PartnerSeeder extends Seeder
 
 		Partner::create([
 			'email' => 'tenhsor@hotmail.com',
-			'password' => bcrypt('Tenhsor123'),
+			'password' => 'Tenhsor123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -50,7 +50,7 @@ class PartnerSeeder extends Seeder
 
 		Partner::create([
 			'email' => 'ricardo.romo.ramirez@gmail.com',
-			'password' => bcrypt('Testing123'),
+			'password' => 'PTesting123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -65,7 +65,7 @@ class PartnerSeeder extends Seeder
 
 		Partner::create([
 			'email' => 'radames.ramirez.perez@gmail.com',
-			'password' => bcrypt('Radames123'),
+			'password' => 'Radames123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -80,7 +80,7 @@ class PartnerSeeder extends Seeder
 
 		Partner::create([
 			'email' => 'ernesto.soft45@gmail.com',
-			'password' => bcrypt('Ernesto123'),
+			'password' => 'Ernesto123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -95,7 +95,7 @@ class PartnerSeeder extends Seeder
 
 		Partner::create([
 			'email' => 'pilondev@gmail.com',
-			'password' => bcrypt('Pilon123'),
+			'password' => 'Pilon123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
