@@ -14,3 +14,9 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::group(['prefix' => 'v1'], function()
+{
+    Route::resource('authenticate', 'Auth\UserAuthController', ['only' => ['index']]);
+    Route::post('authenticate', 'Auth\UserAuthController@authenticate');
+});
