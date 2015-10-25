@@ -46,6 +46,11 @@ class Handler extends ExceptionHandler
             $e = new NotFoundHttpException($e->getMessage(), $e);
         }
 
+        if ($e instanceof NotFoundHttpException){
+            $errorJSON = ['error' => 'Endpoint not found', 'code' => 404];
+            return response()->json($errorJSON, 404);
+        }
+
         return parent::render($request, $e);
     }
 }
