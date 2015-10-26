@@ -22,4 +22,5 @@ Route::group(['prefix' => 'v1'], function()
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
     Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store']]);
 });
