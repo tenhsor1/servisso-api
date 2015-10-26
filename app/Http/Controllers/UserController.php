@@ -84,8 +84,6 @@ class UserController extends Controller
                             , 'code' => 403];
             return response()->json($errorJSON, 403);
         }
-
-
     }
 
     /**

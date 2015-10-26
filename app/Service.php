@@ -33,6 +33,9 @@ class Service extends Model
                             , 'branch_id'
                             , 'user_id'
                             , 'user_type'
+                            , 'deleted_at'
+                            , 'created_at'
+                            , 'updated_at'
                         ];
 
     public function branch(){
