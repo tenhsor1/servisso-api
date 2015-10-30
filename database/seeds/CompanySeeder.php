@@ -27,40 +27,24 @@ class CompanySeeder extends Seeder
 
 		if(Schema::hasTable('categories'))
 			$categoryIds = Category::all()->count();
+		
+		for($i = 0;$i < $categoryIds;$i++){
+			
+			DB::table('companies')->insert([
+				'partner_id' => $faker->numberBetween(1,$partnerIds),
+				'name' => $faker->company,
+				'description' => $faker->text(100),
+				'category_id' => $faker->numberBetween(1,$categoryIds),
+			]);
+			
+		}
 
-		Company::create([
+		/*Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);
+		]);*/
 
-		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
-			'name' => $faker->company,
-			'description' => $faker->text(100),
-			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);
-
-		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
-			'name' => $faker->company,
-			'description' => $faker->text(100),
-			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);
-
-		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
-			'name' => $faker->company,
-			'description' => $faker->text(100),
-			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);
-
-		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
-			'name' => $faker->company,
-			'description' => $faker->text(100),
-			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);
     }
 }

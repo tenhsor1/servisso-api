@@ -16,7 +16,7 @@ class CompaniesMigration extends Migration
             $table->increments('id');
             $table->integer('partner_id')->unsigned();
 			$table->string('name',60);
-			$table->string('description',500);
+			$table->text('description',500);
 			$table->integer('category_id')->unsigned();
 			$table->softDeletes();
             $table->timestamps();
