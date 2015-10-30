@@ -54,7 +54,7 @@ class PartnerSeeder extends Seeder
 
 		/*Partner::create([
 			'email' => 'tenhsor@hotmail.com',
-			'password' => bcrypt('Tenhsor123'),
+			'password' => 'Tenhsor123',
 			'name' => $faker->firstName,
 			'lastname' => $faker->lastName,
 			'birthdate' => rand(183020177,1445324177),//1975 - 2015
@@ -65,6 +65,7 @@ class PartnerSeeder extends Seeder
 			'country_id' => $faker->numberBetween(1,$countryIds),
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
+
 		]);*/
 
     }

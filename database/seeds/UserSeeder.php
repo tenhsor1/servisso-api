@@ -25,7 +25,7 @@ class UserSeeder extends Seeder {
         User::create(
             [
                 'email'=>'ricardo.romo.ramirez@gmail.com',
-                'password'=>bcrypt('Testing123'),
+                'password'=>'Testing123',
                 'name'=>'Ricardo',
                 'last_name'=>'Romo',
                 'phone'=>$faker->phoneNumber,
@@ -37,7 +37,7 @@ class UserSeeder extends Seeder {
         User::create(
             [
                 'email'=>'makoasoft@gmail.com',
-                'password'=>bcrypt('Makoa123'),
+                'password'=>'Makoa123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
@@ -49,7 +49,7 @@ class UserSeeder extends Seeder {
         User::create(
             [
                 'email'=>'ernesto.soft45@gmail.com',
-                'password'=>bcrypt('Ernesto123'),
+                'password'=>'Ernesto123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
@@ -61,7 +61,7 @@ class UserSeeder extends Seeder {
         User::create(
             [
                 'email'=>'radames.ramirez.perez@gmail.com',
-                'password'=>bcrypt('Radames123'),
+                'password'=>'Radames123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,

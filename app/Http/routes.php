@@ -21,6 +21,10 @@ Route::get('/', function () {
 
 Route::group(['prefix' => 'v1'], function()
 {
-    Route::resource('authenticate', 'Auth\UserAuthController', ['only' => ['index']]);
-    Route::post('authenticate', 'Auth\UserAuthController@authenticate');
+    Route::resource('auth', 'Auth\AuthController', ['only' => ['index']]);
+    Route::post('auth/{role}', 'Auth\AuthController@authenticate')
+        ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
+
+    Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store']]);
 });

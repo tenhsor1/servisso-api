@@ -19,4 +19,9 @@ class Admin extends Model
         // 1 admin can have multiple news
         return $this->hasMany('App\News');
     }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = \Hash::make($value);
+    }
 }
