@@ -32,8 +32,27 @@ class PartnerSeeder extends Seeder
 
 		if(Schema::hasTable('plans'))
 			$planIds = Plan::all()->count();
+		
+		for($i = 0;$i < 5;$i++){
+			
+			DB::table('partners')->insert([
+				'email' => 'tenhsor@hotmail.com',
+				'password' => bcrypt('Tenhsor123'),
+				'name' => $faker->firstName,
+				'lastname' => $faker->lastName,
+				'birthdate' => rand(183020177,1445324177),//1975 - 2015
+				'phone' => str_replace('.','-',$faker->phoneNumber),
+				'address' => $faker->address,
+				'zipcode' => rand(10000,99999),
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'country_id' => $faker->numberBetween(1,$countryIds),
+				'status' => $faker->text(30),
+				'plan_id' => $faker->numberBetween(1,$planIds)
+			]);
+			
+		}
 
-		Partner::create([
+		/*Partner::create([
 			'email' => 'tenhsor@hotmail.com',
 			'password' => 'Tenhsor123',
 			'name' => $faker->firstName,
@@ -46,67 +65,8 @@ class PartnerSeeder extends Seeder
 			'country_id' => $faker->numberBetween(1,$countryIds),
 			'status' => $faker->text(30),
 			'plan_id' => $faker->numberBetween(1,$planIds)
-		]);
 
-		Partner::create([
-			'email' => 'ricardo.romo.ramirez@gmail.com',
-			'password' => 'PTesting123',
-			'name' => $faker->firstName,
-			'lastname' => $faker->lastName,
-			'birthdate' => rand(183020177,1445324177),//1975 - 2015
-			'phone' => str_replace('.','-',$faker->phoneNumber),
-			'address' => $faker->address,
-			'zipcode' => rand(10000,99999),
-			'state_id' => $faker->numberBetween(1,$stateIds),
-			'country_id' => $faker->numberBetween(1,$countryIds),
-			'status' => $faker->text(30),
-			'plan_id' => $faker->numberBetween(1,$planIds)
-		]);
-
-		Partner::create([
-			'email' => 'radames.ramirez.perez@gmail.com',
-			'password' => 'Radames123',
-			'name' => $faker->firstName,
-			'lastname' => $faker->lastName,
-			'birthdate' => rand(183020177,1445324177),//1975 - 2015
-			'phone' => str_replace('.','-',$faker->phoneNumber),
-			'address' => $faker->address,
-			'zipcode' => rand(10000,99999),
-			'state_id' => $faker->numberBetween(1,$stateIds),
-			'country_id' => $faker->numberBetween(1,$countryIds),
-			'status' => $faker->text(30),
-			'plan_id' => $faker->numberBetween(1,$planIds)
-		]);
-
-		Partner::create([
-			'email' => 'ernesto.soft45@gmail.com',
-			'password' => 'Ernesto123',
-			'name' => $faker->firstName,
-			'lastname' => $faker->lastName,
-			'birthdate' => rand(183020177,1445324177),//1975 - 2015
-			'phone' => str_replace('.','-',$faker->phoneNumber),
-			'address' => $faker->address,
-			'zipcode' => rand(10000,99999),
-			'state_id' => $faker->numberBetween(1,$stateIds),
-			'country_id' => $faker->numberBetween(1,$countryIds),
-			'status' => $faker->text(30),
-			'plan_id' => $faker->numberBetween(1,$planIds)
-		]);
-
-		Partner::create([
-			'email' => 'pilondev@gmail.com',
-			'password' => 'Pilon123',
-			'name' => $faker->firstName,
-			'lastname' => $faker->lastName,
-			'birthdate' => rand(183020177,1445324177),//1975 - 2015
-			'phone' => str_replace('.','-',$faker->phoneNumber),
-			'address' => $faker->address,
-			'zipcode' => rand(10000,99999),
-			'state_id' => $faker->numberBetween(1,$stateIds),
-			'country_id' => $faker->numberBetween(1,$countryIds),
-			'status' => $faker->text(30),
-			'plan_id' => $faker->numberBetween(1,$planIds)
-		]);
+		]);*/
 
     }
 }

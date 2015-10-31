@@ -4,17 +4,21 @@ namespace App;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+>>>>>>> upstream/develop
 
 
 class Partner extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
                                     CanResetPasswordContract
 {
+	
+	use SoftDeletes;
     use Authenticatable, Authorizable, CanResetPassword;
 
     protected $table = 'partners';
@@ -24,7 +28,7 @@ class Partner extends Model implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password'];
+	protected $hidden = ['password','deleted_at','created_at','updated_at'];
 
     public function companies(){
         //1 partner can have multiple companies

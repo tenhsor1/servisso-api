@@ -11,6 +11,10 @@
 |
 */
 
+Route::resource('partner','PartnerController');
+Route::resource('company','CompanyController');
+Route::resource('branch','BranchController');
+
 Route::get('/', function () {
     return view('welcome');
 });
