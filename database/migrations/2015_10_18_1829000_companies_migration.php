@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CompaniesMigration extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('companies', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('partner_id')->unsigned();
+			$table->string('name',60);
+			$table->string('description',500);
+			$table->integer('category_id')->unsigned();
+			$table->softDeletes();
+            $table->timestamps();
+
+            $table->foreign('partner_id')->references('id')->on('partners');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::drop('companies');
+    }
+}

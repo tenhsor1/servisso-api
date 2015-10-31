@@ -1,0 +1,52 @@
+[33mcommit 728ddbfbcbfa5c54c986902fe47b97c82eeac4b2[m
+Merge: dc54d7a 3673fc6
+Author: ErnesII <ernesto.soft45@gmail.com>
+Date:   Tue Oct 13 21:27:39 2015 -0700
+
+    Arregle conflicto de merge
+
+[33mcommit dc54d7aa4cd2ab4ee796e1e3f4c9e5ae635f8014[m
+Author: ErnesII <ernesto.soft45@gmail.com>
+Date:   Tue Oct 13 21:16:33 2015 -0700
+
+    Hice una prueba
+
+[33mcommit 3673fc664fcd156bef29da739cef8caf0c06866d[m
+Merge: bf81091 2388008
+Author: Ricardo <ricardo.romo.ramirez@gmail.com>
+Date:   Tue Oct 13 21:10:55 2015 -0500
+
+    Merge pull request #1 from pilondev/develop
+    
+    finish add my name
+
+[33mcommit 23880089a18569e6c81015a28b22da0e3872956e[m
+Merge: 0367cec bf81091
+Author: pilondev <pilon.dev@gmail.com>
+Date:   Tue Oct 13 21:04:29 2015 -0500
+
+    fix merge problems in readme
+
+[33mcommit 0367cec390aed104e568fd04419e7aa249111dc1[m
+Author: pilondev <pilon.dev@gmail.com>
+Date:   Tue Oct 13 20:56:21 2015 -0500
+
+    Modify readme.md
+
+[33mcommit bf8109123ba01b0027beff4deb55753fa2736889[m
+Author: Ricardo Romo Ramírez <ricardo.romo.ramirez@gmail.com>
+Date:   Tue Oct 13 20:53:26 2015 -0500
+
+    removed info.php added by accidently
+
+[33mcommit c35cdc5b45f16174e3c5f6e214a803f4f88e4fc2[m
+Author: Ricardo Romo Ramírez <ricardo.romo.ramirez@gmail.com>
+Date:   Tue Oct 13 20:52:47 2015 -0500
+
+    Added collaborators to readme
+
+[33mcommit 7e8c635790244c52e0b3467dc6acd0f3dfa6f8af[m
+Author: Ricardo Romo Ramírez <ricardo.romo.ramirez@gmail.com>
+Date:   Tue Oct 13 19:04:33 2015 -0500
+
+    Created Laravel Project
