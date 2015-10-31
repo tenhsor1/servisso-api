@@ -6,6 +6,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
 abstract class Controller extends BaseController
 {
@@ -16,5 +18,23 @@ abstract class Controller extends BaseController
             if($request->has($attribute))
                 $model->$attribute = $request->input($attribute);
         }
+    }
+
+    protected function checkAuthUser(){
+        $unauthorized = false;
+        try{
+            $token = \JWTAuth::getToken();
+            $user = \JWTAuth::toUser($token);
+        }catch(TokenExpiredException $e){
+            $unauthorized = true;
+            $user=null;
+        }catch(JWTException $e){
+            $user = null;
+        }
+
+        if($unauthorized){
+            return ['code'=> 403, 'error'=>'Unauthorized'];
+        }
+        return $user;
     }
 }
