@@ -25,9 +25,23 @@ class BranchSeeder extends Seeder
 			$companyIds = Company::all()->count();
 
 		if(Schema::hasTable('states'))
-			$stateIds = State::all()->count();
+			$stateIds = State::all()->count();			
 
-		Branch::create(
+		for($i = 0;$i < $stateIds;$i++){
+			
+			DB::table('branches')->insert([
+				'company_id' => $faker->numberBetween(1,$companyIds),
+				'address' => $faker->address,
+				'phone' => $faker->phoneNumber,
+				'latitude' => $faker->latitude,
+				'longitude' => $faker->longitude,
+				'state_id' => $faker->numberBetween(1,$stateIds),
+				'schedule' => $faker->text(50)
+			]);
+			
+		}
+		
+		/*Branch::create(
 			[
 				'company_id' => $faker->numberBetween(1,$companyIds),
 				'address' => $faker->address,
@@ -37,56 +51,7 @@ class BranchSeeder extends Seeder
 				'state_id' => $faker->numberBetween(1,$stateIds),
 				'schedule' => $faker->text(50)
 			]
-		);
-
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-
-		Branch::create(
-			[
-				'company_id' => $faker->numberBetween(1,$companyIds),
-				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
-				'latitude' => $faker->latitude,
-				'longitude' => $faker->longitude,
-				'state_id' => $faker->numberBetween(1,$stateIds),
-				'schedule' => $faker->text(50)
-			]
-		);
-
+		);*/
 
     }
 }

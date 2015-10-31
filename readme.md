@@ -1,10 +1,2 @@
-============
-Servisso API
-============
-
-Collaborators:
-Ricardo Romo Ramirez
-Adrian Dominguez Gomez
-Radames Ramirez
-Rodrigo Gutierrez Cuevas
-Ernesto Hdez N.
+# servisso-api
+Restful API for servisso front-end and Mobile apps
