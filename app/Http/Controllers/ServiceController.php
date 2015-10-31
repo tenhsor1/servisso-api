@@ -7,6 +7,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
 class ServiceController extends Controller
 {
@@ -33,13 +34,8 @@ class ServiceController extends Controller
      */
     public function store(Requests\ServiceStoreRequest $request)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            $user = null;
-        }
-        if($user){
+        $user = $this->checkAuthUser();
+        if($user && !is_array($user)){
             $userId = $user->id;
             $userType = $this->userTypes['user'];
         }else{
@@ -75,13 +71,14 @@ class ServiceController extends Controller
      */
     public function show($id)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            return dd($e);
-            $user = null;
+        $user = $this->checkAuthUser();
+
+        if(is_array($user)){
+            return response()->json($user, $user['code']);
+        }elseif (!$user) {
+            return response()->json(['error'=> 'Unauthorized', 'code'=>403], 403);
         }
+
         $userId = 0;
         if($user){
             $userId = $user->id;
@@ -112,13 +109,13 @@ class ServiceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            return dd($e);
-            $user = null;
+        $user = $this->checkAuthUser();
+        if(is_array($user)){
+            return response()->json($user, $user['code']);
+        }elseif (!$user) {
+            return response()->json(['error'=> 'Unauthorized', 'code'=>403], 403);
         }
+
         $userId = 0;
         if($user){
             $userId = $user->id;
