@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Request;
 
-class ServiceStoreRequest extends Request
+class CallUpdateRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +24,8 @@ class ServiceStoreRequest extends Request
     public function rules()
     {
         return [
-            'description' => 'string',
-            'guest_id' => 'integer',
-            'branch_id' => 'required|integer'
+            'to' => 'string|max:20',
+            'from' => 'string|max:20'
         ];
     }
 }

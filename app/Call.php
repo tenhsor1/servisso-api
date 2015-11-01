@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Call extends Model
 {
+
+    use SoftDeletes;
     /**
      * The database table used by the model.
      *
@@ -26,7 +29,7 @@ class Call extends Model
      *
      * @var array
      */
-    protected $hidden = ['service_id'];
+    protected $hidden = ['service_id', 'updated_at', 'created_at', 'deleted_at'];
 
     public function service()
     {
