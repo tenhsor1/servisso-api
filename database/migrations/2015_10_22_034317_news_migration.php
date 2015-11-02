@@ -16,7 +16,7 @@ class NewsMigration extends Migration
             $table->increments('id');
             $table->integer('admin_id')->unsigned();
             $table->string('title',45);
-            $table->string('content',1545);
+            $table->text('content');
             $table->string('image',145);
             $table->integer('status')->unsigned();
             $table->timestamps();

@@ -24,6 +24,8 @@ class NewSeeder extends Seeder {
 
         // For covering the services, we get the count from service model.
         // So that way the foreign key service_id won't give us any problems.
+        $numAdmins= 5;//default
+        if(Schema::hasTable('admins'))
         $numAdmins = Admin::all()->count();
         for ($i=0; $i < 20; $i++) {
             News::create(

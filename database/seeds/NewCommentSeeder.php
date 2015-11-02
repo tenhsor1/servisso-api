@@ -5,6 +5,7 @@ use Illuminate\Database\Seeder;
 // import the Call model.
 use App\News;
 use App\NewComment;
+use App\User;
 // Use faker for generate random strings.
 // Faker information: https://github.com/fzaninotto/Faker
 use Faker\Factory as Faker;
@@ -23,9 +24,14 @@ class NewCommentSeeder extends Seeder {
 
         // For covering the services, we get the count from service model.
         // So that way the foreign key service_id won't give us any problems.
-        $numComments = News::all()->count();
+
         $userIds = 3;//default
-        $typeIds = 5;//default
+        $numComments = 5;//default
+        if(Schema::hasTable('news'))
+            $numComments = News::all()->count();
+
+        if(Schema::hasTable('users'))
+            $userIds = User::all()->count();
         for ($i=0; $i < 20; $i++) {
             NewComment::create(
                 [
