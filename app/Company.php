@@ -31,4 +31,35 @@ class Company extends Model
         // 1 company can have multiple branches
         return $this->hasMany('App\Branch');
     }
+	
+	/**
+	* Se obtienen los mensajes de errores
+	*/
+	public static function getMessages(){
+		$messages = 
+		[
+			'required' => ':attribute is required',
+			'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
+			'max' => ':attribute length too long',
+			'min' => ':attribute length too short',
+		];
+		
+		return $messages;
+	}
+	
+	/**
+	* Se obtienen las validaciones del modelo Partner
+	*/
+	public static function getValidations(){
+		$validation = 
+			[
+				'partner_id' => 'required',
+				'name' => 'required|max:59|min:4',
+				'description' => 'required|max:499|min:4',
+				'category_id' => 'required',
+				'companiescol' => 'required'
+			];
+		
+		return $validation;
+	}
 }

@@ -19,8 +19,9 @@ class PartnerController extends Controller
     {
 	
 		$partners = Partner::with('companies.branches')->get();
+		$response = ['data' => $partners,'code' => 200];
 
-		return response()->json($partners->all(),200,[],JSON_PRETTY_PRINT);
+		return response()->json($response,200,[],JSON_PRETTY_PRINT);
 		
 		//PARA GENERAR LA VISTA Y HACER PRUEBAS
 		//$partners = Partner::all();	
@@ -46,28 +47,42 @@ class PartnerController extends Controller
     public function store(Request $request)
     {			
 
-		$messages = $this->getMessages();
-		$validation = $this->getValidations();
+		$messages = Partner::getMessages();
+		$validation = Partner::getValidations();
 		
         $v = Validator::make($request->all(),$validation,$messages);		
 		
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => $v->messages(), 'code' =>  422];
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
 			//return response()->json($v->messages(),200);			
-			return response()->json($response,460,[],JSON_PRETTY_PRINT);
+			return response()->json($response,422);
 		}
 		
-		//SE CREA PARTNER
-		$partner = Partner::create($request->all());
+		$partner = new Partner;
+		$partner->email = $request->email;
+		$partner->password = $request->password;
+		$partner->name = $request->name;
+		$partner->lastname = $request->lastname;
+		$partner->birthdate = $request->birthdate;
+		$partner->phone = $request->phone;
+		$partner->address = $request->address;
+		$partner->zipcode = $request->zipcode;
+		$partner->state_id = $request->state_id;
+		$partner->country_id = $request->country_id;
+		$partner->status = $request->status;
+		$partner->plan_id = $request->plan_id;
 		
-		if(!is_null($partner)){
-			$response = ['code' => 200,'message' => 'Partner was created succefully'];
-			return response()->json($response,200,[],JSON_PRETTY_PRINT);
+		//SE CREA PARTNER
+		$save = $partner->save();
+		
+		if($save != false){
+			$response = ['data' => $partner,'code' => 200,'message' => 'Partner was created succefully'];
+			return response()->json($response,200);
 		}else{
 			$response = ['error' => 'It has occurred an error trying to save the partner','code' => 404];
-			return response()->json($response,404,[],JSON_PRETTY_PRINT);
+			return response()->json($response,404);
 		}
 		
 		
@@ -84,10 +99,10 @@ class PartnerController extends Controller
         $partner = Partner::find($id);
 		if(!is_null($partner)){
 			$response = ['code' => 200,'data' => $partner];
-			return response()->json($response,200,[],JSON_PRETTY_PRINT);
+			return response()->json($response,200);
 		}else{
-			$response = ['error' => 'Partner does no exist','code' => 404];
-			return response()->json($response,404,[],JSON_PRETTY_PRINT);
+			$response = ['error' => 'Partner does no exist','code' => 422];
+			return response()->json($response,422);
 		}
 		
     }
@@ -122,33 +137,33 @@ class PartnerController extends Controller
         $partner = Partner::find($id);
 		if(!is_null($partner)){
 			
-			$messages = $this->getMessages();
-			$validation = $this->getValidations();
+			$messages = Partner::getMessages();
+			$validation = Partner::getValidations();
 			
 			$v = Validator::make($request->all(),$validation,$messages);	
 			
 			//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 			if($v->fails()){
 				$response = ['error' => $v->messages(),'code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
+				return response()->json($response,404);
 			}
 			
 			//SE ACTUALIZA PARTNER
-			$rows = $partner->update($request->all());
+			$row = $partner->update($request->all());
 			
-			if($rows > 0){
-				$response = ['code' => 200,'message' => "Partner was updated succefully"];
-				return response()->json($response,200,[],JSON_PRETTY_PRINT);
+			if($row != false){
+				$response = ['data' => $partner,'code' => 200,'message' => "Partner was updated succefully"];
+				return response()->json($response,200);
 			}else{
 				$response = ['error' => 'It has occurred an error trying to update the partner','code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
+				return response()->json($response,404);
 			}
 			
 			
 		}else{
 			//EN DADO CASO QUE EL ID DEL PARTNER NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Partner does not exist','code' => '404'];
-			return response()->json($response,404);
+			$response = ['error' => 'Partner does not exist','code' => 422];
+			return response()->json($response,422);
 		}
 		
     }
@@ -165,14 +180,14 @@ class PartnerController extends Controller
 		if(!is_null($partner)){
 			
 			//SE BORRAR EL PARTNER
-			$rows = $partner->delete();
+			$row = $partner->delete();
 			
-			if($rows > 0){
+			if($row != false){
 				$response = ['code' => 200,'message' => "Partner was deleted succefully"];
-				return response()->json($response,200,[],JSON_PRETTY_PRINT);
+				return response()->json($response,200);
 			}else{
 				$response = ['error' => 'It has occurred an error trying to delete the partner','code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
+				return response()->json($response,404);
 			}
 			
 			
@@ -184,41 +199,4 @@ class PartnerController extends Controller
 		}
     }
 	
-	/**
-	* Se obtienen los mensajes de errores
-	*/
-	private function getMessages(){
-		$messages = [
-		'required' => ':attribute is required',
-		'email' => ':attribute has invalid format',
-		'date' => ':attribute should be 10 digits',
-		'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
-		'digits' => ':attribute should be 10 digits',
-		'max' => ':attribute length too long',
-		'min' => ':attribute length too short',
-		'string' => ':attribute should be characters only'
-		];
-		
-		return $messages;
-	}
-	
-	/**
-	* Se obtienen las validaciones del modelo Partner
-	*/
-	private function getValidations(){
-		$validation = ['email' => 'required|email|max:70|min:11',
-				'password' => 'required|max:99|min:7',
-				'name' => 'required|max:45|min:4',
-				'lastname' => 'required|max:45|min:4',
-				'birthdate' => 'max:20|digits:10',
-				'phone' => 'required|digits:10|max:20|min:10',
-				'address' => 'required|max:150|min:10',
-				'zipcode' => 'required|max:10|min:4',
-				'state' => 'required',
-				'country' => 'required',
-				'status' => 'required',
-				'plan' => 'required'];
-		
-		return $validation;
-	}
 }

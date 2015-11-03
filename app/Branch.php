@@ -27,4 +27,35 @@ class Branch extends Model
         // 1 branch can have multiple services
         return $this->hasMany('App\Service');
     }
+	
+	/**
+	* Se obtienen los mensajes de errores
+	*/
+	public static function getMessages(){
+		$messages = 
+		[
+			'required' => ':attribute is required',
+			'max' => ':attribute length too long',
+			'min' => ':attribute length too short',
+			'numeric' => ':attribute should be a number'
+		];
+		
+		return $messages;
+	}
+	
+	/**
+	* Se obtienen las validaciones del modelo Branch
+	*/
+	public static function getValidations(){
+		$validation = 
+			[
+				'address' => 'required|max:59|min:4',
+				'phone' => 'required|max:70|min:10',
+				'latitude' => 'required|numeric',
+				'longitude' => 'required|numeric',
+				'schedule' => 'required|max:99|min:4'
+			];
+		
+		return $validation;
+	}
 }
