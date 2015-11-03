@@ -35,4 +35,6 @@ Route::group(['prefix' => 'v1'], function()
 
     Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('call', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
 });

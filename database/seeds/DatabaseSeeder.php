@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(UserSeeder::class);
         $this->call(PartnerSeeder::class);
+        $this->call(CategoriesSeeder::class);
         $this->call(CompanySeeder::class);
         $this->call(BranchSeeder::class);
         $this->call(ServiceSeeder::class);
@@ -24,6 +25,10 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminSeeder::class);
         $this->call(NewSeeder::class);
         $this->call(NewCommentSeeder::class);
+        $this->call(PartnerSeeder::class);
+        $this->call(UserRateSeeder::class);
+        $this->call(TagSeeder::class);
+        $this->call(TagBranchSeeder::class);
 
         Model::reguard();
     }

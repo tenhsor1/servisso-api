@@ -16,8 +16,8 @@ class NewsCommentsMigration extends Migration
             $table->increments('id');
             $table->integer('new_id')->unsigned();
             $table->integer('user_id')->unsigned();
-            $table->string('comment',145);
-            $table->integer('user_type')->unsigned();
+            $table->text('comment');
+            $table->tinyInteger('user_type');
             $table->timestamps();
             $table->softDeletes();
 

@@ -2,21 +2,21 @@
 
 use Illuminate\Database\Seeder;
 use App\Partner;
-use App\Category;
+use App\Categories;
 use App\Company;
 use Faker\Factory as Faker;
 
 class CompanySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
+	/**
+	 * Run the database seeds.
+	 *
+	 * @return void
+	 */
+	public function run()
+	{
 		// Create a faker instance
-        $faker = Faker::create();
+		$faker = Faker::create();
 
 		$partnerIds = 5;//default;
 		$categoryIds = 5;//default
@@ -26,25 +26,41 @@ class CompanySeeder extends Seeder
 			$partnerIds = Partner::all()->count();
 
 		if(Schema::hasTable('categories'))
-			$categoryIds = Category::all()->count();
-		
-		for($i = 0;$i < $categoryIds;$i++){
-			
-			DB::table('companies')->insert([
-				'partner_id' => $faker->numberBetween(1,$partnerIds),
-				'name' => $faker->company,
-				'description' => $faker->text(100),
-				'category_id' => $faker->numberBetween(1,$categoryIds),
-			]);
-			
-		}
+			$categoryIds = Categories::all()->count();
 
-		/*Company::create([
+		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
-		]);*/
+		]);
 
-    }
+		Company::create([
+			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'name' => $faker->company,
+			'description' => $faker->text(100),
+			'category_id' => $faker->numberBetween(1,$categoryIds),
+		]);
+
+		Company::create([
+			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'name' => $faker->company,
+			'description' => $faker->text(100),
+			'category_id' => $faker->numberBetween(1,$categoryIds),
+		]);
+
+		Company::create([
+			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'name' => $faker->company,
+			'description' => $faker->text(100),
+			'category_id' => $faker->numberBetween(1,$categoryIds),
+		]);
+
+		Company::create([
+			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'name' => $faker->company,
+			'description' => $faker->text(100),
+			'category_id' => $faker->numberBetween(1,$categoryIds),
+		]);
+	}
 }

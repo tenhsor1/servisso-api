@@ -6,13 +6,14 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\User;
+use JWTAuth;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth', ['except' => ['store']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store']]);
         $this->middleware('default.headers');
-        $this->api_url = \Config::get('app.api_url');
+        //$this->api_url = \Config::get('app.api_url');
     }
     /**
      * Display a listing of the resource.
@@ -33,8 +34,12 @@ class UserController extends Controller
     public function store(Requests\UserStoreRequest $request)
     {
         $newUser = User::create($request->all());
+
+        $extraClaims = ['role'=>'USER'];
+        $token = JWTAuth::fromUser($newUser,$extraClaims);
+        $reflector = new \ReflectionClass('JWTAuth');
+        $newUser->token = $token;
         return response()->json(['data'=>$newUser], 200);
-                            //->header('Location', $this->api_url.'/user/'.$newUser->id);
     }
 
     /**

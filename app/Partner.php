@@ -16,7 +16,7 @@ class Partner extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
                                     CanResetPasswordContract
 {
-	
+
 	use SoftDeletes;
     use Authenticatable, Authorizable, CanResetPassword;
 

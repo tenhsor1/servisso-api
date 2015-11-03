@@ -7,10 +7,12 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
 class ServiceController extends Controller
 {
     public function __construct(){
+        $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
         $this->middleware('default.headers');
         $this->apiUrl = \Config::get('app.api_url');
         $this->userTypes = \Config::get('app.user_types');
@@ -33,13 +35,8 @@ class ServiceController extends Controller
      */
     public function store(Requests\ServiceStoreRequest $request)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            $user = null;
-        }
-        if($user){
+        $user = $this->checkAuthUser('user');
+        if($user && !is_array($user)){
             $userId = $user->id;
             $userType = $this->userTypes['user'];
         }else{
@@ -75,13 +72,14 @@ class ServiceController extends Controller
      */
     public function show($id)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            return dd($e);
-            $user = null;
+        $user = $this->checkAuthUser();
+
+        if(is_array($user)){
+            return response()->json($user, $user['code']);
+        }elseif (!$user) {
+            return response()->json(['error'=> 'Unauthorized', 'code'=>403], 403);
         }
+
         $userId = 0;
         if($user){
             $userId = $user->id;
@@ -94,12 +92,12 @@ class ServiceController extends Controller
             return response()->json(['data'=>$service], 200);
 
         }else{
-            $errorJSON = ['error'   => 'Bad request'
-                            , 'code' => 422
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
                             , 'data' => [
                                 'user_id'=> 'The user doesn\'t have this service'
                                 ]];
-            return response()->json($errorJSON, 422);
+            return response()->json($errorJSON, 404);
         }
     }
 
@@ -112,13 +110,13 @@ class ServiceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try{
-            $token = \JWTAuth::getToken();
-            $user = \JWTAuth::toUser($token);
-        }catch(JWTException $e){
-            return dd($e);
-            $user = null;
+        $user = $this->checkAuthUser();
+        if(is_array($user)){
+            return response()->json($user, $user['code']);
+        }elseif (!$user) {
+            return response()->json(['error'=> 'Unauthorized', 'code'=>403], 403);
         }
+
         $userId = 0;
         if($user){
             $userId = $user->id;
@@ -133,7 +131,7 @@ class ServiceController extends Controller
             return response()->json(['data'=>$service], 200);
 
         }else{
-            $errorJSON = ['error'   => 'Bad request'
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 422
                             , 'data' => [
                                 'user_id'=> 'The user doesn\'t have this service'
@@ -150,6 +148,17 @@ class ServiceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $userRequested = \Auth::User();
+        //check if the user who requested the resource is the same
+        //as the resource been requested
+        if($userRequested->id == $id){
+            $userRequested->delete();
+            $respDelete = ['message'=> 'User deleted correctly'];
+            return response()->json(['data'=>$respDelete], 200);
+        }else{
+            $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+            return response()->json($errorJSON, 403);
+        }
     }
 }
