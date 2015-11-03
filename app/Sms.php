@@ -3,9 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sms extends Model
 {
+    use SoftDeletes;
     /**
      * The database table used by the model.
      *
@@ -26,7 +28,7 @@ class Sms extends Model
      *
      * @var array
      */
-    protected $hidden = ['service_id'];
+    protected $hidden = ['service_id', 'created_at', 'updated_at', 'deleted_at'];
 
     public function service(){
         //1 sms is related to one service

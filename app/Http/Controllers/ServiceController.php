@@ -12,6 +12,7 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 class ServiceController extends Controller
 {
     public function __construct(){
+        $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
         $this->middleware('default.headers');
         $this->apiUrl = \Config::get('app.api_url');
         $this->userTypes = \Config::get('app.user_types');
@@ -34,7 +35,7 @@ class ServiceController extends Controller
      */
     public function store(Requests\ServiceStoreRequest $request)
     {
-        $user = $this->checkAuthUser();
+        $user = $this->checkAuthUser('user');
         if($user && !is_array($user)){
             $userId = $user->id;
             $userType = $this->userTypes['user'];
@@ -91,12 +92,12 @@ class ServiceController extends Controller
             return response()->json(['data'=>$service], 200);
 
         }else{
-            $errorJSON = ['error'   => 'Bad request'
-                            , 'code' => 422
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
                             , 'data' => [
                                 'user_id'=> 'The user doesn\'t have this service'
                                 ]];
-            return response()->json($errorJSON, 422);
+            return response()->json($errorJSON, 404);
         }
     }
 
@@ -130,7 +131,7 @@ class ServiceController extends Controller
             return response()->json(['data'=>$service], 200);
 
         }else{
-            $errorJSON = ['error'   => 'Bad request'
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 422
                             , 'data' => [
                                 'user_id'=> 'The user doesn\'t have this service'
@@ -147,6 +148,17 @@ class ServiceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $userRequested = \Auth::User();
+        //check if the user who requested the resource is the same
+        //as the resource been requested
+        if($userRequested->id == $id){
+            $userRequested->delete();
+            $respDelete = ['message'=> 'User deleted correctly'];
+            return response()->json(['data'=>$respDelete], 200);
+        }else{
+            $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+            return response()->json($errorJSON, 403);
+        }
     }
 }
