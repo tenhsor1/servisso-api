@@ -17,6 +17,7 @@ class TagsMigration extends Migration
             $table->string('name',100);
             $table->text('description')->nullable();
             $table->integer('category_id')->unsigned();
+			$table->softDeletes();
             $table->timestamps();
 
             $table->foreign('category_id')->references('id')->on('categories');

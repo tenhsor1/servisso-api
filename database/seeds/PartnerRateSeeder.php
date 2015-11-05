@@ -31,11 +31,11 @@ class PartnerRateSeeder extends Seeder {
 
 
 
-        for ($i=0; $i < 40; $i++) {
+        for ($i = 0; $i < 40; $i++) {
             PartnerRate::create(
                 [
                     'service_id'=>$faker->numberBetween(1,$serviceIds),
-                    'rate'=>$faker->randomFloat(),
+                    'rate'=>$faker->numberBetween(1,$serviceIds),
                     'comment'=>$faker->text(500),
 
                 ]

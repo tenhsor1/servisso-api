@@ -9,6 +9,7 @@ use App\Branch;
 use App\Partner;
 use App\Company;
 use App\Tag;
+use App\TagBranch;
 
 use Validator;
 
@@ -78,9 +79,9 @@ class BranchController extends Controller
 			$branch->state_id = 1;
 			$branch->schedule = $request->schedule;
 			
-			$branch = $branch->save();
+			$row = $branch->save();
 			
-			if(!is_null($branch)){
+			if($row != false){
 				$response = ['data' => $branch,'code' => 200,'message' => 'Branch was created succefully'];
 				return response()->json($response,200);
 			}else{
@@ -143,29 +144,38 @@ class BranchController extends Controller
         $messages = Branch::getMessages();
 		$validation = Branch::getValidations();
 		
-		$v = Validator::make($request->all(),$validation,$messages);		
-		
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$v = Validator::make($request->all(),$validation,$messages);						
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){	
-			return response()->json($response,460);
+			$response = ['error' => $v->messages(), 'code' =>  422];
+			return response()->json($response,422);
 		}
 		
-		//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION
-		$fields = ['address' => $request->address,'phone' => $request->phone,'schedule' => $request->schedule,
-		'latitude' => $request->latitude, 'longitude' => $request->longitude];
+		$branch = Branch::find($id);
 		
-		$branch = Branch::where('id','=',$id)->update($fields);
-		
-		//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
+		//SE VALIDA QUE LA BRANCH EXISTA
 		if(!is_null($branch)){
-			$response = ['data' => $branch,'code' => 200,'message' => 'Branch was updated succefully'];
-			return response()->json($response,200);
+			
+			//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION
+			$fields = ['address' => $request->address,'phone' => $request->phone,'schedule' => $request->schedule,
+			'latitude' => $request->latitude, 'longitude' => $request->longitude];
+			
+			$row = Branch::where('id','=',$id)->update($fields);
+			
+			//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
+			if($row != false){
+				$response = ['data' => $branch,'code' => 200,'message' => 'Branch was updated succefully'];
+				return response()->json($response,200);
+			}else{
+				$response = ['error' => 'It has occurred an error trying to update the branch','code' => 404];
+				return response()->json($response,404);
+			}
 		}else{
-			$response = ['error' => 'It has occurred an error trying to update the branch','code' => 404];
-			return response()->json($response,404);
-		}
+			//EN DADO CASO QUE EL ID DE BRANCH NO SE HALLA ENCONTRADO
+			$response = ['error' => 'Branch does not exist','code' => 422];
+			return response()->json($response,422);
+		}		
 		
     }
 
@@ -210,7 +220,7 @@ class BranchController extends Controller
 		$branch = Branch::find($id);
 		if(!is_null($branch)){
 			
-			$tags = DB::table('tags_branches')
+			$tags = \DB::table('tags_branches')
 			->join('tags','tags_branches.tag_id','=','tags.id')
 			->where('branch_id','=',$id)
 			->select('tags.*')
@@ -234,12 +244,12 @@ class BranchController extends Controller
 	*/
 	public function tagStore(Request $request){
 		
-		$messages = Tag::getMessages();
-		$validation = Tag::getValidations();
+		$messages = TagBranch::getMessages();
+		$validation = TagBranch::getValidations();
 		
 		$v = Validator::make($request->all(),$validation,$messages);		
 		
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => $v->messages(), 'code' =>  422];
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){		
@@ -256,7 +266,7 @@ class BranchController extends Controller
 		if(!is_null($branch) && !is_null($tag)){
 			
 			//SE GUARDA EL TAG QUE LE PERTENECE A LA BRANCH
-			$row = DB::table('tags_branches')->insert(
+			$row = \DB::table('tags_branches')->insert(
 				[
 					'tag_id' => $tag->id,
 					'branch_id' => $branch->id
@@ -287,12 +297,12 @@ class BranchController extends Controller
 	*/
 	public function tagUpdate(Request $request, $id)
     {
-        $messages = Tag::getMessages();
-		$validation = Tag::getValidations();
+        $messages = TagBranch::getMessages();
+		$validation = TagBranch::getValidations();
 		
 		$v = Validator::make($request->all(),$validation,$messages);		
 		
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => $v->messages(), 'code' =>  422];
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){	
@@ -301,7 +311,7 @@ class BranchController extends Controller
 		
 		$tag_id = $request->tag_id;
 		//$tag = DB::table('tags_branches')->where('id','=',$id)->get();
-		$tag = DB::table('tags_branches')->where('id','=',$id)->first();
+		$tag = \DB::table('tags_branches')->where('id','=',$id)->first();
 		
 		//SE VALIDA QUE EL TAG A ACTUALIZAR EXISTA
 		//if(count($tag) > 0){
@@ -310,7 +320,7 @@ class BranchController extends Controller
 			//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION
 			$fields = ['tag_id' => $tag_id];
 			
-			$row = DB::table('tags_branches')->where('id','=',$tag_id)->update($fields);
+			$row = \DB::table('tags_branches')->where('id','=',$id)->update($fields);
 			
 			//SI LAS ROWS AFECTADAS SON IGUAL A 1 O MAS ENTONCES SI SE GUARDO
 			if($row != false){
@@ -337,14 +347,17 @@ class BranchController extends Controller
 	public function tagDestroy($id){
 		
 		//SE OBTIENE EL TAG EN FORMA DE OBJETO
-		$tag = DB::table('tags_branches')->where('id','=',$id)->first();		
+		$tag = \DB::table('tags_branches')->where('id','=',$id)->first();		
 
 		//SE VALIDA QUE EL TAG EXISTA
 		if(!is_null($tag)){
 			
 			//SE BORRA EL TAG
-			//PROVAR SI FUNCIONA $tag->delete();
-			$row = DB::table('tags_branches')->where('id','=',$tag->id)->delete();
+	
+			//$row = \DB::table('tags_branches')->where('id','=',$tag->id)->delete();
+			
+			$fields = ['deleted_at' => date('Y-M-d hh:mm:ss',time())];
+			$row = \DB::table('tags_branches')->where('id','=',$tag->id)->update($fields);
 			
 			if($row != false){
 				$response = ['code' => 200,'message' => "Tag was deleted succefully"];

@@ -3,8 +3,8 @@
 use Illuminate\Database\Seeder;
 
 // import the Service model.
-use App\Tags;
-use App\Categories;
+use App\Tag;
+use App\Category;
 
 // Use faker for generate random strings.
 // Faker information: https://github.com/fzaninotto/Faker
@@ -26,14 +26,14 @@ class TagSeeder extends Seeder {
         // So that way the foreign key user_id won't give us any problems.
         $categoryIds = 5;//default
 
-        if(Schema::hasTable('services'))
-            $categoryIds = Categories::all()->count();
+        if(Schema::hasTable('category'))
+            $categoryIds = Category::all()->count();
 
 
 
 
         for ($i=0; $i < 40; $i++) {
-            Tags::create(
+            Tag::create(
                 [
                     'name'=>$faker->text(50),
                     'description'=>$faker->text(500),

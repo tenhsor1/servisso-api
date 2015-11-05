@@ -4,7 +4,7 @@ use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
 use App\Service;
 use App\Partner;
-use App\UserRates;
+use App\UserRate;
 class UserRateSeeder extends Seeder {
 
     /**
@@ -31,7 +31,7 @@ class UserRateSeeder extends Seeder {
 
 
         for ($i=0; $i < 40; $i++) {
-            UserRates::create(
+            UserRate::create(
                 [
                    'service_id'=>$faker->numberBetween(1,$serviceIds),
                     'rate'=>$faker->randomFloat(),

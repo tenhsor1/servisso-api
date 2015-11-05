@@ -16,6 +16,7 @@ class TagsBranchesMigration extends Migration
             $table->increments('id');
             $table->integer('tag_id')->unsigned();
             $table->integer('branch_id')->unsigned();
+			$table->softDeletes();
             $table->timestamps();
 
             $table->foreign('tag_id')->references('id')->on('tags');
