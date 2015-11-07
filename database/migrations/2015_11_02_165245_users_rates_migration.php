@@ -18,6 +18,7 @@ class UsersRatesMigration extends Migration
             $table->float('rate');
             $table->text('comment')->nullable();
             $table->integer('partner_id')->unsigned();
+			$table->softDeletes();
             $table->timestamps();
 
             $table->foreign('service_id')->references('id')->on('services');

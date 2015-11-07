@@ -42,4 +42,14 @@ class Service extends Model
         //1 service is related to one branch
         return $this->belongsTo('App\Branch');
     }
+	
+	public function userRate(){
+		//1 sevice is related to one user rate
+		return $this->hasOne('App\UserRate');
+	}
+	
+	public function partnerRate(){
+		//1 service rate is related to one partner rate
+		return $this->hasOne('App\PartnerRate');
+	}
 }

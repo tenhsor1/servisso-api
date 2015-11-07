@@ -7,9 +7,16 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Validator;
 use App\Partner;
-
+use JWTAuth;
+	
 class PartnerController extends Controller
 {
+	
+	public function __construct(){
+        $this->middleware('jwt.auth:partner', ['only' => ['show','destroy','update']]);
+        $this->middleware('default.headers');
+    }	
+	
     /**
      * Display a listing of the resource.
      *
@@ -17,14 +24,13 @@ class PartnerController extends Controller
      */
     public function index()
     {
-	
-		$partners = Partner::with('companies.branches')->get();
-
-		return response()->json($partners->all(),200,[],JSON_PRETTY_PRINT);
 		
-		//PARA GENERAR LA VISTA Y HACER PRUEBAS
-		//$partners = Partner::all();	
-        //return view('partner.index')->with('partners',$partners);
+		
+		$partners = Partner::with('companies.branches')->get();
+		$response = ['data' => $partners,'code' => 200];
+
+		return response()->json($response,200,[],JSON_PRETTY_PRINT);
+
     }
 
     /**
@@ -34,7 +40,7 @@ class PartnerController extends Controller
      */
     public function create()
     {
-       // return view('partner.create');
+       // 
     }
 
     /**
@@ -46,28 +52,48 @@ class PartnerController extends Controller
     public function store(Request $request)
     {			
 
-		$messages = $this->getMessages();
-		$validation = $this->getValidations();
+		$messages = Partner::getMessages();
+		$validation = Partner::getValidations();
 		
         $v = Validator::make($request->all(),$validation,$messages);		
 		
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => $v->messages(), 'code' =>  422];
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
 			//return response()->json($v->messages(),200);			
-			return response()->json($response,460,[],JSON_PRETTY_PRINT);
+			return response()->json($response,422);
 		}
 		
-		//SE CREA PARTNER
-		$partner = Partner::create($request->all());
+		$partner = new Partner;
+		$partner->email = $request->email;
+		$partner->password = $request->password;
+		$partner->name = $request->name;
+		$partner->lastname = $request->lastname;
+		$partner->birthdate = $request->birthdate;
+		$partner->phone = $request->phone;
+		$partner->address = $request->address;
+		$partner->zipcode = $request->zipcode;
+		$partner->state_id = $request->state_id;
+		$partner->country_id = $request->country_id;
+		$partner->status = $request->status;
+		$partner->plan_id = $request->plan_id;
 		
-		if(!is_null($partner)){
-			$response = ['code' => 200,'message' => 'Partner was created succefully'];
-			return response()->json($response,200,[],JSON_PRETTY_PRINT);
+		//SE CREA PARTNER
+		$save = $partner->save();
+		
+		//TOKEN ES CREADO
+		$extraClaims = ['role'=>'PARTNER'];
+        $token = JWTAuth::fromUser($partner,$extraClaims);
+        $reflector = new \ReflectionClass('JWTAuth');
+        $partner->token = $token;
+		
+		if($save != false){
+			$response = ['data' => $partner,'code' => 200,'message' => 'Partner was created succefully'];
+			return response()->json($response,200);
 		}else{
 			$response = ['error' => 'It has occurred an error trying to save the partner','code' => 404];
-			return response()->json($response,404,[],JSON_PRETTY_PRINT);
+			return response()->json($response,404);
 		}
 		
 		
@@ -81,15 +107,26 @@ class PartnerController extends Controller
      */
     public function show($id)
     {
-        $partner = Partner::find($id);
-		if(!is_null($partner)){
-			$response = ['code' => 200,'data' => $partner];
-			return response()->json($response,200,[],JSON_PRETTY_PRINT);
-		}else{
-			$response = ['error' => 'Partner does no exist','code' => 404];
-			return response()->json($response,404,[],JSON_PRETTY_PRINT);
-		}
+		$partnerRequested = \Auth::User();
 		
+		//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA OBTENER INFO DE EL MISMO
+		if($partnerRequested->id == $id){
+			
+			$partner = Partner::find($id);
+			
+			//SE VERIFICA QUE EL PARTNER EXISTA
+			if(!is_null($partner)){
+				$response = ['code' => 200,'data' => $partner];
+				return response()->json($response,200);
+			}else{
+				$response = ['error' => 'Partner does no exist','code' => 422];
+				return response()->json($response,422);
+			}
+			
+		}else{
+            $response = ['error'   => 'Unauthorized','code' => 403];
+            return response()->json($response, 403);
+        }		
     }
 
     /**
@@ -100,14 +137,7 @@ class PartnerController extends Controller
      */
     public function edit($id)
     {
-		$partner = Partner::find($id);
-		
-		if(!is_null($partner)){
-		//	return view('partner.edit')->with('partner',$partner);
-		}else{
-			$response = ['error' => 'Partner does no exist','code' => 404];
-			return response()->json($response,404,[],JSON_PRETTY_PRINT);
-		}	      
+		//     
     }
 
     /**
@@ -119,37 +149,49 @@ class PartnerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $partner = Partner::find($id);
-		if(!is_null($partner)){
+		$partnerRequested = \Auth::User();
+		
+		//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZARSE EL MISMO
+		if($partnerRequested->id == $id){
 			
-			$messages = $this->getMessages();
-			$validation = $this->getValidations();
+			$partner = Partner::find($id);
 			
-			$v = Validator::make($request->all(),$validation,$messages);	
-			
-			//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
-			if($v->fails()){
-				$response = ['error' => $v->messages(),'code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
-			}
-			
-			//SE ACTUALIZA PARTNER
-			$rows = $partner->update($request->all());
-			
-			if($rows > 0){
-				$response = ['code' => 200,'message' => "Partner was updated succefully"];
-				return response()->json($response,200,[],JSON_PRETTY_PRINT);
+			//SE VERIFICA QUE EL PARTNER EXISTA
+			if(!is_null($partner)){
+				
+				$messages = Partner::getMessages();
+				$validation = Partner::getValidations();
+				
+				$v = Validator::make($request->all(),$validation,$messages);	
+				
+				//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
+				if($v->fails()){
+					$response = ['error' => $v->messages(),'code' => 404];
+					return response()->json($response,404);
+				}
+				
+				//SE ACTUALIZA PARTNER
+				$row = $partner->update($request->all());
+				
+				if($row != false){
+					$response = ['data' => $partner,'code' => 200,'message' => "Partner was updated succefully"];
+					return response()->json($response,200);
+				}else{
+					$response = ['error' => 'It has occurred an error trying to update the partner','code' => 404];
+					return response()->json($response,404);
+				}
+				
+				
 			}else{
-				$response = ['error' => 'It has occurred an error trying to update the partner','code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
+				//EN DADO CASO QUE EL ID DEL PARTNER NO SE HALLA ENCONTRADO
+				$response = ['error' => 'Partner does not exist','code' => 422];
+				return response()->json($response,422);
 			}
-			
 			
 		}else{
-			//EN DADO CASO QUE EL ID DEL PARTNER NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Partner does not exist','code' => '404'];
-			return response()->json($response,404);
-		}
+            $response = ['error'   => 'Unauthorized','code' => 403];
+            return response()->json($response, 403);
+        }			       
 		
     }
 
@@ -165,14 +207,14 @@ class PartnerController extends Controller
 		if(!is_null($partner)){
 			
 			//SE BORRAR EL PARTNER
-			$rows = $partner->delete();
+			$row = $partner->delete();
 			
-			if($rows > 0){
+			if($row != false){
 				$response = ['code' => 200,'message' => "Partner was deleted succefully"];
-				return response()->json($response,200,[],JSON_PRETTY_PRINT);
+				return response()->json($response,200);
 			}else{
 				$response = ['error' => 'It has occurred an error trying to delete the partner','code' => 404];
-				return response()->json($response,404,[],JSON_PRETTY_PRINT);
+				return response()->json($response,404);
 			}
 			
 			
@@ -184,41 +226,4 @@ class PartnerController extends Controller
 		}
     }
 	
-	/**
-	* Se obtienen los mensajes de errores
-	*/
-	private function getMessages(){
-		$messages = [
-		'required' => ':attribute is required',
-		'email' => ':attribute has invalid format',
-		'date' => ':attribute should be 10 digits',
-		'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
-		'digits' => ':attribute should be 10 digits',
-		'max' => ':attribute length too long',
-		'min' => ':attribute length too short',
-		'string' => ':attribute should be characters only'
-		];
-		
-		return $messages;
-	}
-	
-	/**
-	* Se obtienen las validaciones del modelo Partner
-	*/
-	private function getValidations(){
-		$validation = ['email' => 'required|email|max:70|min:11',
-				'password' => 'required|max:99|min:7',
-				'name' => 'required|max:45|min:4',
-				'lastname' => 'required|max:45|min:4',
-				'birthdate' => 'max:20|digits:10',
-				'phone' => 'required|digits:10|max:20|min:10',
-				'address' => 'required|max:150|min:10',
-				'zipcode' => 'required|max:10|min:4',
-				'state' => 'required',
-				'country' => 'required',
-				'status' => 'required',
-				'plan' => 'required'];
-		
-		return $validation;
-	}
 }

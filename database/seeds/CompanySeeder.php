@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use App\Partner;
-use App\Categories;
+use App\Category;
 use App\Company;
 use Faker\Factory as Faker;
 
@@ -26,7 +26,7 @@ class CompanySeeder extends Seeder
 			$partnerIds = Partner::all()->count();
 
 		if(Schema::hasTable('categories'))
-			$categoryIds = Categories::all()->count();
+			$categoryIds = Category::all()->count();
 
 		Company::create([
 			'partner_id' => $faker->numberBetween(1,$partnerIds),
