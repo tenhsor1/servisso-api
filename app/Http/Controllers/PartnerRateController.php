@@ -6,9 +6,20 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\PartnerRate;
+use JWTAuth;
+use Validator;
+use App\Service;
+use App\Branch;
+use App\Partner;
 
 class PartnerRateController extends Controller
 {
+	
+	public function __construct(){
+        $this->middleware('jwt.auth:partner', ['only' => ['store','show','update','destroy']]);
+        $this->middleware('default.headers');
+    }
+	
     /**
      * Display a listing of the resource.
      *
@@ -16,9 +27,9 @@ class PartnerRateController extends Controller
      */
     public function index()
     {
-        $rates = PartnerRate::with('services')->get();
+       /* $rates = PartnerRate::with('services')->get();
 		$response = ['data' => $rates,'code' => 200];
-		return response()->json($rates,200);
+		return response()->json($rates,200);*/
     }
 
     /**
@@ -39,6 +50,8 @@ class PartnerRateController extends Controller
      */
     public function store(Request $request)
     {
+		$partnerRequested = \Auth::User();
+		
 		$messages = PartnerRate::getMessages();
 		$validation = PartnerRate::getValidations();
 		
@@ -51,26 +64,35 @@ class PartnerRateController extends Controller
 		}
 		
 		$service_id = $request->service_id;
-		$service = Service::find($service_id);
+		$service = Service::with('branch.company')->where('id','=',$service_id)->first();
 		
 		//SE VALIDA QUE EL SERVICE EXISTA
 		if(!is_null($service)){
 			
-			$rate = new PartnerRate;
-			$rate->service_id = $request->service_id;
-			$rate->rate = $request->rate;
-			$rate->comment = $request->comment;
+			$company = $service->branch->company;
 			
-			$rate = $rate->save();
-			
-			//SE VALIDA QUE EL REGISTRO SE HALLA GUARDADO
-			if(!is_null($rate)){
-				$response = ['data' => $rate,'code' => 200,'message' => 'Rate was registered succefully'];
-				return response()->json($response,200);
+			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
+			if($partnerRequested->id == $company->partner_id){
+				
+				$rate = new PartnerRate;
+				$rate->service_id = $request->service_id;
+				$rate->rate = $request->rate;
+				$rate->comment = $request->comment;
+				
+				$rate = $rate->save();
+				
+				//SE VALIDA QUE EL REGISTRO SE HALLA GUARDADO
+				if(!is_null($rate)){
+					$response = ['data' => $rate,'code' => 200,'message' => 'Rate was registered succefully'];
+					return response()->json($response,200);
+				}else{
+					$response = ['error' => 'It has occurred an error trying to register the rate','code' => 404];
+					return response()->json($response,404);
+				}
 			}else{
-				$response = ['error' => 'It has occurred an error trying to register the rate','code' => 404];
-				return response()->json($response,404);
-			}
+				$response = ['error'   => 'Unauthorized','code' => 403];
+				return response()->json($response, 403);
+			}					
 			
 		}else{
 			//EN DADO CASO QUE EL ID DEL SERVICE NO SE HALLA ENCONTRADO
@@ -87,6 +109,8 @@ class PartnerRateController extends Controller
      */
     public function show($id)
     {
+		$partnerRequested = \Auth::User();
+		
         $rate = PartnerRate::find($id);
 		
 		if(!is_null($rate)){

@@ -22,6 +22,7 @@ Route::resource('branch','BranchController',['only' => ['update','destroy','show
 
 Route::resource('categories','CategoryController',['only' => ['update','destroy','show','store']]);
 Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
+Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
 
 Route::get('/', function () {
     return view('welcome');

@@ -22,11 +22,12 @@ class AuthController extends Controller
 
     public function authenticate(Request $request, $role="user")
     {
+		
         $role = strtoupper($role);
         if($role == 'USER'){
             $model = 'App\User';
         }else if($role == 'PARTNER'){
-            $model = 'App\Parner';
+            $model = 'App\Partner';
         }else if($role == 'ADMIN'){
             $model = 'App\Admin';
         }else{

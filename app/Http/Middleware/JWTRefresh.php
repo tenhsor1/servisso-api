@@ -23,7 +23,7 @@ class RefreshToken extends BaseMiddleware
         if($role == 'USER'){
             $model = 'App\User';
         }else if($role == 'PARTNER'){
-            $model = 'App\Parner';
+            $model = 'App\Partner';
         }else if($role == 'ADMIN'){
             $model = 'App\Admin';
         }else{
