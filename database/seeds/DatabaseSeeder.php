@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         $this->call(UserRateSeeder::class);
         $this->call(TagSeeder::class);
         $this->call(TagBranchSeeder::class);
+        $this->call(GuestSeeder::class);
 
         Model::reguard();
     }

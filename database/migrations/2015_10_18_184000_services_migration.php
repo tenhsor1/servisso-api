@@ -16,8 +16,8 @@ class ServicesMigration extends Migration
             $table->increments('id');
             $table->text('description')->nullable();
             $table->integer('branch_id')->unsigned();
-            $table->integer('user_id')->unsigned();
-            $table->tinyInteger('user_type');
+            $table->integer('userable_id')->unsigned();
+            $table->string('userable_type');
             $table->softDeletes();
             $table->timestamps();
 

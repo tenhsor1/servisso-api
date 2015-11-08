@@ -45,6 +45,10 @@ class User extends Model implements AuthenticatableContract,
      */
     protected $hidden = ['password', 'deleted_at', 'created_at', 'updated_at'];
 
+    public function services(){
+        return $this->morphMany('App\Service', 'userable');
+    }
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = \Hash::make($value);
