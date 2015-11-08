@@ -39,7 +39,9 @@ class JWTAuth extends TymonJWTAuth
         if (! $this->auth->byId($id)) {
             return false;
         }
-
-        return $this->auth->user();
+        $user = $this->auth->user();
+        if($user)
+            $user->roleAuth = $role;
+        return $user;
     }
 }

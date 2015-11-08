@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class ServicesMigration extends Migration
+class GuestsMigration extends Migration
 {
     /**
      * Run the migrations.
@@ -12,16 +12,15 @@ class ServicesMigration extends Migration
      */
     public function up()
     {
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create('guests', function (Blueprint $table) {
             $table->increments('id');
-            $table->text('description')->nullable();
-            $table->integer('branch_id')->unsigned();
-            $table->integer('userable_id')->unsigned();
-            $table->string('userable_type');
+            $table->string('email',70);
+            $table->string('name', 45);
+            $table->string('address', 90)->nullable();
+            $table->string('phone', 20);
+            $table->string('zipcode', 10)->nullable();
             $table->softDeletes();
             $table->timestamps();
-
-            $table->foreign('branch_id')->references('id')->on('branches');
         });
     }
 
@@ -32,6 +31,6 @@ class ServicesMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('services');
+        Schema::drop('guests');
     }
 }

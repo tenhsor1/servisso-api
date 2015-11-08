@@ -28,13 +28,15 @@ class ServiceSeeder extends Seeder {
         $numUsers = User::all()->count();
         $numBranches = Branch::all()->count();
 
+        $userableTypes = array('App\User', 'App\Guest');
+
         for ($i=0; $i < 40; $i++) {
             Service::create(
             [
                 'description'=>$faker->text(500),
                 'branch_id'=>$faker->numberBetween(1,$numBranches),
-                'user_id'=>$faker->numberBetween(1,$numUsers),
-                'user_type'=>$faker->numberBetween(0,1)
+                'userable_id'=>$faker->numberBetween(1,$numUsers),
+                'userable_type'=>$faker->randomElement($userableTypes)
             ]
         );
         }
