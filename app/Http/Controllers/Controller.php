@@ -60,6 +60,7 @@ abstract class Controller extends BaseController
             }
             //if the user exist, then return it
             if($user){
+                $user->roleAuth = $role;
                 return $user;
 
             }else if(!$user && $numRolesRemaining == 0){

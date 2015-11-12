@@ -44,6 +44,8 @@ class JWTAuth extends BaseJWTMiddleware
 
             try {
                 $user = $this->auth->authenticate($token);
+                if($user)
+                    $user->roleAuth = $role;
             } catch (TokenExpiredException $e) {
                 return $this->respond('tymon.jwt.expired', 'token_expired', $e->getStatusCode(), [$e]);
             } catch (JWTException $e) {

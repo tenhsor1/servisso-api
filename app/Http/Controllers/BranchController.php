@@ -383,4 +383,29 @@ class BranchController extends Controller
 		}
 	}
 	
+	public function services($id){
+		$user = \Auth::User();
+		if(!Branch::find($id)){
+			$response = ['error' => 'Branch not found ','code' => 403];
+			return response()->json($response, 403);
+		}
+		if($user->roleAuth == 'PARTNER'){
+			$branch = $user->getBranch($id);
+			//if the partner is not the owner of the branch, then send a 403
+			if(!$branch){
+				$response = ['error' => 'Unauthorized','code' => 403];
+				return response()->json($response, 403);
+			}
+		}
+		$services = Service::whereBranch($id)
+                                ->with('branch')
+                                ->with('userable')
+                                ->with('userRate')
+                                ->with('partnerRate')
+                                ->get();
+		return response()->json(['data' => $services], 200);
+	}
+}
+	
+	
 }

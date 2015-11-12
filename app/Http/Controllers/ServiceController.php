@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
+use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
@@ -13,6 +14,9 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
+        $this->middleware('jwt.auth:partner', ['only' => ['update']]);
+        $this->middleware('jwt.auth:partner|user|admin', ['only' => ['index']]);
+
         $this->middleware('default.headers');
         $this->apiUrl = \Config::get('app.api_url');
         $this->userTypes = \Config::get('app.user_types');
@@ -24,7 +28,23 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        //
+        $user = \Auth::User();
+        $services = [];
+        if($user->roleAuth == 'ADMIN'){
+            $services = Service::with('branch')
+                                ->with('userable')
+                                ->with('userRate')
+                                ->with('partnerRate')
+                                ->get();
+        }else if($user->roleAuth == 'PARTNER'){
+            $services = Service::wherePartner($user->id)
+                                ->with('branch')
+                                ->with('userable')
+                                ->with('userRate')
+                                ->with('partnerRate')
+                                ->get();
+        }
+        return response()->json(['data'=>$services], 200);
     }
 
     /**
@@ -37,22 +57,26 @@ class ServiceController extends Controller
     {
         $user = $this->checkAuthUser('user');
         if($user && !is_array($user)){
-            $userId = $user->id;
-            $userType = $this->userTypes['user'];
+
         }else{
-            $userId = $request->input('guest_id');
-            $userType = $this->userTypes['guest'];
+            $guestId = $request->input('guest_id');
+            $user = Guest::find($guestId);
         }
-        if($userId > 0){
+        if($user){
             $service = new Service;
 
             $service->description = $request->input('description');
             $service->branch_id = $request->input('branch_id');
-            $service->user_id = $userId;
-            $service->user_type = $userType;
 
-            $service->save();
-            return response()->json(['data'=>$service], 200);
+            $save = $user->services()->save($service);
+            if($save){
+                return response()->json(['data'=>$service], 200);
+            }else{
+                return response()->json([
+                    'error' => 'It has occurred an error trying to save the guest'
+                    ,'code' => 500], 500);
+            }
+
 
         }else{
             $errorJSON = ['error'   => 'Bad request'
@@ -110,20 +134,14 @@ class ServiceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = $this->checkAuthUser();
-        if(is_array($user)){
-            return response()->json($user, $user['code']);
-        }elseif (!$user) {
-            return response()->json(['error'=> 'Unauthorized', 'code'=>403], 403);
-        }
-
+        $user = \Auth::User();
         $userId = 0;
         if($user){
             $userId = $user->id;
         }
         $conditions = [ 'id' => $id
-                        , 'user_id' => $userId
-                        , 'user_type' => $this->userTypes['user']];
+                        , 'userable_id' => $userId
+                        , 'userable_type' => $this->userTypes['user']];
         $service = Service::where($conditions)->first();
         if($service){
             $service->description = $request->input('description');

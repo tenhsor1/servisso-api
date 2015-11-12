@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
-
+use App\Branch;
 
 class Partner extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
@@ -38,7 +38,7 @@ class Partner extends Model implements AuthenticatableContract,
     {
         $this->attributes['password'] = \Hash::make($value);
     }
-	
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
@@ -53,10 +53,10 @@ class Partner extends Model implements AuthenticatableContract,
 		'min' => ':attribute length too short',
 		'string' => ':attribute should be characters only'
 		];
-		
+
 		return $messages;
 	}
-	
+
 	/**
 	* Se obtienen las validaciones del modelo Partner
 	*/
@@ -73,7 +73,19 @@ class Partner extends Model implements AuthenticatableContract,
 				'country_id' => 'required',
 				'status' => 'required',
 				'plan_id' => 'required'];
-		
+
 		return $validation;
 	}
+
+    public function getBranch($id){
+        $branch = Branch::find($id)
+            ->with('company')
+            ->leftJoin('companies','companies.id','=','branches.company_id')
+            ->leftJoin('partners','partners.id','=','companies.partner_id')
+            ->where('partners.id', $this->id)
+            ->where('branches.id', $id)
+            ->select('branches.*')
+            ->get();
+        return $branch;
+    }
 }

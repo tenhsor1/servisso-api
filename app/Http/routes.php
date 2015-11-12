@@ -14,7 +14,6 @@
 Route::get('/', function () {
     return view('welcome');
 });
-
 Route::group(['prefix' => 'v1'], function()
 {
     Route::resource('auth', 'Auth\AuthController', ['only' => ['index']]);
@@ -22,7 +21,8 @@ Route::group(['prefix' => 'v1'], function()
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
     Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
-    Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('guest', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('call', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
 	
@@ -35,4 +35,5 @@ Route::group(['prefix' => 'v1'], function()
 	Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
 	Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
 	Route::resource('tag','TagController',['only' => ['index']]);
+
 });
