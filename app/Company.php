@@ -56,8 +56,7 @@ class Company extends Model
 				'partner_id' => 'required',
 				'name' => 'required|max:59|min:4',
 				'description' => 'required|max:499|min:4',
-				'category_id' => 'required',
-				'companiescol' => 'required'
+				'category_id' => 'required'
 			];
 		
 		return $validation;
