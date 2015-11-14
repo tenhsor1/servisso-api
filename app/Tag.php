@@ -14,7 +14,7 @@ class Tag extends Model
     protected $fillable = array('name','description');
 
 
-    protected $hidden = ['category_id','created_at','updated_at'];
+    protected $hidden = ['category_id','created_at','updated_at','deleted_at'];
 	
 	public function category()
     {
