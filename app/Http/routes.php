@@ -39,4 +39,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
 
+    Route::resource('admin', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('news', 'NewController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('newcomment', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 });
