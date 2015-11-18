@@ -24,12 +24,101 @@ class PartnerController extends Controller
      */
     public function index()
     {
+		$url = $_SERVER['REQUEST_URI'];
+		$pattern_number = Partner::getUrlPattern($url);
 		
-		
+		//PATRON 1
+		if($pattern_number == 1){
+			
 		$partners = Partner::with('companies')->get();
 		$response = ['data' => $partners,'code' => 200];
-
+		
 		return response()->json($response,200);
+		
+		//PATRON 2
+		}else if($pattern_number == 2){
+			
+			$pattern2 = Partner::getPattern(2);
+			preg_match($pattern2,$url,$matches,PREG_OFFSET_CAPTURE);
+			
+			$limit = $page = $orderBy = $orderType = '';
+
+			for($i = 0; $i < count($matches);$i++){
+				
+				if(strpos($matches[$i][0],'limit')){
+					$limit = "LIMIT ".str_replace('?limit=','',$matches[$i][0]);
+				}else if(strpos($matches[$i][0],'page')){
+					$page = str_replace('&page=','',$matches[$i][0]);
+				}else if(strpos($matches[$i][0],'orderBy')){
+					$orderBy = "ORDER BY ".str_replace(array('&orderBy=','(',')'),'',$matches[$i][0]);
+				}else if(strpos($matches[$i][0],'orderType')){
+					$orderType = str_replace(array('&orderType=','(',')'),'',$matches[$i][0]);
+				}
+			}
+			
+			$query = "SELECT * FROM user $orderBy $orderType $limit";
+			
+			$response = ['data' => $query, 'code' => 200];
+			return response()->json($response,200);
+			
+		//PATRON 3
+		}else if($pattern_number == 3){
+				
+			$pattern3 = Partner::getPattern(3);
+			preg_match($pattern3,$url,$matches,PREG_OFFSET_CAPTURE);
+			
+			$search = $fields = $orderBy = $orderType = $limit = $page  = '';		
+
+			for($i = 0; $i < count($matches);$i++){
+				
+				if($i > 0){				
+				
+					if(strpos($matches[$i][0],'search')){
+						$search = str_replace('?search=','',$matches[$i][0]);
+						$search = str_replace('+',' ',$search);												
+				
+					}else if(strpos($matches[$i][0],'fields')){
+						
+						$fields = str_replace(array('&fields=','(',')'),'',$matches[$i][0]);
+						$fields = explode(',',$fields);
+						$result = '(';												
+						
+						for($a = 0;$a < count($fields);$a++){
+							$result .= $fields[$a]." LIKE '%".$search."%' ";
+							
+							if(($a + 1) < count($fields))
+								$result .= "OR ";
+						}
+
+						$result .= ")";
+						
+						$fields = $result;
+						
+					}else if(strpos($matches[$i][0],'orderBy')){
+						$orderBy = "ORDER BY ".str_replace(array('&orderBy=','(',')'),'',$matches[$i][0]);						
+					}else if(strpos($matches[$i][0],'orderType')){
+						$orderType = str_replace(array('&orderType=','(',')'),'',$matches[$i][0]);					
+					}else if(strpos($matches[$i][0],'limit')){
+						$limit = "LIMIT ".str_replace('?limit=','',$matches[$i][0]);
+					}else if(strpos($matches[$i][0],'page')){
+						$page = str_replace('&page=','',$matches[$i][0]);
+					}
+				}							
+			}			
+				
+			$query = "SELECT * FROM user WHERE $fields $orderBy $orderType $limit";
+				
+			$response = ['data' => $query, 'code' => 200];
+			return response()->json($response,200);
+		
+		}else if($pattern_number == 4){
+			//AUN FALTA CODEAR ESTE PATRON, EN TODOS SE APLICA LA MISMA LOGICA
+		}else if($pattern_number == 5){
+			//AUN FALTA CODEAR ESTE ULTIMO PATRON
+		}else{
+			$response = ['error' => 'Invalid url', 'code' => 404];
+			return response()->json($response,200);
+		}
 
     }
 
