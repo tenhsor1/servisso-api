@@ -35,4 +35,42 @@ class Admin extends Model implements AuthenticatableContract,
     {
         $this->attributes['password'] = \Hash::make($value);
     }
+
+    /**
+     * Se obtienen los mensajes de errores
+     */
+    public static function getMessages(){
+        $messages = [
+            'required' => ':attribute is required',
+            'email' => ':attribute has invalid format',
+            'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
+            'digits' => ':attribute should be 10 digits',
+            'max' => ':attribute length too long',
+            'min' => ':attribute length too short',
+            'string' => ':attribute should be characters only'
+        ];
+
+        return $messages;
+    }
+
+    /**
+     * Se obtienen las validaciones del modelo Partner
+     */
+    public static function getValidations(){
+        $validation = [
+            'email' => 'required|email|max:70|min:11',
+            'password' => 'required|max:99|min:7',
+            'name' => 'required|max:45|min:4',
+            'last_name' => 'max:45|min:4',
+            'address' => 'required|max:90|min:10',
+            'phone' => 'required|digits:10|max:20|min:10',
+            'zipcode' => 'max:10|min:4',
+            'state_id' => '',
+            'country_id' => '',
+            'role_id' => '',
+        ];
+
+        return $validation;
+    }
+
 }

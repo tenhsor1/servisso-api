@@ -14,14 +14,14 @@ class NewsCommentsMigration extends Migration
     {
         Schema::create('news_comments', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('new_id')->unsigned();
+            $table->integer('news_id')->unsigned();
             $table->integer('user_id')->unsigned();
             $table->text('comment');
             $table->tinyInteger('user_type');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('new_id')->references('id')->on('news');
+            $table->foreign('news_id')->references('id')->on('news');
         });
     }
 
