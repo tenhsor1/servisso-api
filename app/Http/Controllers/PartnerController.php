@@ -26,10 +26,10 @@ class PartnerController extends Controller
     {
 		
 		
-		$partners = Partner::with('companies.branches')->get();
+		$partners = Partner::with('companies')->get();
 		$response = ['data' => $partners,'code' => 200];
 
-		return response()->json($response,200,[],JSON_PRETTY_PRINT);
+		return response()->json($response,200);
 
     }
 
@@ -107,10 +107,10 @@ class PartnerController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		
 		//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA OBTENER INFO DE EL MISMO
-		if($partnerRequested->id == $id){
+		if($userRequested->id == $id){
 			
 			$partner = Partner::find($id);
 			
