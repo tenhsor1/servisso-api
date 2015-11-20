@@ -26,7 +26,7 @@ class CompanyController extends Controller
     public function index()
     {
 		
-		$companies = Company::with('partner','branches')->get();
+		$companies = Company::with('branches')->get();
 		$response = ['data' => $companies,'code' => 200];
 		
 		return response()->json($response,200);
@@ -80,7 +80,6 @@ class CompanyController extends Controller
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
-				$company->companiescol = $request->companiescol;
 				
 				$row = $company->save();
 				
@@ -180,12 +179,12 @@ class CompanyController extends Controller
 					return response()->json($response,422);
 				}
 				
-				//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION		
-				$fields = ['name' => $request->name,'description' => $request->description,'category_id' => $request->category_id,
-				'companiescol' => $request->companiescol];
-			
-				//SE ACTUALIZA COMPANY
-				$row = Company::where('id','=',$id)->update($fields);		
+				//SE LE COLOCAN LOS NUEVOS VALORES
+				$company->name = $request->name;
+				$company->description = $request->description;
+				$company->category_id = $request->category_id;
+				
+				$row = $company->save();	
 				
 				if($row != false){
 					$response = ['data' =>$company,'code' => 200,'message' => "Company was updated succefully"];

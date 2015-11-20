@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-Use Category;
+Use App\Category;
 
 class CategoryController extends Controller
 {
@@ -39,8 +39,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = $this->getMessages();
-		$validation = $this->getValidations();
+        $messages = Category::getMessages();
+		$validation = Category::getValidations();
 		
 		$v = Validator::make($request->all(),$validation,$messages);	
 		
@@ -65,6 +65,19 @@ class CategoryController extends Controller
 		}		
 		
     }
+	
+	/**
+	* Verb: GET
+	* Url: domain/v1/category/{id}/tags
+	* Se obtienen todas las tags de una categoria especifica
+	*/
+	public function categoryTags($id){
+		
+		$category = Category::with('tags')->where('id','=',$id)->first();
+		$response = ['data' => $category,'code' => 200];
+		return response()->json($response,200);
+		
+	}
 
     /**
      * Display the specified resource.
@@ -112,8 +125,8 @@ class CategoryController extends Controller
 		
 		if(!is_null($category)){
 			
-			$messages = $this->getMessages();
-			$validation = $this->getValidations();
+			$messages = Category::getMessages();
+			$validation = Category::getValidations();
 			
 			$v = Validator::make($request->all(),$validation,$messages);	
 			
@@ -169,26 +182,5 @@ class CategoryController extends Controller
 			$response = ['error' => 'Company does not exist','code' => 422];
 			return response()->json($response,422);
 		}
-    }
-	
-	public function getMessages(){
-		$messages = 
-		[
-			'required' => ':attribute is required',
-			'max' => ':attribute length too long',
-			'min' => ':attribute length too short',
-		];
-		
-		return $messages;
-	}
-	
-	public function getValidations(){
-		$validation = 
-			[
-				'name' => 'required|max:44|min:3',
-				'description' => 'required|max:99|min:4',
-			];
-		
-		return $validation;
-	}
+    }		
 }

@@ -205,5 +205,5 @@ return [
 
     'api_url' => 'http://localhost/v1/',
     'user_types' => ['user' => 'App\User', 'guest' => 'App\Guest'],
-
+    'super_admin' => 0,
 ];

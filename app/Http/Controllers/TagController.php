@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use Tag;
-use Category;
+use App\Tag;
+use App\Category;
 
 class TagController extends Controller
 {
@@ -40,8 +40,8 @@ class TagController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = $this->getMessages();
-		$validation = $this->getValidations();
+        $messages = Tag::getMessages();
+		$validation = Tag::getValidations();
 		
 		$v = Validator::make($request->all(),$validation,$messages);	
 		
@@ -64,7 +64,7 @@ class TagController extends Controller
 			
 			if($row != false){
 				$response = ['data' => $tag,'code' => 200];
-				return response->json($response,200);
+				return response()->json($response,200);
 			}else{
 				$response = ['error' => 'It has occurred an error trying to save the tag','code' => 404];
 				return response()->json($response,404);
@@ -123,8 +123,8 @@ class TagController extends Controller
 		
 		if(!is_null($tag)){
 			
-			$messages = $this->getMessages();
-			$validation = $this->getValidations();
+			$messages = Tag::getMessages();
+			$validation = Tag::getValidations();
 			
 			$v = Validator::make($request->all(),$validation,$messages);	
 			
@@ -193,25 +193,4 @@ class TagController extends Controller
 		}
     }
 	
-	public function getMessages(){
-		$messages = 
-		[
-			'required' => ':attribute is required',
-			'max' => ':attribute length too long',
-			'min' => ':attribute length too short',
-		];
-		
-		return $messages;
-	}
-	
-	public function getValidations(){
-		$validation = 
-			[
-				'name' => 'required|max:44|min:3',
-				'description' => 'required|max:99|min:4',
-				'category_id' 'required'
-			];
-		
-		return $validation;
-	}
 }

@@ -35,7 +35,7 @@ class NewCommentSeeder extends Seeder {
         for ($i=0; $i < 20; $i++) {
             NewComment::create(
                 [
-                    'new_id'=>$faker->numberBetween(1,$numComments),
+                    'news_id'=>$faker->numberBetween(1,$numComments),
                     'user_id'=>$faker->numberBetween(1,$userIds),
                     'comment'=>$faker->text(145),
                     'user_type'=>$faker->numberBetween(0,1)
