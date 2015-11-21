@@ -91,4 +91,41 @@ class ServissoModel extends Model
         }
         return False;
     }
+
+    /**
+     * Check if limit and pages is passed as query params, and they are valid ones
+     * @param  [Request] $request HTTP Request with the query parameters in it
+     * @return [mixed] False if no 'limit' param, null if 'limit' or 'page' are wrong,
+     *                 True if 'limit' or 'page' are correct
+     */
+    protected function limitParametersAreValid($request){
+        if($request->input('limit')){
+            $limit = (int)$request->input('limit');
+            if($limit){
+                if($request->input('page')){
+                    $page = (int)$request->input('page');
+                    if(!$page){
+                        abort(422, "The page must be an integer");
+                        return null;
+                    }
+                }
+                return True;
+            }else{
+                abort(422, "The limit must be an integer and greater than 0");
+                return null;
+            }
+        }
+        return False;
+    }
+
+    public function scopeLimit($query, $request){
+        if($this->limitParametersAreValid($request)){
+            $limit = $request->input('limit');
+            $page = $request->input('page') ? $request->input('page') : 1;
+            $cont=0;
+            $page = $page * $limit;
+            $query->skip($page)->take($limit);
+        }
+        return $query;
+    }
 }
