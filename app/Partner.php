@@ -27,7 +27,7 @@ class Partner extends Model implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password','deleted_at','created_at','updated_at'];
+	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
 
     public function companies(){
         //1 partner can have multiple companies
@@ -147,4 +147,13 @@ class Partner extends Model implements AuthenticatableContract,
 		
 		return $patterns;
 	}
+	
+	public static function getValidFields(){
+								
+		$fields = array('email','name','lastname','birthdate','phone','address',
+		'zipcode','status','state_id','country_id','plan_id');
+				
+		return $fields;
+	}
+	
 }

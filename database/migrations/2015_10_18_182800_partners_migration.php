@@ -26,6 +26,8 @@ class PartnersMigration extends Migration
 			$table->integer('country_id')->unsigned();
 			$table->string('status',45);
 			$table->integer('plan_id')->unsigned();
+			$table->integer('role_id')->unsigned()->default(0);
+			$table->integer('role')->unsigned()->default(0);
 			$table->softDeletes();
             $table->timestamps();
         });
