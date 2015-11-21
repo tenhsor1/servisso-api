@@ -23,7 +23,7 @@ class Admin extends Model implements AuthenticatableContract,
     protected $fillable = array('email','name','lastname','addres','phone','zipcode');
 
 
-    protected $hidden = ['password','state_id','country_id','role_id','created_at','updated_at'];
+    protected $hidden = ['password','state_id','country_id','role_id','update_id','created_at','updated_at'];
 
     public function news()
     {

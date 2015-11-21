@@ -26,7 +26,9 @@ class CategorySeeder extends Seeder {
             Category::create(
                 [
                     'name'=>$faker->text(45),
-                    'description'=>$faker->text(500)
+                    'description'=>$faker->text(500),
+					'role_id'=>0,
+					'role'=>0 
 
                 ]
             );

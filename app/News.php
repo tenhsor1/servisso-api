@@ -13,7 +13,7 @@ class News extends Model
     protected $fillable = array('admin_id','title','content','image');
 
 
-    protected $hidden = ['status','created_at','updated_at','deleted_at'];
+    protected $hidden = ['status','created_at','role_id','role','updated_at','deleted_at'];
 
     public function admin()
     {
@@ -50,7 +50,10 @@ class News extends Model
             'title' => 'required|max:45|min:5',
             'content' => 'required|max:500|min:7',
             'image' => 'max:45|min:4',
-            'status' => ''];
+            'status' => '',
+            'role_id' => '',
+            'role' => ''
+			];
 
 
         return $validation;
