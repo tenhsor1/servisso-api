@@ -35,7 +35,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::delete('branch/tag/{tag}','BranchController@tagDestroy');//to delete a tag that belongs to one branch
     Route::resource('branch','BranchController',['only' => ['update','destroy','show','store']]);
 
-    Route::resource('categories','CategoryController',['only' => ['update','destroy','show','store']]);
+    Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
     Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
 

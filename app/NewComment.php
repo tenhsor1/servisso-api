@@ -13,7 +13,7 @@ class NewComment extends Model
     protected $fillable = array('news_id','user_type','user_id','comment');
 
 
-    protected $hidden = ['created_at','updated_at','deleted_at'];
+    protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
 
     public function news()
     {
@@ -40,10 +40,12 @@ class NewComment extends Model
      */
      public static function getValidations(){
         $validation = [
-			'new_id' => 'required',
+			'news_id' => 'required',
             'user_id' => '',
             'comment' => 'required|max:500|min:7',
-            'user_type' => 'required'
+            'user_type' => '',
+            'role_id' => '',
+            'role' => ''
 			];
 
 
