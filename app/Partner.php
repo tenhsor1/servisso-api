@@ -27,7 +27,7 @@ class Partner extends Model implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password','deleted_at','created_at','updated_at'];
+	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
 
     public function companies(){
         //1 partner can have multiple companies
@@ -88,4 +88,72 @@ class Partner extends Model implements AuthenticatableContract,
             ->get();
         return $branch;
     }
+	
+	/**
+	* Se usa para verificar que una URL tiene un formato(patrón) válido.
+	* $url = url que envia el cliente.
+	*/
+	public static function getUrlPattern($url){
+		$patterns = Partner::getPatterns();
+		
+		//Se relaciona la url con algún patrón
+		for($i = 0;$i < count($patterns);$i++){
+			if(preg_match($patterns[$i],$url)){
+				return $i+1;
+			}
+		}
+		
+		//Si la url no se relaciona con ninguno entonces esta mal  el formato, se devuelve cero.
+		return 0;
+	}
+	
+	/**
+	* Se obtiene un patrón, depiendiendo del número de patrón solicitado.
+	* $pattern_number = número de patrón
+	* Los patrones comienzan de la posición 1 en adelante. 
+	*/
+	public static function getPattern($pattern_number){	
+		$pattern_number += -1;		
+		$patterns = Partner::getPatterns();
+		
+		//Si el patrón solicitado no existe entonces se regresara el patrón por 'default'(posición cero).
+		if($pattern_number > count($patterns))
+			$pattern_number = 0;
+		
+		return $patterns[$pattern_number];
+	}
+	
+	/**
+	* Se relaciona la url solicitada con algún patrón.
+	* pattern 1: default
+	* pattern 2: limit:require, page:optional, orderBy:optional, orderType:optional
+	* pattern 3: search:require, fields:optional, orderBy:optional, orderType:optional, limit:optional, page:optional
+	* pattern 4: start:require, end:optional, orderBy:optional, orderType:optional, limit:optional, page:optional
+	* pattern 5: search:require, fields:optional, start:require, end:optional, dateFields:require, orderBy:optional, orderType:optional,
+				 limit:optional, page:optional
+	*/
+	public static function getPatterns(){
+		
+		//'$domain' se tiene que cambiar dependiendo del controlador donde estamos	
+		$domain = "\/servisso-api\/public\/v1\/partner";
+		
+		$patterns = array(
+			"/^$domain$/",
+			"/^$domain(\?limit=[0-9]{1,2})(&page=[1-9]{1,2})?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?$/",
+			"/^$domain(\?search=(\w\+?)+)(&fields=\([[:alpha:],]+\))?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/",
+			"/^$domain(\?start=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])(&end=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/",
+			"/^$domain\?search=(\w\+?)+(&fields=\([[:alpha:],]+\))?&start=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9](&end=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])?&dateFields=\([[:alpha:],]+\)(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/"
+		);
+		
+		return $patterns;
+	}
+	
+	public static function getValidFields(){
+								
+		$fields = array('email','name','lastname','birthdate','phone','address',
+		'zipcode','status','state_id','country_id','plan_id');
+				
+		return $fields;
+	}
+	
 }

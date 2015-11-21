@@ -17,8 +17,9 @@ class BranchController extends Controller
 {
 	
 	public function __construct(){
-        $this->middleware('jwt.auth:partner', ['only' => ['store','update','destroy','tags','tagStore','tagUpdate','tagDestroy']]);
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['store','update','destroy','services']]);
         $this->middleware('default.headers');
+		$this->user_roles = \Config::get('app.user_roles');
     }
 	
     /**
@@ -30,6 +31,7 @@ class BranchController extends Controller
     {
 		//SE OBTINEN LAS BRANCHES
 		$branches = Branch::all();
+		$count = $branches->count();
 		
 		//SE ITERA SOBRE LAS BRANCHES PARA AGREGARLE LOS TAGS Y DARLE FORMA AL JSON
 		foreach($branches as $branch){
@@ -43,7 +45,7 @@ class BranchController extends Controller
 			$branch->tags = $tags;
 		}
 			
-		$response = ['data' => $branches,'code' => 200];
+		$response = ['code' => 200,'count' => $count,'data' => $branches];
 		return response()->json($response,200);
 		
     }
@@ -192,7 +194,7 @@ class BranchController extends Controller
      */
     public function update(Request $request, $id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		
         $messages = Branch::getMessages();
 		$validation = Branch::getValidations();
@@ -215,7 +217,7 @@ class BranchController extends Controller
 			$company = $branch->company;
 			
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS BRANCHES
-			if($partnerRequested->id == $company->partner_id){				
+			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){				
 				
 				//SE LE COLOCAN LOS NUEVOS VALORES
 				$branch->address = $request->address;
@@ -224,6 +226,8 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = 1;
 				$branch->schedule = $request->schedule;
+				$branch->role_id = $userRequested->id;
+				$branch->role = $this->user_roles[$userRequested->roleAuth];
 						
 				$branch->save();
 				
@@ -274,7 +278,7 @@ class BranchController extends Controller
     public function destroy($id)
     {
 		
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		
         //SE OBTIENE LA BRANCH SOLICITIDA JUNTO CON LA COMPANY QUE LE PERTENECE
         $branch = Branch::with('company')->where('id','=',$id)->first();
@@ -285,7 +289,11 @@ class BranchController extends Controller
 			$company = $branch->company;
 			
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
-			if($partnerRequested->id == $company->partner_id){
+			if($userRequested->id == $company->partner_id || $userRequested->roleAuth == "ADMIN"){
+				
+				$branch->role_id = $userRequested->id;
+				$branch->role = $this->user_roles[$userRequested->roleAuth];
+				$branch->save();
 				
 				//SE BORRAR LA BRANCH
 				$rows = $branch->delete();
@@ -407,5 +415,3 @@ class BranchController extends Controller
 	}
 }
 	
-	
-}
