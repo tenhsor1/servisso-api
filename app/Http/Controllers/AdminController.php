@@ -68,8 +68,8 @@ class AdminController extends Controller
             //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
             if ($v->fails()) {
                 $response = ['error' => $v->messages(), 'code' => 422];
-                return response()->json($response, 422, [], JSON_PRETTY_PRINT);
-            }
+                return response()->json($response, 422);
+            }    
 
             //SE CREA UN ADMIN
             $admin = new Admin;
@@ -91,10 +91,10 @@ class AdminController extends Controller
 
             if (!is_null($admin)) {
                 $response = ['code' => 200, 'message' => 'Admin was created succefully'];
-                return response()->json($response, 200, [], JSON_PRETTY_PRINT);
+                return response()->json($response, 200);
             } else {
                 $response = ['error' => 'It has occurred an error trying to save the admin', 'code' => 500];
-                return response()->json($response, 500, [], JSON_PRETTY_PRINT);
+                return response()->json($response, 500);
             }
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
@@ -175,13 +175,13 @@ class AdminController extends Controller
 
                 if ($row != false) {
                     $response = ['code' => 200, 'message' => 'Admin was modify succefully'];
-                    return response()->json($response, 200, [], JSON_PRETTY_PRINT);
+                    return response()->json($response, 200);
                 } else {
                     $response = ['error' => 'It has occurred an error trying to upate the admin', 'code' => 500];
-                    return response()->json($response, 500, [], JSON_PRETTY_PRINT);
+                    return response()->json($response, 500);
                 }
 
-            }else{
+            }else{ 
                 //EN DADO CASO QUE EL ID DEL ADMIN NO LE PERTENEZCA
                 $response = ['error' => 'Unauthorized','code' => '404'];
                 return response()->json($response,404);

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-Use Category;
+Use App\Category;
 
 class CategoryController extends Controller
 {
@@ -47,12 +47,12 @@ class CategoryController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-        
+    {       
 		$adminRequested = \Auth::User();//quien hizo la peticion
         if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion es un admin
 		$messages = Category::getMessages();
         $validation = Category::getValidations();
+
 		
 		$v = Validator::make($request->all(),$validation,$messages);	
 		
@@ -84,6 +84,19 @@ class CategoryController extends Controller
             }
 		
     }
+	
+	/**
+	* Verb: GET
+	* Url: domain/v1/category/{id}/tags
+	* Se obtienen todas las tags de una categoria especifica
+	*/
+	public function categoryTags($id){
+		
+		$category = Category::with('tags')->where('id','=',$id)->first();
+		$response = ['data' => $category,'code' => 200];
+		return response()->json($response,200);
+		
+	}
 
     /**
      * Display the specified resource.
@@ -206,7 +219,7 @@ class CategoryController extends Controller
 			$response = ['error' => 'Company does not exist','code' => 422];
 			return response()->json($response,422);
 		}
-    } 
-	
 
+    } 
+	    
 }

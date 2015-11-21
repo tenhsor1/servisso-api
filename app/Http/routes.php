@@ -1,5 +1,5 @@
 <?php
-
+   
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -10,6 +10,7 @@
 | and give it the controller to call when that URI is requested.
 |
 */
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -24,6 +25,9 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('call', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
+	
+	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
+	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
     Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
     Route::resource('company','CompanyController',['only' => ['update','destroy','show','store']]);
@@ -38,6 +42,10 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
     Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
+	Route::resource('branch','BranchController',['only' => ['index','update','destroy','show','store']]);
+	Route::get('category/{id}/tags','CategoryController@categoryTags');
+	Route::resource('category','CategoryController',['only' => ['index']]);
+	Route::resource('tag','TagController',['only' => ['index','store','show','update','destroy']]);
 
     Route::resource('admin', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('news', 'NewController', ['only' => ['index','update', 'destroy', 'show', 'store']]);

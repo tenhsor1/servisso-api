@@ -12,6 +12,7 @@ use App\Service;
 use App\Branch;
 use App\Partner;
 use App\User;
+use App\Company;
 
 class UserRateController extends Controller
 {
@@ -65,7 +66,7 @@ class UserRateController extends Controller
 		}
 		
 		$service_id = $request->service_id;
-		$service = Service::find($service_id);
+		$service = Service::with('branch.company')->where('id','=',$service_id)->first();				
 		
 		//SE VALIDA QUE EL SERVICE EXISTA
 		if(!is_null($service)){
@@ -75,11 +76,15 @@ class UserRateController extends Controller
 			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
 			if($userRequested->id == $user->id){
 				
+				
+				
+				$company = $service->branch->company;	
+				
 				$rate = new UserRate;
 				$rate->service_id = $request->service_id;
 				$rate->rate = $request->rate;
-				$rate->comment = $request->comment;
-				$rate->partner_id = $request->partner_id;
+				$rate->comment = $request->comment;				
+				$rate->partner_id = $company->partner_id;
 				
 				$rate = $rate->save();
 				

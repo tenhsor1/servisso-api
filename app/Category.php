@@ -21,7 +21,6 @@ class Category extends Model
         return $this->hasMany('App\Tag');
     }
 
-
     public static function getMessages(){
         $messages = [
             'required' => ':attribute is required',
@@ -49,5 +48,5 @@ class Category extends Model
 
 
         return $validation;
-    }
+    }     
 }

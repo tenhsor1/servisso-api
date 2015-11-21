@@ -14,7 +14,7 @@ class Branch extends Model
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id');
 	
-	protected $hidden = ['deleted_at','created_at','updated_at','company'];
+	protected $hidden = ['deleted_at','created_at','updated_at','role_id','role'];
 
 	public function company()
     {

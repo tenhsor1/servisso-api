@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Log;
 
 class Handler extends ExceptionHandler
 {
@@ -47,8 +48,19 @@ class Handler extends ExceptionHandler
         }
 
         if ($e instanceof NotFoundHttpException){
-            $errorJSON = ['error' => 'Endpoint not found', 'code' => 404];
-            return response()->json($errorJSON, 404);
+            $message = $e->getMessage() ? $e->getMessage() : 'Endpoint not found';
+            $code = $e->getStatusCode() ? $e->getStatusCode() : 404;
+
+            $errorJSON = ['error' => $message, 'code' => $code];
+            return response()->json($errorJSON, $code);
+        }
+
+        if ($e instanceof HttpException){
+            $message = $e->getMessage() ? $e->getMessage() : 'Internal Server Error';
+            $code = $e->getStatusCode() ? $e->getStatusCode() : 500;
+
+            $errorJSON = ['error' => $message, 'code' => $code];
+            return response()->json($errorJSON, $code);
         }
 
         return parent::render($request, $e);

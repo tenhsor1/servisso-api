@@ -17,6 +17,8 @@ class TagsMigration extends Migration
             $table->string('name',100);
             $table->text('description')->nullable();
             $table->integer('category_id')->unsigned();
+			$table->integer('role_id')->unsigned()->default(0);
+			$table->integer('role')->unsigned()->default(0);
 			$table->softDeletes();
             $table->timestamps();
 

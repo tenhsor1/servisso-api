@@ -26,7 +26,7 @@ class ServiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = \Auth::User();
         $services = [];
@@ -35,13 +35,23 @@ class ServiceController extends Controller
                                 ->with('userable')
                                 ->with('userRate')
                                 ->with('partnerRate')
+                                ->searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
                                 ->get();
+            //$services->get();
+
         }else if($user->roleAuth == 'PARTNER'){
             $services = Service::wherePartner($user->id)
                                 ->with('branch')
                                 ->with('userable')
                                 ->with('userRate')
                                 ->with('partnerRate')
+                                ->searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
                                 ->get();
         }
         return response()->json(['data'=>$services], 200);
