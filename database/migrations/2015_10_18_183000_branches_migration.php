@@ -22,6 +22,8 @@ class BranchesMigration extends Migration
 			$table->double('longitude',11,7);
 			$table->integer('state_id')->unsigned();
 			$table->string('schedule',100);
+			$table->integer('role_id')->unsigned()->default(0);
+			$table->integer('role')->unsigned()->default(0);
 			$table->softDeletes();
             $table->timestamps();
 

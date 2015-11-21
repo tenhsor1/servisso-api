@@ -49,8 +49,7 @@ class UserRate extends Model
 		$validation = 
 			[
 				'service_id' => 'required|numeric',
-				'rate' => 'required|numeric',
-				'partner_id' => 'required|numeric',
+				'rate' => 'required|numeric'
 			];
 		
 		return $validation;

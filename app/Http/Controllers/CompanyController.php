@@ -14,8 +14,9 @@ class CompanyController extends Controller
 {
 	
 	public function __construct(){
-        $this->middleware('jwt.auth:partner', ['only' => ['show','destroy','update','store']]);
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store']]);
         $this->middleware('default.headers');
+		$this->user_roles = \Config::get('app.user_roles');
     }
 	
     /**
@@ -26,8 +27,9 @@ class CompanyController extends Controller
     public function index()
     {
 		
-		$companies = Company::with('partner','branches')->get();
-		$response = ['data' => $companies,'code' => 200];
+		$companies = Company::with('branches')->get();
+		$count = $companies->count();
+		$response = ['count' => $count,'code' => 200,'data' => $companies];
 		
 		return response()->json($response,200);
     }
@@ -80,7 +82,6 @@ class CompanyController extends Controller
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
-				$company->companiescol = $request->companiescol;
 				
 				$row = $company->save();
 				
@@ -159,7 +160,7 @@ class CompanyController extends Controller
      */
     public function update(Request $request, $id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		
         $company = Company::find($id);
 		
@@ -167,7 +168,7 @@ class CompanyController extends Controller
 		if(!is_null($company)){
 			
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
-			if($partnerRequested->id == $company->partner_id){
+			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
 				
 				$messages = Company::getMessages();
 				$validation = Company::getValidations();
@@ -180,19 +181,21 @@ class CompanyController extends Controller
 					return response()->json($response,422);
 				}
 				
-				//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION		
-				$fields = ['name' => $request->name,'description' => $request->description,'category_id' => $request->category_id,
-				'companiescol' => $request->companiescol];
-			
-				//SE ACTUALIZA COMPANY
-				$row = Company::where('id','=',$id)->update($fields);		
+				//SE LE COLOCAN LOS NUEVOS VALORES
+				$company->name = $request->name;
+				$company->description = $request->description;
+				$company->category_id = $request->category_id;
+				$company->role_id = $userRequested->id;
+				$company->role = $this->user_roles[$userRequested->roleAuth];
 				
-				if($row != false){
+				$company->save();	
+				
+				if($company != false){
 					$response = ['data' =>$company,'code' => 200,'message' => "Company was updated succefully"];
 					return response()->json($response,200);
 				}else{
-					$response = ['error' => 'It has occurred an error trying to update the company','code' => 404];
-					return response()->json($response,404);
+					$response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
+					return response()->json($response,500);
 				}	
 				
 			}else{
@@ -215,7 +218,7 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-		$partnerRequested = \Auth::User();	
+		$userRequested = \Auth::User();	
 		
         $company = Company::find($id);
 		
@@ -223,7 +226,11 @@ class CompanyController extends Controller
 		if(!is_null($company)){
 			
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
-			if($partnerRequested->id == $company->partner_id){
+			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+				
+				$company->role_id = $userRequested->id;
+				$company->role = $this->user_roles[$userRequested->roleAuth];
+				$company->save();
 				
 				//SE BORRA LA COMPANY
 				$row = $company->delete();
@@ -232,8 +239,8 @@ class CompanyController extends Controller
 					$response = ['code' => 200,'message' => "Company was deleted succefully"];
 					return response()->json($response,200);
 				}else{
-					$response = ['error' => 'It has occurred an error trying to delete the company','code' => 404];
-					return response()->json($response,404);
+					$response = ['error' => 'It has occurred an error trying to delete the company','code' => 500];
+					return response()->json($response,500);
 				}
 				
 			}else{

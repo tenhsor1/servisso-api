@@ -11,10 +11,10 @@ class Tag extends Model
     protected $table = "tags";
 
 
-    protected $fillable = array('name','description');
+    protected $fillable = array('name','description','category_id');
 
 
-    protected $hidden = ['category_id','created_at','updated_at'];
+    protected $hidden = ['created_at','updated_at','deleted_at','role_id','role'];
 	
 	public function category()
     {
@@ -44,6 +44,7 @@ class Tag extends Model
 			[
 				'name' => 'required|max:44|min:4',
 				'description' => 'required|max:100|min:4',
+				'category_id' => 'required'
 			];
 		
 		return $validation;

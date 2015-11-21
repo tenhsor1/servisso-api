@@ -12,7 +12,7 @@ class Company extends Model
 
 	protected $fillable = ['name','description','companiescol','partner_id','category_id'];
 	
-	protected $hidden = ['deleted_at','created_at','updated_at'];
+	protected $hidden = ['partner_id','deleted_at','created_at','updated_at','role_id','role'];
 
 	public function partner()
     {
@@ -53,11 +53,9 @@ class Company extends Model
 	public static function getValidations(){
 		$validation = 
 			[
-				'partner_id' => 'required',
 				'name' => 'required|max:59|min:4',
 				'description' => 'required|max:499|min:4',
-				'category_id' => 'required',
-				'companiescol' => 'required'
+				'category_id' => 'required'
 			];
 		
 		return $validation;
