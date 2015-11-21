@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CategoriesMigration extends Migration
+class GuestsMigration extends Migration
 {
     /**
      * Run the migrations.
@@ -12,13 +12,14 @@ class CategoriesMigration extends Migration
      */
     public function up()
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('guests', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name',100);
-            $table->text('description')->nullable();
-			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
-			$table->softDeletes();
+            $table->string('email',70);
+            $table->string('name', 45);
+            $table->string('address', 90)->nullable();
+            $table->string('phone', 20);
+            $table->string('zipcode', 10)->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ class CategoriesMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('categories');
+        Schema::drop('guests');
     }
 }

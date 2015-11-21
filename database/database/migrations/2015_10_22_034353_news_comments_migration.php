@@ -19,11 +19,11 @@ class NewsCommentsMigration extends Migration
             $table->text('comment');
             $table->tinyInteger('user_type');
 			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
-            $table->timestamps();  
+            $table->integer('role')->unsigned();
+            $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('news_id')->references('id')->on('news')->onDelete('cascade');    
+            $table->foreign('news_id')->references('id')->on('news');
         });
     }
 

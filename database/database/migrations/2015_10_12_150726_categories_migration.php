@@ -17,7 +17,7 @@ class CategoriesMigration extends Migration
             $table->string('name',100);
             $table->text('description')->nullable();
 			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
+            $table->integer('role')->unsigned();
 			$table->softDeletes();
             $table->timestamps();
         });

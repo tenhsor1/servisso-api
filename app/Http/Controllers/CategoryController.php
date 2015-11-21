@@ -9,6 +9,10 @@ Use Category;
 
 class CategoryController extends Controller
 {
+	public function __construct(){
+        $this->middleware('jwt.auth:admin', ['only' => ['update','store','destroy']]);
+		$this->UserRoles = \Config::get('app.user_roles'); 
+	}
     /**
      * Display a listing of the resource.
      *
@@ -16,9 +20,14 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
-		$response = ['data' => $categories, 'code' => 200];
-		return response()->json($response,200);
+		$categories = Category::all();
+		if(!is_null($categories)){
+			$response = ['code' => 200,'data' => $categories];
+			return response()->json($response,200);
+		}else{
+			$response = ['error' => 'News are empty','code' => 404];
+			return response()->json($response,404);
+		}
     }
 
     /**
@@ -39,30 +48,40 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = $this->getMessages();
-		$validation = $this->getValidations();
+        
+		$adminRequested = \Auth::User();//quien hizo la peticion
+        if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion es un admin
+		$messages = Category::getMessages();
+        $validation = Category::getValidations();
 		
 		$v = Validator::make($request->all(),$validation,$messages);	
 		
 		if($v->fails()){
 			$response = ['error' => 'Bad request','data' => $v->messages() ,'code' =>  422];
 			return response()->json($response,422);
-		}
+		}    
 		
-		//SE CREA UNA INSTANCIA DE CATEGORY
-		$category = new Category;
-		$category->name = $request->name;
-		$category->description = $request->description;
-		
-		$row = $category->save();
-		
-		if($row != false){
-			$response = ['data' => $category,'code' => 200];
-			return response()->json($response,200);
+			//SE CREA UNA INSTANCIA DE CATEGORY
+			$category = new Category;
+			$category->name = $request->name;
+			$category->description = $request->description;
+			$category->role_id = $adminRequested->id;//id de quien modifico
+            $category->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
+			
+			$row = $category->save();
+			
+			if($row != false){
+				$response = ['data' => $category,'code' => 200];
+				return response()->json($response,200);
+			}else{
+				$response = ['error' => 'It has occurred an error trying to save the category','code' => 404];
+				return response()->json($response,404);
+			}	
 		}else{
-			$response = ['error' => 'It has occurred an error trying to save the category','code' => 404];
-			return response()->json($response,404);
-		}		
+                //EN DADO CASO QUE EL ID DE NO SEA UN ADMINISTRADOR
+                $response = ['error' => 'Unauthorized','code' => 403];
+                return response()->json($response,403);
+            }
 		
     }
 
@@ -112,27 +131,36 @@ class CategoryController extends Controller
 		
 		if(!is_null($category)){
 			
-			$messages = $this->getMessages();
-			$validation = $this->getValidations();
+			$messages = Category::getMessages();
+			$validation = Category::getValidations();
 			
 			$v = Validator::make($request->all(),$validation,$messages);	
-			
+			    
 			if($v->fails()){
 				$response = ['error' => 'Bad request','data' => $v->messages() ,'code' =>  422];
 				return response()->json($response,422);
 			}
 			
-			$category->name = $request->name;
-			$category->description = $request->description;
-			
-			$row = $category->save();
-			
-			if($row != false){
-				$response = ['data' => $category,'code' => 200];
-				return response()->json($response,200);
+			$adminRequested = \Auth::User();//quien hizo la peticion
+			if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion es un admin
+				$category->name = $request->name;
+				$category->description = $request->description;
+				$category->role_id = $adminRequested->id;//id de quien modifico
+				$category->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
+				
+				$row = $category->save();
+				
+				if($row != false){
+					$response = ['data' => $category,'code' => 200];
+					return response()->json($response,200);
+				}else{
+					$response = ['error' => 'It has occurred an error trying to update the category','code' => 404];
+					return response()->json($response,404);
+				}
 			}else{
-				$response = ['error' => 'It has occurred an error trying to update the category','code' => 404];
-				return response()->json($response,404);
+				//EN DADO CASO QUE EL ID DE NO SEA UN ADMINISTRADOR
+				$response = ['error' => 'Unauthorized','code' => 403];
+				return response()->json($response,403);
 			}
 			
 		}else{
@@ -152,43 +180,33 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
 		if(!is_null($category)){
-			
-			//SE BORRA CATEGORY
-			$rows = $category->delete();
-			
-			if($rows > 0){
-				$response = ['code' => 200,'message' => "Company was deleted succefully"];
-				return response()->json($response,200);
+			$adminRequested = \Auth::User();//quien hizo la peticion
+			if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion es un admin
+				$category->role_id = $adminRequested->id;//id de quien modifico
+                $category->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
+                $category->save(); 
+				//SE BORRA CATEGORY
+				$rows = $category->delete();
+				
+				if($rows > 0){
+					$response = ['code' => 200,'message' => "Company was deleted succefully"];
+					return response()->json($response,200);
+				}else{
+					$response = ['error' => 'It has occurred an error trying to delete the company','code' => 404];
+					return response()->json($response,404);
+				}
 			}else{
-				$response = ['error' => 'It has occurred an error trying to delete the company','code' => 404];
-				return response()->json($response,404);
-			}	
+				//EN DADO CASO QUE EL ID DE NO SEA UN ADMINISTRADOR
+				$response = ['error' => 'Unauthorized','code' => 403];
+				return response()->json($response,403);
+			}			
 			
 		}else{
 			//EN DADO CASO QUE EL ID DE CATEGORY NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Company does not exist','code' => 422];
 			return response()->json($response,422);
 		}
-    }
+    } 
 	
-	public function getMessages(){
-		$messages = 
-		[
-			'required' => ':attribute is required',
-			'max' => ':attribute length too long',
-			'min' => ':attribute length too short',
-		];
-		
-		return $messages;
-	}
-	
-	public function getValidations(){
-		$validation = 
-			[
-				'name' => 'required|max:44|min:3',
-				'description' => 'required|max:99|min:4',
-			];
-		
-		return $validation;
-	}
+
 }

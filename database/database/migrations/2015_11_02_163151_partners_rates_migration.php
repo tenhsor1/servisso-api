@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CategoriesMigration extends Migration
+class PartnersRatesMigration extends Migration
 {
     /**
      * Run the migrations.
@@ -12,14 +12,15 @@ class CategoriesMigration extends Migration
      */
     public function up()
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('partner_rates', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name',100);
-            $table->text('description')->nullable();
-			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
+            $table->integer('service_id')->unsigned();
+            $table->float('rate');
+            $table->text('comment')->nullable();
 			$table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('service_id')->references('id')->on('services');
         });
     }
 
@@ -30,6 +31,6 @@ class CategoriesMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('categories');
+        Schema::drop('partner_rates');
     }
 }

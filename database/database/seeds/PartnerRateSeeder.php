@@ -1,13 +1,16 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use App\Category;
+
+// import the Service model.
+use App\Service;
+use App\PartnerRate;
 
 // Use faker for generate random strings.
 // Faker information: https://github.com/fzaninotto/Faker
 use Faker\Factory as Faker;
 
-class CategorySeeder extends Seeder {
+class PartnerRateSeeder extends Seeder {
 
     /**
      * Run the database seeds.
@@ -21,14 +24,19 @@ class CategorySeeder extends Seeder {
 
         // For covering the users, we get the count from user model.
         // So that way the foreign key user_id won't give us any problems.
+        $serviceIds = 5;//default
 
-        for ($i=0; $i < 40; $i++) {
-            Category::create(
+        if(Schema::hasTable('services'))
+            $serviceIds = Service::all()->count();
+
+
+
+        for ($i = 0; $i < 40; $i++) {
+            PartnerRate::create(
                 [
-                    'name'=>$faker->text(45),
-                    'description'=>$faker->text(500),
-					'role_id'=>0,
-					'role'=>0 
+                    'service_id'=>$faker->numberBetween(1,$serviceIds),
+                    'rate'=>$faker->numberBetween(1,$serviceIds),
+                    'comment'=>$faker->text(500),
 
                 ]
             );

@@ -27,8 +27,8 @@ class CategorySeeder extends Seeder {
                 [
                     'name'=>$faker->text(45),
                     'description'=>$faker->text(500),
-					'role_id'=>0,
-					'role'=>0 
+                    'role_id'=>0,
+                    'role'=>0
 
                 ]
             );

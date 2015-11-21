@@ -19,12 +19,12 @@ class NewsMigration extends Migration
             $table->text('content');
             $table->string('image',145);
             $table->integer('status')->unsigned();
-			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
+            $table->integer('role_id')->unsigned();
+            $table->integer('role')->unsigned();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('admin_id')->references('id')->on('admins');   
+            $table->foreign('admin_id')->references('id')->on('admins');
         });
     }
 

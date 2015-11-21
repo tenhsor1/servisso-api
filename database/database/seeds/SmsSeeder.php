@@ -3,14 +3,14 @@
 use Illuminate\Database\Seeder;
 
 // import the Call model.
-use App\News;
-use App\Admin;
+use App\Sms;
+use App\Service;
 
 // Use faker for generate random strings.
 // Faker information: https://github.com/fzaninotto/Faker
 use Faker\Factory as Faker;
 
-class NewSeeder extends Seeder {
+class SmsSeeder extends Seeder {
 
     /**
      * Run the database seeds.
@@ -24,20 +24,13 @@ class NewSeeder extends Seeder {
 
         // For covering the services, we get the count from service model.
         // So that way the foreign key service_id won't give us any problems.
-        $numAdmins= 5;//default
-        if(Schema::hasTable('admins'))
-        $numAdmins = Admin::all()->count();
-        for ($i=0; $i < 20; $i++) {
-            News::create(
+        $numServices = Service::all()->count();
+        for ($i=0; $i < 40; $i++) {
+            Sms::create(
                 [
-                    'admin_id'=>$faker->numberBetween(1,$numAdmins),
-                    'title'=>$faker->text(45),
-                    'content'=>$faker->text(1545),
-                    'image'=>$faker->text(145),
-                    'status'=>$faker->numberBetween(0,1),  
-					'role_id'=>0,
-					'role'=>0 
-
+                    'message'=>$faker->text(200),
+                    'to'=>$faker->phoneNumber,
+                    'service_id'=>$faker->unique()->numberBetween(1,$numServices)
                 ]
             );
         }
