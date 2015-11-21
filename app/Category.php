@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Category extends Model
 {
 	use SoftDeletes;
-    protected $table = "categories";
+    protected $table = "categories";  
 
 
     protected $fillable = array('name','description');
 
 
     protected $hidden = ['role_id','role','created_at','updated_at','deleted_at'];
+
 	
 	public function tags()
     {
@@ -48,5 +49,7 @@ class Category extends Model
 
 
         return $validation;
+   
     }     
+
 }

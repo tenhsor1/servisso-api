@@ -13,7 +13,7 @@ class CategoryController extends Controller
         $this->middleware('jwt.auth:admin', ['only' => ['update','store','destroy']]);
 		$this->UserRoles = \Config::get('app.user_roles'); 
 	}
-    /**
+    /**    
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -28,6 +28,7 @@ class CategoryController extends Controller
 			$response = ['error' => 'News are empty','code' => 404];
 			return response()->json($response,404);
 		}
+
     }
 
     /**
@@ -47,7 +48,9 @@ class CategoryController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
+
     {       
+
 		$adminRequested = \Auth::User();//quien hizo la peticion
         if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion es un admin
 		$messages = Category::getMessages();
@@ -190,7 +193,7 @@ class CategoryController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
+    {  
         $category = Category::find($id);
 		if(!is_null($category)){
 			$adminRequested = \Auth::User();//quien hizo la peticion
@@ -221,5 +224,5 @@ class CategoryController extends Controller
 		}
 
     } 
-	    
+
 }
