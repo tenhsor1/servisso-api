@@ -36,10 +36,11 @@ class AdminSeeder extends Seeder {
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
-                'role_id'=>$faker->numberBetween(1,$roleIds)
+                'role_id'=>0,
+                'update_id'=>0
             ]
         );
-
+  
         Admin::create(
             [
                 'email'=>'ernesto.noriega@gmail.com',
@@ -51,7 +52,9 @@ class AdminSeeder extends Seeder {
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
-                'role_id'=>$faker->numberBetween(1,$roleIds)
+                'role_id'=>1,
+                'update_id'=>0
+				
             ]
         );
 
@@ -66,7 +69,8 @@ class AdminSeeder extends Seeder {
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
-                'role_id'=>$faker->numberBetween(1,$roleIds)
+                'role_id'=>1,
+                'update_id'=>0  
             ]
         );
     }

@@ -38,7 +38,9 @@ class NewCommentSeeder extends Seeder {
                     'news_id'=>$faker->numberBetween(1,$numComments),
                     'user_id'=>$faker->numberBetween(1,$userIds),
                     'comment'=>$faker->text(145),
-                    'user_type'=>$faker->numberBetween(0,1)
+                    'user_type'=>$faker->numberBetween(0,1),
+					'role_id'=>0,
+					'role'=>0 
 
                 ]
             );

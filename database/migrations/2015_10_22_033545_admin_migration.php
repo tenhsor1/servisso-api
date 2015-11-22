@@ -24,6 +24,7 @@ class AdminMigration extends Migration
             $table->integer('state_id')->unsigned();
             $table->integer('country_id')->unsigned();
             $table->integer('role_id')->unsigned();
+            $table->integer('update_id')->unsigned();
             $table->timestamps();
             $table->softDeletes();
         });
