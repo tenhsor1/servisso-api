@@ -38,6 +38,7 @@ class ServiceController extends Controller
                                 ->searchBy($request)
                                 ->betweenBy($request)
                                 ->orderByCustom($request)
+                                ->limit($request)
                                 ->get();
             //$services->get();
 
@@ -50,6 +51,7 @@ class ServiceController extends Controller
                                 ->searchBy($request)
                                 ->betweenBy($request)
                                 ->orderByCustom($request)
+                                ->limit($request)
                                 ->get();
         }
         return response()->json(['data'=>$services], 200);
