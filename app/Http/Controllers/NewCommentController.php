@@ -6,28 +6,30 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\NewComment;
 use Validator;
-use JWTAuth;
+use JWTAuth;  
 use App\Http\Controllers\Controller;
 
 class NewCommentController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:admin|user', ['only' => ['store','update','destroy']]);
+        $this->middleware('jwt.auth:admin|partner', ['only' => ['store','update','destroy']]);
+		$this->UserRoles = \Config::get('app.user_roles');
     }
-    /**
+    /**  
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $news = NewComment::all();
-        if(!is_null($news)){
-            $response = ['code' => 200,'data' => $news];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+        $comment = NewComment::all();
+		$userRequested = \Auth::User();
+        if(!is_null($comment)){
+            $response = ['code' => 200,'data' => $comment];
+            return response()->json($response,200);
         }else{
-            $response = ['error' => 'Admin are empty','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            $response = ['error' => 'Comment are empty','code' => 404];
+            return response()->json($response,404);
         }
     }
 
@@ -56,23 +58,25 @@ class NewCommentController extends Controller
         //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
         if($v->fails()){
             $response = ['error' => $v->messages(), 'code' =>  406];
-            return response()->json($response,460,[],JSON_PRETTY_PRINT);
+            return response()->json($response,460);
+			return response()->json($response,422);
         }
-
-          $new = new NewComment;
-            $new->news_id = $request->news_id;
-            $new->user_id = $userRequested->id;
-            $new->comment = $request->comment;
-            $new->user_type = $request->user_type;
-
-            $row= $new->save();
+		  
+			$comment = new NewComment;
+            $comment->news_id = $request->news_id;
+            $comment->user_id = $userRequested->id;  
+            $comment->comment = $request->comment;  	
+            $comment->user_type = $this->UserRoles[$userRequested->roleAuth]; 
+			$comment->role_id = $userRequested->id;//id de quien modifico
+            $comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
+            $row= $comment->save();
 
         if($row != false){
             $response = ['code' => 200,'message' => 'News was created succefully'];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+            return response()->json($response,200);
         }else{
             $response = ['error' => 'It has occurred an error trying to save the news','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            return response()->json($response,404);
         }
 
 
@@ -86,13 +90,13 @@ class NewCommentController extends Controller
      */
     public function show($id)
     {
-        $news = NewComment::find($id);
-        if(!is_null($news)){
-            $response = ['code' => 200,'data' => $news];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+        $comment = NewComment::find($id);
+        if(!is_null($comment)){
+            $response = ['code' => 200,'data' => $comment];
+            return response()->json($response,200);
         }else{
             $response = ['error' => 'Comment does no exist','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            return response()->json($response,404);
         }
     }
 
@@ -116,27 +120,29 @@ class NewCommentController extends Controller
      */
     public function update(Request $request, $id)
     {
-		$new = NewComment::find($id);
-        if(!is_null($new)){
+		$comment = NewComment::find($id);
+        if(!is_null($comment)){
 			$userRequested = \Auth::User();
-			if($userRequested->id == $new->user_id){
+			if($userRequested->id == $comment->user_id || $userRequested->roleAuth  == "ADMIN"){
 				$messages = NewComment::getMessages();
                 $validation = NewComment::getValidations();
                 $v = Validator::make($request->all(),$validation,$messages);
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
                     $response = ['error' => $v->messages(),'code' => 422];
-                    return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,404);
                 }
 
-                $new->news_id = $request->news_id;
-				$new->user_id = $userRequested->id;
-				$new->comment = $request->comment;
-				$new->user_type = $request->user_type;
-                $row = $new->save();
+                $comment->news_id = $request->news_id;
+				$comment->user_id = $userRequested->id;
+				$comment->comment = $request->comment;
+				$comment->user_type = $this->UserRoles[$userRequested->roleAuth];  
+				$comment->role_id = $userRequested->id;//id de quien modifico
+				$comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
+                $row = $comment->save();
                 if($row != false){
                     $response = ['code' => 200,'message' => 'Comment was update succefully'];
-					return response()->json($response,200,[],JSON_PRETTY_PRINT);
+					return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to update the comment','code' => 404];
                     return response()->json($response,404);
@@ -161,17 +167,20 @@ class NewCommentController extends Controller
      */
     public function destroy($id)
     {
-		$new = NewComment::find($id);
-        if(!is_null($new)){
+		$comment = NewComment::find($id);
+        if(!is_null($comment)){
 			$userRequested = \Auth::User();
-			if($userRequested->id == $new->user_id){
-					$rows = $new->delete();
+			if($userRequested->id == $comment->user_id || $userRequested->roleAuth  == "ADMIN"){
+					$comment->role_id = $userRequested->id;//id de quien modifico
+					$comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
+					$comment->save(); 
+					$rows = $comment->delete();
 					if($rows > 0){
 						$response = ['code' => 200,'message' => "Comment was deleted succefully"];
-						return response()->json($response,200,[],JSON_PRETTY_PRINT);
+						return response()->json($response,200);
 					}else{
 						$response = ['error' => 'It has occurred an error trying to delete the Comment','code' => 404];
-						return response()->json($response,404,[],JSON_PRETTY_PRINT);
+						return response()->json($response,404);
 					}
 				
 			}else{

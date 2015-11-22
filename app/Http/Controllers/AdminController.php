@@ -14,7 +14,8 @@ class AdminController extends Controller
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['update','show','store','index','destroy']]);
         $this->middleware('default.headers');
-        $this->super = \Config::get('app.super_admin');
+        $this->AdminRole = \Config::get('app.admin_roles');
+        //$this->UserRoles = \Config::get('app.user_roles');
     }
     /**
      * Display a listing of the resource.
@@ -24,18 +25,17 @@ class AdminController extends Controller
     public function index()
     {
         $adminRequested = \Auth::User();
-        if($adminRequested->role_id == $this->super){
+        if($adminRequested->role_id == $this->AdminRole['SUPER']){
             $admin = Admin::all();
             if(!is_null($admin)){
                 $response = ['code' => 200,'data' => $admin];
-                return response()->json($response,200,[],JSON_PRETTY_PRINT);
+                return response()->json($response,200);
             }else{
                 $response = ['error' => 'Admin are empty','code' => 404];
-                return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                return response()->json($response,404);
             }
         }else{
-            $errorJSON = ['error'   => 'Unauthorized'
-                , 'code' => 403];
+            $errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
             return response()->json($errorJSON, 403);
         }
     }
@@ -59,7 +59,7 @@ class AdminController extends Controller
     public function store(Request $request)
     {
         $adminRequested = \Auth::User();
-        if($adminRequested->role_id == $this->super) {
+        if($adminRequested->role_id == $this->AdminRole['SUPER']) {
 
             $messages = Admin::getMessages();
             $validation = Admin::getValidations();
@@ -68,8 +68,8 @@ class AdminController extends Controller
             //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
             if ($v->fails()) {
                 $response = ['error' => $v->messages(), 'code' => 422];
-                return response()->json($response, 422, [], JSON_PRETTY_PRINT);
-            }
+                return response()->json($response, 422);
+            }    
 
             //SE CREA UN ADMIN
             $admin = new Admin;
@@ -83,6 +83,7 @@ class AdminController extends Controller
             $admin->state_id = $request->state_id;
             $admin->country_id =$request->country_id;
             $admin->role_id = $request->role_id;
+            $admin->update_id = $adminRequested->id;//admin que modifico
 
 
             //$admin = Admin::create($request->all());
@@ -90,10 +91,10 @@ class AdminController extends Controller
 
             if (!is_null($admin)) {
                 $response = ['code' => 200, 'message' => 'Admin was created succefully'];
-                return response()->json($response, 200, [], JSON_PRETTY_PRINT);
+                return response()->json($response, 200);
             } else {
                 $response = ['error' => 'It has occurred an error trying to save the admin', 'code' => 500];
-                return response()->json($response, 500, [], JSON_PRETTY_PRINT);
+                return response()->json($response, 500);
             }
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
@@ -111,14 +112,14 @@ class AdminController extends Controller
     public function show($id)
     {
         $adminRequested = \Auth::User();
-        if($adminRequested->id == $id || $adminRequested->role_id == $this->super){
+        if($adminRequested->id == $id || $adminRequested->role_id == $this->AdminRole['SUPER']){
             $admin = Admin::find($id);
             if(!is_null($admin)){
                 $response = ['code' => 200,'data' => $admin];
-                return response()->json($response,200,[],JSON_PRETTY_PRINT);
+                return response()->json($response,200);
             }else{
                 $response = ['error' => 'Admin does no exist','code' => 404];
-                return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                return response()->json($response,404);
             }
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
@@ -143,7 +144,7 @@ class AdminController extends Controller
         if(!is_null($admin)){
 
             $adminRequested = \Auth::User();//quien hizo la peticion
-            if($adminRequested->id == $admin->id || $adminRequested->role_id == $this->super){//se valida quien mando la peticion le pertenecen sus datos
+            if($adminRequested->id == $admin->id || $adminRequested->role_id == $this->AdminRole['SUPER']){//se valida quien mando la peticion le pertenecen sus datos
 
                 $messages = Admin::getMessages();
                 $validation = Admin::getValidations();
@@ -151,9 +152,11 @@ class AdminController extends Controller
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
                     $response = ['error' => $v->messages(),'code' => 404];
-                    return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,404);
                 }
-
+				
+				
+				
                 $admin->email = $request->email;
                 $admin->password = $request->password;
                 $admin->name = $request->name;
@@ -164,6 +167,7 @@ class AdminController extends Controller
                 $admin->state_id = $request->state_id;
                 $admin->country_id =$request->country_id;
                 $admin->role_id = $request->role_id;
+                $admin->update_id = $adminRequested->id;//quien modifico
 
 
                 //$admin = Admin::create($request->all());
@@ -171,13 +175,13 @@ class AdminController extends Controller
 
                 if ($row != false) {
                     $response = ['code' => 200, 'message' => 'Admin was modify succefully'];
-                    return response()->json($response, 200, [], JSON_PRETTY_PRINT);
+                    return response()->json($response, 200);
                 } else {
                     $response = ['error' => 'It has occurred an error trying to upate the admin', 'code' => 500];
-                    return response()->json($response, 500, [], JSON_PRETTY_PRINT);
+                    return response()->json($response, 500);
                 }
 
-            }else{
+            }else{ 
                 //EN DADO CASO QUE EL ID DEL ADMIN NO LE PERTENEZCA
                 $response = ['error' => 'Unauthorized','code' => '404'];
                 return response()->json($response,404);
@@ -200,19 +204,20 @@ class AdminController extends Controller
     public function destroy($id)
     {
         $adminRequested = \Auth::User();
-        if($adminRequested->role_id == $this->super) {
+        if($adminRequested->role_id == $this->AdminRole['SUPER']) {  
             $admin = Admin::find($id);
             if(!is_null($admin)){
-
+				$admin->update_id = $adminRequested->id;//quien modifico
+				$admin->save();
                 //SE BORRAR EL PARTNER
                 $admin->delete();
 
                 if(!is_null($admin)){
                     $response = ['code' => 200,'message' => "Admin was deleted succefully"];
-                    return response()->json($response,200,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to delete the admin','code' => 404];
-                    return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,404);
                 }
 
 

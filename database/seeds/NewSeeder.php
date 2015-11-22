@@ -34,7 +34,9 @@ class NewSeeder extends Seeder {
                     'title'=>$faker->text(45),
                     'content'=>$faker->text(1545),
                     'image'=>$faker->text(145),
-                    'status'=>$faker->randomNumber(2)
+                    'status'=>$faker->numberBetween(0,1),  
+					'role_id'=>0,
+					'role'=>0 
 
                 ]
             );

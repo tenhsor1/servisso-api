@@ -14,10 +14,10 @@ class NewController extends Controller
 {
 
     public function __construct(){
-        $this->middleware('jwt.auth:admin|user', ['only' => ['update','store','destroy']]);
-		$this->super = \Config::get('app.super_admin');
+        $this->middleware('jwt.auth:admin|partner', ['only' => ['update','store','destroy']]);
+		$this->UserRoles = \Config::get('app.user_roles');
 	}
-    /**
+    /**  
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -25,13 +25,14 @@ class NewController extends Controller
     public function index()
     {
 
-        $news = News::all();
+        $news = News::with('admin')->get();
+		//$count= News::with('comment')->count();
         if(!is_null($news)){
             $response = ['code' => 200,'data' => $news];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+            return response()->json($response,200);
         }else{
             $response = ['error' => 'News are empty','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            return response()->json($response,404);
         }
     }
 
@@ -45,7 +46,7 @@ class NewController extends Controller
         //
     }
 
-    /**
+    /**  
      * Store a newly created resource in storage.
      *
      * @param Request|Requests\NewStoreRequest $request
@@ -62,7 +63,7 @@ class NewController extends Controller
         //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
         if($v->fails()){
             $response = ['error' => $v->messages(), 'code' =>  460];
-            return response()->json($response,460,[],JSON_PRETTY_PRINT);
+            return response()->json($response,460);
         }
 
             $new = new News;
@@ -71,15 +72,16 @@ class NewController extends Controller
             $new->content = $request->content;
             $new->image = $request->image;
             $new->status = $request->status;
-
+			$new->role_id = $adminRequested->id;//id de quien modifico
+            $new->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
             $row= $new->save();
 
         if($row != false){
             $response = ['code' => 200,'message' => 'News was created succefully'];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+            return response()->json($response,200);
         }else{
             $response = ['error' => 'It has occurred an error trying to save the news','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            return response()->json($response,404);
         }
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
@@ -97,14 +99,13 @@ class NewController extends Controller
      */
     public function show($id)
     {
-        $news = News::with('comments')->where('id','=',$id)->get();
-		//$news = News::find($id);
+        $news = News::with('admin','comments')->where('id','=',$id)->get();
         if(!is_null($news)){
             $response = ['code' => 200,'data' => $news];
-            return response()->json($response,200,[],JSON_PRETTY_PRINT);
+            return response()->json($response,200);
         }else{
             $response = ['error' => 'News does no exist','code' => 404];
-            return response()->json($response,404,[],JSON_PRETTY_PRINT);
+            return response()->json($response,404);
         }
     }
 
@@ -136,8 +137,7 @@ class NewController extends Controller
 
             $adminRequested = \Auth::User();//quien hizo la peticion
 
-            if(($adminRequested->roleAuth  == "ADMIN" && $adminRequested->id == $id) ||
-               ($adminRequested->roleAuth  == "ADMIN" && $adminRequested->role_id == $this->super)){ //se valida quien mando la peticion le pertenecen sus datos
+            if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion le pertenecen sus datos
 
                 $messages = News::getMessages();
                 $validation = News::getValidations();
@@ -145,18 +145,20 @@ class NewController extends Controller
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
                     $response = ['error' => $v->messages(),'code' => 422];
-                    return response()->json($response,404,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,404);
                 }
 
-                $new->admin_id = $request->admin_id;
+                  
                 $new->title = $request->title;
                 $new->content = $request->content;
                 $new->image = $request->image;
                 $new->status = $request->status;
+                $new->role_id = $adminRequested->id;//id de quien modifico
+                $new->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
                 $row = $new->save();
                 if($row != false){
                     $response = ['code' => 200,'message' => 'News was update succefully'];
-					return response()->json($response,200,[],JSON_PRETTY_PRINT);
+					return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to update the news','code' => 404];
                     return response()->json($response,404);
@@ -190,14 +192,17 @@ class NewController extends Controller
         if(!is_null($news)){
             $adminRequested = \Auth::User();//quien hizo la peticion
 			 if($adminRequested->roleAuth  == "ADMIN"){
-                $rows = $news->delete();
-                if($rows > 0){
+				$news->role_id = $adminRequested->id;//id de quien modifico
+                $news->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
+                $news->save(); 
+                $rows = $news->delete();  
+				if($rows > 0){
                     $response = ['code' => 200,'message' => "News was deleted succefully"];
-                    return response()->json($response,200,[],JSON_PRETTY_PRINT);
+                    return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to delete the news','code' => 404];
-                    return response()->json($response,404,[],JSON_PRETTY_PRINT);
-                }
+                    return response()->json($response,404);
+                }  
             }else{
                 //EN DADO CASO QUE EL ID DE NEWS NO LE PERTENEZCA
                 $response = ['error' => 'Unauthorized','code' => 403];
