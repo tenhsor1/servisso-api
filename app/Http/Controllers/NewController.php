@@ -22,13 +22,20 @@ class NewController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
 
-        $news = News::with('admin')->get();
-		//$count= News::with('comment')->count();
-        if(!is_null($news)){
-            $response = ['code' => 200,'data' => $news];
+        // $news = News::with('admin')->get();
+		$userRequested = \Auth::User();
+		  $news = News::with('admin')
+						->searchBy($request)
+						->betweenBy($request)
+						->orderByCustom($request)
+						->limit($request)
+						->get();
+		$count = $news->count();  
+		if(!is_null($news)){
+            $response = ['code' => 200,'Count' => $count,'data' => $news];
             return response()->json($response,200);
         }else{
             $response = ['error' => 'News are empty','code' => 404];
