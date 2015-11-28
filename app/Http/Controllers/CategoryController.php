@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 Use App\Category;
-
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 class CategoryController extends Controller
 {
 	public function __construct(){
@@ -18,11 +19,19 @@ class CategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-		$categories = Category::all();
+		//$categories = Category::all();
+		// \DB::connection()->enableQueryLog(); 
+		  $categories = Category::searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->get();
+		$count = $categories->count();    
+		// $query = \DB::getQueryLog();
 		if(!is_null($categories)){
-			$response = ['code' => 200,'data' => $categories];
+			$response = ['code' => 200,'Count' => $count,'data' => $categories];
 			return response()->json($response,200);
 		}else{
 			$response = ['error' => 'News are empty','code' => 404];
@@ -118,7 +127,7 @@ class CategoryController extends Controller
 		}else{
 			
 			//EN DADO CASO QUE EL ID DE CATEGORY NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Company does not exist','code' => 422];
+			$response = ['error' => 'Category does not exist','code' => 422];
 			return response()->json($response,422);
 		}	
     }
@@ -208,7 +217,7 @@ class CategoryController extends Controller
 					$response = ['code' => 200,'message' => "Company was deleted succefully"];
 					return response()->json($response,200);
 				}else{
-					$response = ['error' => 'It has occurred an error trying to delete the company','code' => 404];
+					$response = ['error' => 'It has occurred an error trying to delete the category','code' => 404];
 					return response()->json($response,404);
 				}
 			}else{
@@ -219,8 +228,8 @@ class CategoryController extends Controller
 			
 		}else{
 			//EN DADO CASO QUE EL ID DE CATEGORY NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Company does not exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Category does not exist','code' => 422];
+			return response()->json($response,422);  
 		}
 
     } 

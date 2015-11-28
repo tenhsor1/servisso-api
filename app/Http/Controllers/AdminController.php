@@ -22,13 +22,18 @@ class AdminController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $adminRequested = \Auth::User();
         if($adminRequested->role_id == $this->AdminRole['SUPER']){
-            $admin = Admin::all();
-            if(!is_null($admin)){
-                $response = ['code' => 200,'data' => $admin];
+            $admin = Admin::searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->get();   
+			$count = $admin->count();    
+			 if(!is_null($admin)){   
+                $response = ['code' => 200,'Count' => $count,'data' => $admin];
                 return response()->json($response,200);
             }else{
                 $response = ['error' => 'Admin are empty','code' => 404];

@@ -20,12 +20,17 @@ class NewCommentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $comment = NewComment::all();
-		$userRequested = \Auth::User();
-        if(!is_null($comment)){
-            $response = ['code' => 200,'data' => $comment];
+      	$userRequested = \Auth::User();
+		  $comment = NewComment::searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->get();
+		$count = $comment->count();  
+		 if(!is_null($comment)){
+            $response = ['code' => 200,'Count' => $count,'data' => $comment];
             return response()->json($response,200);
         }else{
             $response = ['error' => 'Comment are empty','code' => 404];
