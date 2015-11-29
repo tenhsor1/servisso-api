@@ -38,7 +38,9 @@ class BranchSeeder extends Seeder
 				'latitude' => $faker->latitude,
 				'longitude' => $faker->longitude,
 				'state_id' => $randomNumber,
-				'schedule' => $faker->text(50)
+				'schedule' => $faker->text(50),
+				'created_at' => date('Y-m-d H:i:s',time()),
+				'updated_at' => date('Y-m-d H:i:s',time()),
 			]);
 			
 		}

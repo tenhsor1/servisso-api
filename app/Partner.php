@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
+//use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
@@ -11,10 +11,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use App\Branch;
+use App\Extensions\ServissoModel;
 
-class Partner extends Model implements AuthenticatableContract,
-                                    AuthorizableContract,
-                                    CanResetPasswordContract
+class Partner extends ServissoModel implements AuthenticatableContract,
+										AuthorizableContract,
+										CanResetPasswordContract
 {
 
 	use SoftDeletes;
@@ -28,6 +29,35 @@ class Partner extends Model implements AuthenticatableContract,
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
 	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
+	
+	protected $searchFields = [
+        'email',
+        'name',
+        'lastname',
+		'birthdate',
+		'phone',
+		'address',
+		'zipcode'
+    ];
+
+    protected $betweenFields = [
+        'created',
+        'updated',
+		'deleted'
+    ];
+
+    protected $orderByFields = [
+        'created',
+        'updated',
+		'deleted',
+		'email',
+		'name',
+		'lastname',
+		'birthdate',
+		'phone',
+		'address',
+		'zipcode'
+    ];
 
     public function companies(){
         //1 partner can have multiple companies
@@ -87,73 +117,150 @@ class Partner extends Model implements AuthenticatableContract,
             ->select('branches.*')
             ->get();
         return $branch;
+    }	
+	
+	/**
+     * Used for search using 'LIKE', based on query parameters passed to the
+     * request (example: services?search=test&searchFields=description,company,address)
+     * @param  [QueryBuilder] $query    The consecutive query
+     * @param  [Request] $request       The HTTP Request object of the call
+     * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
+     * @return [QueryBuilder]           The new query builder
+     */
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){		
+        $fields = $this->searchParametersAreValid($request);
+        if($fields){
+            $search = $request->input('search');
+			$where = "where";
+            $searchFields = is_array($fields) ? $fields : $defaultFields;
+            foreach ($searchFields as $searchField) {
+                switch ($searchField) {
+                    case 'email':
+                        //search by the email of the service
+                        $query->$where('email', 'LIKE', '%'.$search.'%');						
+                        break;
+                    case 'name':
+                        //search by the name of the service
+                        $query->$where('name', 'LIKE', '%'.$search.'%');
+                        break;
+                    case 'lastname':
+                        //search by the lastname of the service
+                        $query->$where('lastname', 'LIKE', '%'.$search.'%');	
+                        break;
+					case 'phone':
+						//search by the phone of the service
+                        $query->$where('phone', 'LIKE', '%'.$search.'%');
+						break;							
+					case 'address':
+						//search by the address of the service
+                        $query->$where('address', 'LIKE', '%'.$search.'%');
+						break;
+					case 'zipcode':
+						//search by the zipcode of the service
+                        $query->$where('zipcode', 'LIKE', '%'.$search.'%');
+						break;
+                }
+				$where = "orWhere";
+            }
+        }
+        return $query;
     }
 	
 	/**
-	* Se usa para verificar que una URL tiene un formato(patrón) válido.
-	* $url = url que envia el cliente.
-	*/
-	public static function getUrlPattern($url){
-		$patterns = Partner::getPatterns();
-		
-		//Se relaciona la url con algún patrón
-		for($i = 0;$i < count($patterns);$i++){
-			if(preg_match($patterns[$i],$url)){
-				return $i+1;
-			}
-		}
-		
-		//Si la url no se relaciona con ninguno entonces esta mal  el formato, se devuelve cero.
-		return 0;
-	}
-	
+     * Used for search between a end and a start, based on query parameters passed to the
+     * request (example: services?start=2015-11-19&end=2015-12-31&betweenFields=updated,created)
+     * @param  [QueryBuilder] $query    The consecutive query
+     * @param  [Request] $request       The HTTP Request object of the call
+     * @param  array  $defaultFields    The default fields if there are no 'betweenFields' param passed
+     * @return [QueryBuilder]           The new query builder
+     */
+    public function scopeBetweenBy($query, $request, $defaultFields=array('created')){		
+        $fields = $this->betweenParametersAreValid($request);		
+        if($fields){
+            $start = $request->get('start') . " 00:00:00";
+            $end = $request->get('end') . " 23:59:59";
+			$where = "where";
+            $searchFields = is_array($fields) ? $fields : $defaultFields;
+            foreach ($searchFields as $searchField) {
+                switch ($searchField) {
+                    case 'created':
+                        //search depending on the creation time
+                        if($start)
+                            $query->$where('created_at', '>=', $start);
+                        if($end)
+                            $query->where('created_at', '<=', $end);
+                        break;
+                    case 'updated':
+                        //search depending on the updated time
+                        if($start)
+                            $query->$where('updated_at', '>=', $start);
+                        if($end)
+                            $query->where('updated_at', '<=', $end);
+                        break;
+					case 'deleted':
+                        //search depending on the deleted time
+                        if($start)
+                            $query->$where('deleted_at', '>=', $start);
+                        if($end)
+                            $query->where('deleted_at', '<=', $end);
+                        break;
+                }
+				$where = "orWhere";
+            }
+        }
+        return $query;
+    }
+
 	/**
-	* Se obtiene un patrón, depiendiendo del número de patrón solicitado.
-	* $pattern_number = número de patrón
-	* Los patrones comienzan de la posición 1 en adelante. 
-	*/
-	public static function getPattern($pattern_number){	
-		$pattern_number += -1;		
-		$patterns = Partner::getPatterns();
-		
-		//Si el patrón solicitado no existe entonces se regresara el patrón por 'default'(posición cero).
-		if($pattern_number > count($patterns))
-			$pattern_number = 0;
-		
-		return $patterns[$pattern_number];
-	}
-	
-	/**
-	* Se relaciona la url solicitada con algún patrón.
-	* pattern 1: default
-	* pattern 2: limit:require, page:optional, orderBy:optional, orderType:optional
-	* pattern 3: search:require, fields:optional, orderBy:optional, orderType:optional, limit:optional, page:optional
-	* pattern 4: start:require, end:optional, orderBy:optional, orderType:optional, limit:optional, page:optional
-	* pattern 5: search:require, fields:optional, start:require, end:optional, dateFields:require, orderBy:optional, orderType:optional,
-				 limit:optional, page:optional
-	*/
-	public static function getPatterns(){
-		
-		//'$domain' se tiene que cambiar dependiendo del controlador donde estamos	
-		$domain = "\/servisso-api\/public\/v1\/partner";
-		
-		$patterns = array(
-			"/^$domain$/",
-			"/^$domain(\?limit=[0-9]{1,2})(&page=[1-9]{1,2})?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?$/",
-			"/^$domain(\?search=(\w\+?)+)(&fields=\([[:alpha:],]+\))?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/",
-			"/^$domain(\?start=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])(&end=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])?(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/",
-			"/^$domain\?search=(\w\+?)+(&fields=\([[:alpha:],]+\))?&start=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9](&end=20[1-3][0-9]-[0-1][0-9]-[0-3][0-9])?&dateFields=\([[:alpha:],]+\)(&orderBy=\([[:alpha:],]+\))?(&orderType=\([[:alpha:],]+\))?(&limit=[0-9]{1,2})?(&page=[1-9]{1,2})?$/"
-		);
-		
-		return $patterns;
-	}
-	
-	public static function getValidFields(){
-								
-		$fields = array('email','name','lastname','birthdate','phone','address',
-		'zipcode','status','state_id','country_id','plan_id');
-				
-		return $fields;
-	}
+     * Used for ordering the result of a get request
+     * (example: services?orderBy=created,updated&orderTypes=ASC,DESC)
+     * @param  [QueryBuilder] $query    The consecutive query
+     * @param  [Request] $request       The HTTP Request object of the call
+     * @return [QueryBuilder]           The new query builder
+     */
+    public function scopeOrderByCustom($query, $request){
+        $orderFields = $this->orderByParametersAreValid($request);
+        if($orderFields){          
+			$orderTypes = explode(',', ($request->input('orderType')) ? $request->input('orderType') : 'desc');
+            $cont=0;
+            foreach ($orderFields as $orderField) {
+                $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
+                switch ($orderField) {
+					case 'email':
+                        $query->orderBy('email', $orderType);
+                        break;
+					case 'name':
+                        $query->orderBy('name', $orderType);
+                        break;
+					case 'lastname':
+                        $query->orderBy('lastname', $orderType);
+                        break;
+					case 'birthdate':
+                        $query->orderBy('birthdate', $orderType);
+                        break;
+					case 'phone':
+                        $query->orderBy('phone', $orderType);
+                        break;
+					case 'address':
+                        $query->orderBy('address', $orderType);
+                        break;
+					case 'zipcode':
+                        $query->orderBy('zipcode', $orderType);
+                        break;
+                    case 'created':
+                        $query->orderBy('created_at', $orderType);
+                        break;
+                    case 'updated':
+                        $query->orderBy('updated_at', $orderType);
+                        break;						
+					case 'deleted':
+						$query->orderBy('deleted_at',$orderType);
+						break;
+                }
+                $cont++;
+            }
+        }
+        return $query;
+    }
 	
 }

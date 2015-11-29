@@ -23,153 +23,21 @@ class PartnerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-		$url = $_SERVER['REQUEST_URI'];
-		$pattern_number = Partner::getUrlPattern($url);
-		
-		//LA URL NO TIENE UN FORMATO CORRECTO
-		if($pattern_number == 0){
-			$response = ['error' => 'Invalid url', 'code' => 404];
-			return response()->json($response,200);
-		}
-		
-		$base_url = explode('?',$url);
-		
-		if(count($base_url) <= 1){
-			//NORMAL URL WITHOUT PARAMETERS			
-			$partners = Partner::with('companies')->get();
-			$count = $partners->count();
-			$response = ['code' => 200,'count' => $count,'data' => $partners];
-		
-			return response()->json($response,200);
-		}
-		
-		//IF THE URL HAS ONE OR MORE PARAMETERS CONTINUES WITH THE FLOW
-		$parameters = explode('&',$base_url[1]);
-		
-		$search = $fields = $start = $end = $dateFields = $orderBy = $orderType = $limit = $page = '';
-		$errors = array();
-		
-		for($i = 0;$i < count($parameters);$i++){
+		//\DB::connection()->enableQueryLog();
+		$partners = Partner::searchBy($request)
+							->betweenBy($request)
+							->orderByCustom($request)
+							->limit($request)
+							->get();						
+		//$query = \DB::getQueryLog();
 			
-			if(strpos($parameters[$i],'search') !== false){
-				//SEARCH
-				$search = str_replace('search=','',$parameters[$i]);
-				$search = str_replace('+',' ',$search);
-				
-			}else if(strpos($parameters[$i],'fields') !== false){
-				//FIELDS
-				$fields = str_replace(array('fields=','(',')'),'',$parameters[$i]);
-					$fields = explode(',',strtolower($fields));
-					$validFields = Partner::getValidFields();
-					
-					//SE VALIDA QUE LOS FIELDS SOLICITADOS SEAN FIELDS PERIMITIDOS
-					foreach($fields as $field){
-						if(!in_array($field,$validFields)){
-							$errors[] = "Invalid field: ".$field;
-							break;
-						}
-					}
-					
-					$result = '(';												
-						
-					for($a = 0;$a < count($fields);$a++){
-						$result .= $fields[$a]." LIKE '%".$search."%' ";
-							
-						if(($a + 1) < count($fields))
-							$result .= "OR ";
-					}
-
-					$result .= ")";
-						
-				$fields = $result;
-			}else if(strpos($parameters[$i],'start') !== false){
-				//START
-				$start = str_replace('start=','',$parameters[$i]);
-				$start = strtotime($start);
-				
-			}else if(strpos($parameters[$i],'end') !== false){
-				//END
-				$end = str_replace('end=','',$parameters[$i]);			
-				$end = strtotime($end);
-				
-				if($start > $end){
-					$errors[] = 'start date too big';
-					break;
-				}
-				
-				$end = "AND ".$end;
-				
-			}else if(strpos($parameters[$i],'dateFields') !== false){
-				//DATE FIELDS
-				$dateFields = str_replace(array('dateFields=','(',')'),'',$parameters[$i]);
-				$dateFields = explode(',',$dateFields);
-				$result = '(';				
-
-				$query_part = ">=";
-				if($end != ''){
-					$query_part = "BETWEEN";
-				}
-						
-				for($a = 0;$a < count($dateFields);$a++){
-					$result .= $dateFields[$a]." $query_part $start $end";
-							
-					if(($a + 1) < count($dateFields))
-						$result .= " AND ";
-				}
-
-				$result .= ")";
-						
-				$dateFields = $result;
-			}else if(strpos($parameters[$i],'orderBy') !== false){
-				//ORDER BY
-				$orderBy = "ORDER BY ".str_replace(array('orderBy=','(',')'),'',$parameters[$i]);
-				
-			}else if(strpos($parameters[$i],'orderType') !== false){
-				//ORDER TYPE
-				$orderType = str_replace(array('orderType=','(',')'),'',$parameters[$i]);
-				
-			}else if(strpos($parameters[$i],'limit') !== false){
-				//LIMIT
-				$limit = "LIMIT ".str_replace('limit=','',$parameters[$i]);
-				
-			}else if(strpos($parameters[$i],'page') !== false){
-				//PAGE
-				$page = str_replace('page=','',$parameters[$i]);				
-			}else{
-				
-			}
-		}
+		$count = $partners->count();
 		
-		if(!$orderBy)
-			$orderBy = "ORDER BY id";//default, just in case
-		
-		if(!$orderType)
-			$orderType = "DESC";//default, just in case
-		
-		if(count($errors) > 0){
-			$response = ['error' => $errors,'patron' => $pattern_number,'code' => 422];	
-			return response()->json($response,422);
-		}
-		
-		$query = "";
-		switch($pattern_number){
-			case 1: $query = "SELECT * FROM partner"; break;
-			case 2: $query = "SELECT * FROM partner $orderBy $orderType $limit"; break;			
-			case 3: 
-				$fields = ($fields) ? "WHERE ".$fields : "";
-				$query = "SELECT * FROM partner $fields $orderBy $orderType $limit"; break;
-			case 4: 
-				$start = ($end) ? "BETWEEN ".$start : ">= ".$start;
-				$query = "SELECT * FROM partner WHERE date $start $end $orderBy $orderType $limit"; break;
-			case 5: 
-				$fields .= ($fields) ? " AND" : ""; 
-				$query = "SELECT * FROM partners WHERE $fields $dateFields $orderBy $orderType $limit";
-		}
-		
-		$response = ['data' => $query,'patron' => $pattern_number,'code' => 200];	
+		$response = ['code' => 200,'count' => $count,'data' => $partners];
 		return response()->json($response,200);
+			
 
     }
 

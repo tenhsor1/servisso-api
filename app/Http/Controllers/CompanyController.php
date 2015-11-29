@@ -24,10 +24,16 @@ class CompanyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
 		
-		$companies = Company::with('branches')->get();
+		//$companies = Company::with('branches')->get();
+		$companies = Company::with('branches')
+							->searchBy($request)
+							->betweenBy($request)
+							->orderByCustom($request)
+							->limit($request)
+							->get();
 		$count = $companies->count();
 		$response = ['count' => $count,'code' => 200,'data' => $companies];
 		

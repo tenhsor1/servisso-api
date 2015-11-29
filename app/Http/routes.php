@@ -32,11 +32,8 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
     Route::resource('company','CompanyController',['only' => ['update','destroy','show','store']]);
 
-    Route::get('branch/{branch}/tags','BranchController@tags');//to get all tags that belongs to one branch
+  
     Route::get('branch/{branch}/services','BranchController@services');//to get all services that belongs to one branch
-    Route::post('branch/tag','BranchController@tagStore');//to store a tag that belongs to one branch
-    Route::put('branch/tag/{tag}','BranchController@tagUpdate');//to update a tag that belongs to one branch
-    Route::delete('branch/tag/{tag}','BranchController@tagDestroy');//to delete a tag that belongs to one branch
     Route::resource('branch','BranchController',['only' => ['update','destroy','show','store']]);
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
