@@ -64,6 +64,18 @@ class Partner extends ServissoModel implements AuthenticatableContract,
         return $this->hasMany('App\Company');
     }
 
+	public function country()
+    {
+        // 1 admin can have one country
+        return $this->hasOne('App\Country');
+    }
+	
+	public function state()
+    {
+        // 1 admin can have one state
+        return $this->hasOne('App\State');
+    }
+	
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = \Hash::make($value);
@@ -118,7 +130,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
             ->get();
         return $branch;
     }	
-	
+
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: services?search=test&searchFields=description,company,address)
