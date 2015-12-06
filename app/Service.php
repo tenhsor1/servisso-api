@@ -4,6 +4,7 @@ namespace App;
 
 //use Illuminate\Database\Eloquent\Model;
 use App\Extensions\ServissoModel;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
 
 class Service extends ServissoModel
@@ -14,6 +15,7 @@ class Service extends ServissoModel
      * @var string
      */
     protected $table = 'services';
+    use SoftDeletes;
 
     /**
      * The attributes that are not mass assignable.

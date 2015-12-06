@@ -40,7 +40,6 @@ class ServiceController extends Controller
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->get();
-
         }else if($user->roleAuth == 'PARTNER'){
             $services = Service::wherePartner($user->id)
                                 ->with('branch')
