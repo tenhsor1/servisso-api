@@ -104,28 +104,32 @@ class Service extends ServissoModel
         $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
+            $where = "where";
+            $whereHas = "whereHas";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'description':
                         //search by the description of the service
-                        $query->orWhere('description', 'LIKE', '%'.$search.'%');
+                        $query->$where('description', 'LIKE', '%'.$search.'%');
                         break;
                     case 'address':
                         //search for the address of the branch related to the service
-                        $query->orWhereHas('branch', function($query) use ($search){
+                        $query->$whereHas('branch', function($query) use ($search){
                             $query->where('address', 'LIKE', '%'.$search.'%');
                         });
                         break;
                     case 'company':
                         //search for the company name related to the service
-                        $query->orWhereHas('branch', function($query) use ($search){
+                        $query->$whereHas('branch', function($query) use ($search){
                             $query->whereHas('company', function($query) use ($search){
                                 $query->where('name', 'LIKE', '%'.$search.'%');
                             });
                         });
                         break;
                 }
+                $where = "orWhere";
+                $whereHas = "orWhereHas";
             }
         }
         return $query;
@@ -142,24 +146,31 @@ class Service extends ServissoModel
     public function scopeBetweenBy($query, $request, $defaultFields=array('created')){
         $fields = $this->betweenParametersAreValid($request);
         if($fields){
-            $start = $request->get('start');
-            $end = $request->get('end');
+
+            $start = null;
+            if($request->get('start'))
+              $start = $request->get('start') . " 00:00:00";
+            $end = null;
+            if($request->get('end'))
+              $end = $request->get('end') . " 23:59:59";
+
+            $where = "where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->where('created_at', '>=', $start);
+                            $query->$where('services.created_at', '>=', $start);
                         if($end)
-                            $query->where('created_at', '<=', $end);
+                            $query->$where('services.created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->where('updated_at', '>=', $start);
+                            $query->$where('services.updated_at', '>=', $start);
                         if($end)
-                            $query->where('updated_at', '<=', $end);
+                            $query->$where('services.updated_at', '<=', $end);
                         break;
                 }
             }
