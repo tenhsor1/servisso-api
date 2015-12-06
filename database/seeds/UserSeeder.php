@@ -20,7 +20,8 @@ class UserSeeder extends Seeder {
     {
         // Create a faker instance
         $faker = Faker::create();
-
+		$stateIds = 32;//default;
+        $countryIds = 1;//default
         // Creamos un bucle para cubrir 5 fabricantes:
         User::create(
             [
@@ -30,6 +31,8 @@ class UserSeeder extends Seeder {
                 'last_name'=>'Romo',
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
+				'state_id'=>$faker->numberBetween(1,$stateIds),
+                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -42,6 +45,8 @@ class UserSeeder extends Seeder {
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
+				'state_id'=>$faker->numberBetween(1,$stateIds),
+                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -54,6 +59,8 @@ class UserSeeder extends Seeder {
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
+				'state_id'=>$faker->numberBetween(1,$stateIds),
+                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -66,6 +73,8 @@ class UserSeeder extends Seeder {
                 'last_name'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
+				'state_id'=>$faker->numberBetween(1,$stateIds),
+                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );

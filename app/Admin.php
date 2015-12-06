@@ -30,6 +30,18 @@ class Admin extends ServissoModel implements AuthenticatableContract,
         // 1 admin can have multiple news
         return $this->hasMany('App\News');
     }
+	
+	public function country()
+    {
+        // 1 admin can have one country
+        return $this->hasOne('App\Country');
+    }
+	
+	public function state()
+    {
+        // 1 admin can have one state
+        return $this->hasOne('App\State');
+    }
 
     public function setPasswordAttribute($value)
     {
@@ -76,20 +88,32 @@ class Admin extends ServissoModel implements AuthenticatableContract,
 	 protected $searchFields = [
         'name',
         'last_name',
-		'address'
+		'address',
+		'phone',
+		'zipcode',
+		'state_id',
+		'country_id',
+		'role_id'
     ];
 
     protected $betweenFields = [
         'created',
-        'updated'
+        'updated',
+		'deleted'
     ];
 
     protected $orderByFields = [
         'created',
         'updated',
+        'deleted',
 		'name',
         'last_name',
-		'address'
+		'address',
+		'phone',
+		'zipcode',
+		'state_id',
+		'country_id',
+		'role_id'
     ];
 
 
@@ -107,31 +131,28 @@ class Admin extends ServissoModel implements AuthenticatableContract,
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
-	$where="where";       
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){      
 	   $fields = $this->searchParametersAreValid($request);
         if($fields){   
             $search = $request->input('search');
+			$where="where"; 
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'name':
                         //search by the description of the service
                         $query->$where('name', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
 					case 'last_name':
                         //search by the description of the service
                         $query->$where('last_name', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
 					case 'address':
                         //search by the description of the service
                         $query->$where('address', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
-                    
-                }  
+                }
+				$where="OrWhere";
             }
         }
         return $query;
@@ -148,26 +169,35 @@ class Admin extends ServissoModel implements AuthenticatableContract,
     public function scopeBetweenBy($query, $request, $defaultFields=array('created')){
         $fields = $this->betweenParametersAreValid($request);
         if($fields){
-            $start = $request->get('start');
-            $end = $request->get('end');
+            $start = $request->get('start') . " 00:00:00";
+            $end = $request->get('end') . " 23:59:59";
+			$where = "where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->where('created_at', '>=', $start);
+                            $query->$where('created_at', '>=', $start);
                         if($end)
                             $query->where('created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->where('updated_at', '>=', $start);
+                            $query->$where('updated_at', '>=', $start);
                         if($end)
                             $query->where('updated_at', '<=', $end);
                         break;
+					case 'deleted':
+                        //search depending on the deleted time
+                        if($start)
+                            $query->$where('deleted_at', '>=', $start);
+                        if($end)
+                            $query->where('deleted_at', '<=', $end);
+                        break;
                 }
+				$where = "orWhere";
             }
         } 
         return $query;
@@ -183,7 +213,7 @@ class Admin extends ServissoModel implements AuthenticatableContract,
     public function scopeOrderByCustom($query, $request){
         $orderFields = $this->orderByParametersAreValid($request);
         if($orderFields){
-            $orderTypes = explode(',', $request->input('orderTypes'));
+            $orderTypes = explode(',', ($request->input('orderType')) ? $request->input('orderType') : 'desc');
             $cont=0;
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
@@ -191,20 +221,34 @@ class Admin extends ServissoModel implements AuthenticatableContract,
                     case 'created':
                         $query->orderBy('created_at', $orderType);
                         break;
-
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
+                        break;
+					case 'deleted':
+                        $query->orderBy('deleted_at', $orderType);
                         break; 
-					
 					case 'name':
                         $query->orderBy('name', $orderType);  
                         break;
-						
 					case 'last_name':
                         $query->orderBy('last_name', $orderType);  
                         break;    
-					
 					case 'address':
+                        $query->orderBy('address', $orderType);  
+                        break;
+					case 'phone':
+                        $query->orderBy('address', $orderType);  
+                        break;
+					case 'zipcode':
+                        $query->orderBy('address', $orderType);  
+                        break;
+					case 'state_id':
+                        $query->orderBy('address', $orderType);  
+                        break;
+					case 'country_id':
+                        $query->orderBy('address', $orderType);  
+                        break;
+					case 'role_id':
                         $query->orderBy('address', $orderType);  
                         break;
                 }

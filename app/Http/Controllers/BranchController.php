@@ -27,10 +27,15 @@ class BranchController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+	
 		//SE OBTINEN LAS BRANCHES
-		$branches = Branch::all();
+		$branches = Branch::searchBy($request)
+							->betweenBy($request)
+							->orderByCustom($request)
+							->limit($request)
+							->get();
 		$count = $branches->count();
 		
 		//SE ITERA SOBRE LAS BRANCHES PARA AGREGARLE LOS TAGS Y DARLE FORMA AL JSON

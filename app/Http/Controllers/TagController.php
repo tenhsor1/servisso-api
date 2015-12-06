@@ -22,10 +22,16 @@ class TagController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $tags = Tag::all();
+    public function index(Request $request)
+    {	
+		$tags = Tag::searchBy($request)
+					->betweenBy($request)
+					->orderByCustom($request)
+                    ->limit($request)
+					->get();
+								
 		$count = $tags->count();
+								
 		$response = ['count' => $count,'code' => 200,'data' => $tags];
 		return response()->json($response,200);
     }

@@ -75,25 +75,23 @@ class ServissoModel extends Model
      *                 array if 'orderBy' is passed and they are correct
      */
     protected function orderByParametersAreValid($request){
-        if($request->input('orderBy')){
+			$orderByFields = ($request->input('orderBy')) ? $request->input('orderBy') : 'created';
             $fields = array();
-            $fieldsString = $request->input('orderBy');
-            $fields = explode(',', $fieldsString);
+            $fields = explode(',', $orderByFields );
             if(count(array_intersect($this->orderByFields, $fields)) != count($fields)){
                 abort(422, "The fields trying to be ordered are not correct");
                 return null;
             }
-            if($request->input('orderType')){
-                $orderTypesString = $request->input('orderType');
-                $orderTypes = explode(',', $orderTypesString);
-                if(count(array_intersect($this->orderTypes, $orderTypes)) != count($orderTypes)){
-                    abort(422, "The order types are not correct");
-                    return null;
-                }
+			
+			$orderFields = ($request->input('orderType')) ? $request->input('orderType') : 'desc';
+            $orderTypesString = strtoupper($orderFields);
+            $orderTypes = explode(',', $orderTypesString);
+            if(count(array_intersect($this->orderTypes, $orderTypes)) != count($orderTypes)){
+				abort(422, "The order types are not correct");
+                return null;
             }
-            return $fields;
-        }
-        return False;
+			
+         return $fields;        
     }
 
 	/**
@@ -191,10 +189,12 @@ class ServissoModel extends Model
     public function scopeLimit($query, $request){
         if($this->limitParametersAreValid($request)){
             $limit = $request->input('limit');
-            $page = $request->input('page') ? $request->input('page') : 1;
-            $cont=0;
-            $page = $page * $limit;
-            $query->skip($page)->take($limit);
+			if($page = $request->input('page')){
+				$page = $page * $limit;
+				$query->skip($page)->take($limit);
+			}else{
+				$query->take($limit);
+			}
         }
         return $query;
     }
