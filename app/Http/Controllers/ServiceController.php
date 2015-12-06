@@ -40,8 +40,6 @@ class ServiceController extends Controller
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->get();
-            //$services->get();
-
         }else if($user->roleAuth == 'PARTNER'){
             $services = Service::wherePartner($user->id)
                                 ->with('branch')
@@ -119,8 +117,8 @@ class ServiceController extends Controller
             $userId = $user->id;
         }
         $conditions = [ 'id' => $id
-                        , 'user_id' => $userId
-                        , 'user_type' => $this->userTypes['user']];
+                        , 'userable_id' => $userId
+                        , 'userable_type' => $this->userTypes['user']];
         $service = Service::where($conditions)->first();
         if($service){
             return response()->json(['data'=>$service], 200);
