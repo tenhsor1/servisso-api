@@ -43,12 +43,24 @@ class User extends Model implements AuthenticatableContract,
      *
      * @var array
      */
-    protected $hidden = ['password', 'deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['state_id','country_id','password', 'deleted_at', 'created_at', 'updated_at'];
 
     public function services(){
         return $this->morphMany('App\Service', 'userable');
     }
 
+	public function country()
+    {
+        // 1 admin can have one country
+        return $this->hasOne('App\Country');
+    }
+	
+	public function state()
+    {
+        // 1 admin can have one state
+        return $this->hasOne('App\State');
+    }
+	
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = \Hash::make($value);
