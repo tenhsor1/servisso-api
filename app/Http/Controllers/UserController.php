@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests;
+use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
 use JWTAuth;
@@ -13,7 +14,8 @@ class UserController extends Controller
     public function __construct(){
         $this->middleware('jwt.auth:user|admin', ['except' => ['store']]);
         $this->middleware('default.headers');
-        //$this->api_url = \Config::get('app.api_url');
+        $this->user_roles = \Config::get('app.user_roles');
+        $this->mailer = new AppMailer();
     }
     /**
      * Display a listing of the resource.
@@ -38,8 +40,17 @@ class UserController extends Controller
         $extraClaims = ['role'=>'USER'];
         $token = JWTAuth::fromUser($newUser,$extraClaims);
         $reflector = new \ReflectionClass('JWTAuth');
-        $newUser->token = $token;
-        return response()->json(['data'=>$newUser], 200);
+        $newUser->access = $token;
+        if($newUser){
+            $this->mailer->sendVerificationEmail($newUser);
+            $response = ['data' => $newUser
+                        ,'code' => 200
+                        ,'message' => 'Partner was created succefully'];
+            return response()->json($response,200);
+        }
+        $response = ['error' => 'It has occurred an error trying to save the user'
+                    ,'code' => 404];
+        return response()->json($response,404);
     }
 
     /**
@@ -110,6 +121,37 @@ class UserController extends Controller
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
             return response()->json($errorJSON, 403);
+        }
+    }
+
+    public function confirm(Request $request){
+        $validation = ['code' => 'string|required|min:30'];
+        $messages = User::getMessages();
+
+        $v = Validator::make($request->all(),$validation,$messages);
+        if($v->fails()){
+            $response = ['error' => $v->messages(),'code' => 404];
+            return response()->json($response,404);
+        }
+        $user = User::where('token', '=', $request->code)->first();
+        if($user){
+            $user->confirmed = true;
+            $user->token = null;
+            $save = $user->save();
+            if($save){
+                $response = ['code' => 200
+                                ,'message' => "Email confirmed correctly"
+                                ,'data' => $user];
+                            return response()->json($response,200);
+            }else{
+                $response = ['code' => 500
+                        ,'error' => "Something happened when trying to confirm the email"];
+                        return response()->json($response,500);
+            }
+        }else{
+            $response = ['code' => 403
+                        ,'error' => "User with code validation not found"];
+                        return response()->json($response,403);
         }
     }
 }

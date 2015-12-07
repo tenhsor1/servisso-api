@@ -82,7 +82,7 @@ class ServissoModel extends Model
                 abort(422, "The fields trying to be ordered are not correct");
                 return null;
             }
-			
+
 			$orderFields = ($request->input('orderType')) ? $request->input('orderType') : 'desc';
             $orderTypesString = strtoupper($orderFields);
             $orderTypes = explode(',', $orderTypesString);
@@ -90,8 +90,8 @@ class ServissoModel extends Model
 				abort(422, "The order types are not correct");
                 return null;
             }
-			
-         return $fields;        
+
+         return $fields;
     }
 
 	/**
@@ -172,8 +172,8 @@ class ServissoModel extends Model
             if($limit){
                 if($request->input('page')){
                     $page = (int)$request->input('page');
-                    if(!$page){
-                        abort(422, "The page must be an integer");
+                    if(!$page or $page == 0){
+                        abort(422, "The page must be an integer and bigger than zero");
                         return null;
                     }
                 }
@@ -190,6 +190,7 @@ class ServissoModel extends Model
         if($this->limitParametersAreValid($request)){
             $limit = $request->input('limit');
 			if($page = $request->input('page')){
+                $page = $page - 1;
 				$page = $page * $limit;
 				$query->skip($page)->take($limit);
 			}else{
