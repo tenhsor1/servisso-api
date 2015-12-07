@@ -205,6 +205,10 @@ return [
 
     'api_url' => 'http://localhost/v1/',
     'user_types' => ['user' => 'App\User', 'guest' => 'App\Guest'],
-    'admin_roles' => ['SUPER' => 0, 'NORMAL' => 1],   
-	'user_roles' => ['ADMIN' => 1, 'PARTNER' => 2, 'USER' => 3]
+    'admin_roles' => ['SUPER' => 0, 'NORMAL' => 1],
+	'user_roles' => ['ADMIN' => 1, 'PARTNER' => 2, 'USER' => 3],
+    'emails' => ['NOREPLY' => 'no-reply@servisso.com.mx'
+                ,'CONTACT' => 'contacto@servisso.com.mx'],
+    'email_names' => ['NOREPLY' => 'Servisso'
+                    ,'CONTACT' => 'Servisso Contact']
 ];

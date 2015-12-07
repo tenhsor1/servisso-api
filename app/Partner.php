@@ -28,7 +28,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role', 'token'];
 
 	protected $searchFields = [
         'email',
@@ -58,6 +58,18 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 		'address',
 		'zipcode'
     ];
+
+    public static function boot()
+    {
+        Partner::creating(function ($partner) {
+            $userRoles = \Config::get('app.user_roles');
+            $tokenArray = ['random' => str_random(16)
+                            , 'email' => $partner->email
+                            , 'role' => $userRoles['PARTNER']];
+            $encrypted = \Crypt::encrypt($tokenArray);
+            $partner->token = $encrypted;
+        });
+    }
 
     public function companies(){
         //1 partner can have multiple companies

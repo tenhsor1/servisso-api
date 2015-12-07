@@ -111,7 +111,7 @@ class Service extends ServissoModel
                 switch ($searchField) {
                     case 'description':
                         //search by the description of the service
-                        $query->$where('description', 'LIKE', '%'.$search.'%');
+                        $query->$where('services.description', 'LIKE', '%'.$search.'%');
                         break;
                     case 'address':
                         //search for the address of the branch related to the service

@@ -1,0 +1,1 @@
+<div>Email de prueba con variable $test: {{$test}}</div>

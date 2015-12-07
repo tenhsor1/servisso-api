@@ -14,11 +14,11 @@ class PartnersMigration extends Migration
     {
         Schema::create('partners', function (Blueprint $table) {
             $table->increments('id');
-			$table->string('email',70);
+			$table->string('email',70)->unique();
 			$table->string('password',100);
 			$table->string('name',45);
 			$table->string('lastname',45);
-			$table->string('birthdate',45);
+			$table->string('birthdate',45)->nullable();
 			$table->string('phone',20);
 			$table->string('address',45);
 			$table->string('zipcode',45);
@@ -28,6 +28,8 @@ class PartnersMigration extends Migration
 			$table->integer('plan_id')->unsigned();
 			$table->integer('role_id')->unsigned()->default(0);
 			$table->integer('role')->unsigned()->default(0);
+            $table->string('token', 255)->nullable();
+            $table->boolean('confirmed')->default(false);
 			$table->softDeletes();
             $table->timestamps();
         });
