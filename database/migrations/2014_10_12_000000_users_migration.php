@@ -23,6 +23,10 @@ class UsersMigration extends Migration
             $table->string('zipcode', 10)->nullable();
 			$table->integer('role_id')->unsigned();
             $table->integer('update_id')->unsigned();
+            $table->integer('state_id')->unsigned();
+            $table->integer('country_id')->unsigned();
+            $table->string('token', 255)->nullable();
+            $table->boolean('confirmed')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

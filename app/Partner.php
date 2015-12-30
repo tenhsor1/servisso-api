@@ -28,8 +28,8 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
-	
+	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role', 'token'];
+
 	protected $searchFields = [
         'email',
         'name',
@@ -59,6 +59,18 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 		'zipcode'
     ];
 
+    public static function boot()
+    {
+        Partner::creating(function ($partner) {
+            $userRoles = \Config::get('app.user_roles');
+            $tokenArray = ['random' => str_random(16)
+                            , 'email' => $partner->email
+                            , 'role' => $userRoles['PARTNER']];
+            $encrypted = \Crypt::encrypt($tokenArray);
+            $partner->token = $encrypted;
+        });
+    }
+
     public function companies(){
         //1 partner can have multiple companies
         return $this->hasMany('App\Company');
@@ -69,13 +81,13 @@ class Partner extends ServissoModel implements AuthenticatableContract,
         // 1 admin can have one country
         return $this->hasOne('App\Country');
     }
-	
+
 	public function state()
     {
         // 1 admin can have one state
         return $this->hasOne('App\State');
     }
-	
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = \Hash::make($value);
@@ -129,7 +141,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
             ->select('branches.*')
             ->get();
         return $branch;
-    }	
+    }
 
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
@@ -139,7 +151,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('name')){		
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
         $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
@@ -149,7 +161,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
                 switch ($searchField) {
                     case 'email':
                         //search by the email of the service
-                        $query->$where('email', 'LIKE', '%'.$search.'%');						
+                        $query->$where('email', 'LIKE', '%'.$search.'%');
                         break;
                     case 'name':
                         //search by the name of the service
@@ -157,12 +169,12 @@ class Partner extends ServissoModel implements AuthenticatableContract,
                         break;
                     case 'lastname':
                         //search by the lastname of the service
-                        $query->$where('lastname', 'LIKE', '%'.$search.'%');	
+                        $query->$where('lastname', 'LIKE', '%'.$search.'%');
                         break;
 					case 'phone':
 						//search by the phone of the service
                         $query->$where('phone', 'LIKE', '%'.$search.'%');
-						break;							
+						break;
 					case 'address':
 						//search by the address of the service
                         $query->$where('address', 'LIKE', '%'.$search.'%');
@@ -177,7 +189,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
         }
         return $query;
     }
-	
+
 	/**
      * Used for search between a end and a start, based on query parameters passed to the
      * request (example: services?start=2015-11-19&end=2015-12-31&betweenFields=updated,created)
@@ -186,11 +198,15 @@ class Partner extends ServissoModel implements AuthenticatableContract,
      * @param  array  $defaultFields    The default fields if there are no 'betweenFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeBetweenBy($query, $request, $defaultFields=array('created')){		
-        $fields = $this->betweenParametersAreValid($request);		
+    public function scopeBetweenBy($query, $request, $defaultFields=array('created')){
+        $fields = $this->betweenParametersAreValid($request);
         if($fields){
-            $start = $request->get('start') . " 00:00:00";
-            $end = $request->get('end') . " 23:59:59";
+        	$start = null;
+        	if($request->get('start'))
+            	$start = $request->get('start') . " 00:00:00";
+            $end = null;
+            if($request->get('end'))
+            	$end = $request->get('end') . " 23:59:59";
 			$where = "where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
@@ -232,7 +248,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
      */
     public function scopeOrderByCustom($query, $request){
         $orderFields = $this->orderByParametersAreValid($request);
-        if($orderFields){          
+        if($orderFields){
 			$orderTypes = explode(',', ($request->input('orderType')) ? $request->input('orderType') : 'desc');
             $cont=0;
             foreach ($orderFields as $orderField) {
@@ -264,7 +280,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
                         break;
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
-                        break;						
+                        break;
 					case 'deleted':
 						$query->orderBy('deleted_at',$orderType);
 						break;
@@ -274,5 +290,5 @@ class Partner extends ServissoModel implements AuthenticatableContract,
         }
         return $query;
     }
-	
+
 }
