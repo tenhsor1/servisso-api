@@ -50,6 +50,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('newcomment', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 	Route::resource('country', 'CountryController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 	Route::resource('state', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::post('image/{id}', 'CompanyController@image');
 });
          
         
