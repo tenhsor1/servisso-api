@@ -146,7 +146,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\JWTServiceProvider::class,
         //Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
-
+		'Intervention\Image\ImageServiceProvider',
 
     ],
 
@@ -162,7 +162,7 @@ return [
     */
 
     'aliases' => [
-
+		'Image' => 'Intervention\Image\Facades\Image',
         'App'       => Illuminate\Support\Facades\App::class,
         'Artisan'   => Illuminate\Support\Facades\Artisan::class,
         'Auth'      => Illuminate\Support\Facades\Auth::class,

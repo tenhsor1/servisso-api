@@ -9,7 +9,7 @@ use App\Company;
 use App\Partner;
 use Validator;
 use JWTAuth;
-
+use App\Extensions\utils;
 class CompanyController extends Controller
 {
 	
@@ -111,6 +111,25 @@ class CompanyController extends Controller
 						
     }
 
+	
+	 public function image(Request $request, $id)
+    {
+		$ext = $request->file('image')->getClientOriginalExtension();
+		// Se verifica si es un formato de imagen permitido
+		if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
+			$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
+			return response()->json($response,422);
+		}
+		$imageName = $id . '.' . $ext;
+		// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
+		 utils::StorageImage($imageName,$request);
+		 $response = ['code' => 200,'message' => 'Image was save succefully'];		
+		return response()->json($response,200);
+    }
+	
+	
+	
+	
     /**
      * Display the specified resource.
      *
