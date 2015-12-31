@@ -22,7 +22,7 @@ class AuthController extends Controller
 
     public function authenticate(Request $request, $role="user")
     {
-		
+
         $role = strtoupper($role);
         if($role == 'USER'){
             $model = 'App\User';
@@ -41,14 +41,16 @@ class AuthController extends Controller
         try {
             // verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials, $extraClaims)) {
-                return response()->json(['error' => 'invalid_credentials'], 401);
+                return response()->json(['error' => 'Invalid Credentials', 'code'=> 403], 401);
             }
         } catch (JWTException $e) {
             // something went wrong
-            return response()->json(['error' => 'could_not_create_token'], 500);
+            return response()->json(['error' => 'Could not create token', 'code'=> 500], 500);
         }
         // if no errors are encountered we can return a JWT
-        return response()->json(compact('token'));
+        $response = ['data'=> compact('token')];
+
+        return response()->json($response);
     }
 
     /**
