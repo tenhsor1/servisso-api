@@ -93,6 +93,7 @@ class UserController extends Controller
                             , 'zipcode'
                         ];
             $this->updateModel($request, $userRequested, $attributes);
+            unset($userRequested->roleAuth);
             $userRequested->save();
             return response()->json(['data'=>$userRequested], 200);
         }else{
