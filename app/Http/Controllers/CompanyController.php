@@ -125,10 +125,9 @@ class CompanyController extends Controller
 					$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
 					return response()->json($response,422);
 				}
-				$imageName = $id . '.' . $ext;
 				// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-				$img = utils::StorageImage($imageName,$request);
+				$img = utils::StorageImage($id,$request);
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
 				$company->image = $img['image'];			
 				$company->thumbnail = $img['thumbnail'];			
