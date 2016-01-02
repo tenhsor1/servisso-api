@@ -27,6 +27,9 @@ class Utils extends Model{
 	    $image->resize(240,200);
 	    // Guardar thumb
 	    $image->save($path_thumb.'thumb_'.$imgName);
+		
+		return $img = array("image" => $path.$imgName,
+							"thumbnail" => $path_thumb.$imgName);
     }
 	
 

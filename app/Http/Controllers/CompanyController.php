@@ -14,7 +14,7 @@ class CompanyController extends Controller
 {
 	
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store']]);
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -114,17 +114,44 @@ class CompanyController extends Controller
 	
 	 public function image(Request $request, $id)
     {
-		$ext = $request->file('image')->getClientOriginalExtension();
-		// Se verifica si es un formato de imagen permitido
-		if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
-			$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
-			return response()->json($response,422);
-		}
-		$imageName = $id . '.' . $ext;
-		// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
-		 utils::StorageImage($imageName,$request);
-		 $response = ['code' => 200,'message' => 'Image was save succefully'];		
-		return response()->json($response,200);
+		$adminRequested = \Auth::User();
+		$company = Company::find($id);
+		//SE VALIDA QUE EL USUARIO SEA DE TIPO PARTNER O ADMIN
+        if($adminRequested->roleAuth  == "PARTNER" && $adminRequested->id == $company->partner_id || $adminRequested->roleAuth  == "ADMIN"){
+			 if(!is_null($company)){
+				$ext = $request->file('image')->getClientOriginalExtension();
+				// Se verifica si es un formato de imagen permitido
+				if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
+					$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
+					return response()->json($response,422);
+				}
+				$imageName = $id . '.' . $ext;
+				// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
+				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
+				$img = utils::StorageImage($imageName,$request);
+				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
+				$company->image = $img['image'];			
+				$company->thumbnail = $img['thumbnail'];			
+				$company->save();	
+	
+				if($company != false){
+					$response = ['code' => 200,'message' => 'Image was save succefully'];		
+					return response()->json($response,200);
+				}else{
+					$response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
+					return response()->json($response,500);
+				}	
+				
+			}else{
+				//EN DADO CASO QUE EL ID DE COMPANY NO SE HALLA ENCONTRADO
+				$response = ['error' => 'Company does not exist','code' => 422];
+				return response()->json($response,422);
+			}
+		}else{
+            $errorJSON = ['error'   => 'Unauthorized'
+                , 'code' => 403];
+            return response()->json($errorJSON, 403);
+        }
     }
 	
 	
