@@ -9,6 +9,7 @@
         "laravel/framework": "5.1.*",
         "tymon/jwt-auth": "^0.5.5",
 		"illuminate/html": "5.0.*",
+        "intervention/image": "^2.3",
         "aws/aws-sdk-php-laravel": "~3.0"
     },
     "require-dev": {
