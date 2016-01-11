@@ -24,8 +24,8 @@ class PartnersMigration extends Migration
 			$table->string('zipcode',45);
 			$table->integer('state_id')->unsigned();
 			$table->integer('country_id')->unsigned();
-			$table->string('status',45);
-			$table->integer('plan_id')->unsigned();
+			$table->string('status',45)->nullable();
+			$table->integer('plan_id')->unsigned()->default(0);
 			$table->integer('role_id')->unsigned()->default(0);
 			$table->integer('role')->unsigned()->default(0);
             $table->string('token', 255)->nullable();

@@ -61,7 +61,6 @@ class PartnerController extends Controller
      */
     public function store(Request $request)
     {
-
 		$messages = Partner::getMessages();
 		$validation = Partner::getValidations();
 
@@ -86,8 +85,6 @@ class PartnerController extends Controller
 		$partner->zipcode = $request->zipcode;
 		$partner->state_id = $request->state_id;
 		$partner->country_id = $request->country_id;
-		$partner->status = $request->status;
-		$partner->plan_id = $request->plan_id;
 
 		//SE CREA PARTNER
 		$save = $partner->save();
@@ -106,8 +103,8 @@ class PartnerController extends Controller
 			$response = ['error' => 'It has occurred an error trying to save the partner','code' => 404];
 			return response()->json($response,404);
 		}
-
-
+        $response = ['code' => 200,'message' => 'Partner was created succefully'];
+        return response()->json($response,200);
     }
 
     /**

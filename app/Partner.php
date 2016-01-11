@@ -115,7 +115,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 	* Se obtienen las validaciones del modelo Partner
 	*/
 	public static function getValidations(){
-		$validation = ['email' => 'required|email|max:70|min:11',
+		$validation = ['email' => 'required|unique:partners,email|email|max:70|min:11',
 				'password' => 'required|max:99|min:7',
 				'name' => 'required|max:45|min:4',
 				'lastname' => 'required|max:45|min:4',
@@ -124,9 +124,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 				'address' => 'required|max:150|min:10',
 				'zipcode' => 'required|max:10|min:4',
 				'state_id' => 'required',
-				'country_id' => 'required',
-				'status' => 'required',
-				'plan_id' => 'required'];
+				'country_id' => 'required'];
 
 		return $validation;
 	}
