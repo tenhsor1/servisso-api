@@ -9,9 +9,6 @@ use App\Http\Requests;
 */
 class Utils extends Model{
 	 public static function StorageImage($id, $request, $path='\\public\image\\', $path_thumb='\\public\thumb\\'){   
-		// Numero radom para evitar duplicidad de nombre de imagenes
-		// $random = "img".rand(1,100);
-		 $random = "img";
 		//Ruta donde queremos guardar las imagenes
 		$path = base_path().$path;
 		$path_thumb = base_path().$path_thumb;
@@ -19,9 +16,11 @@ class Utils extends Model{
 		$file = $request->file('image');
 		//Se obtiene la extension de la imagen
 		$ext = $file->getClientOriginalExtension();
-		//se crea un nombre para la imagen tamaño normal
-		$imgName = $random.$id.".".$ext;
-		$imgName_thumb = $random.$id."_thumb".".".$ext;
+		//se obtiene la fecha en formato entero
+		$time = strtotime('now');
+		//se crea un nombre para la imagen tamaño normal y la reducida
+		$imgName = "img".$id."_".$time.".".$ext;
+		$imgName_thumb = "img".$id."_thumb_".$time.".".$ext;
 		//Creamos una instancia de la libreria instalada   
 		$image = \Image::make($file);
 	    // Guardar Original
