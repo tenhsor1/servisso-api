@@ -98,14 +98,15 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 	*/
 	public static function getMessages(){
 		$messages = [
-		'required' => ':attribute is required',
-		'email' => ':attribute has invalid format',
-		'date' => ':attribute should be 10 digits',
-		'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
-		'digits' => ':attribute should be 10 digits',
-		'max' => ':attribute length too long',
-		'min' => ':attribute length too short',
-		'string' => ':attribute should be characters only'
+		'required' => ':attribute es requerido',
+		'email' => ':attribute no es un :attribute válido',
+		'date' => 'la fecha no es válida',
+		'mimes' => 'Archivo no permitido, permitido: jpeg,png,bmp',
+		'digits' => ':attribute entero no válido',
+		'max' => ':attribute es demasiado largo',
+		'min' => ':attribute es demasiado corto',
+		'string' => ':attribute solo deben de ser caracteres',
+        'email.unique' => 'Una cuenta con el e-mail seleccionado ya existe'
 		];
 
 		return $messages;
@@ -115,18 +116,16 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 	* Se obtienen las validaciones del modelo Partner
 	*/
 	public static function getValidations(){
-		$validation = ['email' => 'required|email|max:70|min:11',
+		$validation = ['email' => 'required|unique:partners,email|email|max:70|min:8',
 				'password' => 'required|max:99|min:7',
 				'name' => 'required|max:45|min:4',
 				'lastname' => 'required|max:45|min:4',
 				'birthdate' => 'max:20|digits:10',
-				'phone' => 'required|max:20|min:10',
+				'phone' => 'required|max:20|min:8',
 				'address' => 'required|max:150|min:10',
-				'zipcode' => 'required|max:10|min:4',
+				'zipcode' => 'max:10|min:4',
 				'state_id' => 'required',
-				'country_id' => 'required',
-				'status' => 'required',
-				'plan_id' => 'required'];
+				'country_id' => 'required'];
 
 		return $validation;
 	}

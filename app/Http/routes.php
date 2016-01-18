@@ -29,8 +29,6 @@ Route::group(['prefix' => 'v1'], function()
 	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
 	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
-    Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
-    Route::resource('company','CompanyController',['only' => ['update','destroy','show','store']]);
     Route::post('partner/confirm','PartnerController@confirm');
     Route::post('user/confirm','UserController@confirm');
 
