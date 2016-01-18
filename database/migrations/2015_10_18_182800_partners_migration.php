@@ -20,8 +20,8 @@ class PartnersMigration extends Migration
 			$table->string('lastname',45);
 			$table->string('birthdate',45)->nullable();
 			$table->string('phone',20);
-			$table->string('address',45);
-			$table->string('zipcode',45);
+			$table->string('address',150);
+			$table->string('zipcode',45)->nullable();
 			$table->integer('state_id')->unsigned();
 			$table->integer('country_id')->unsigned();
 			$table->string('status',45)->nullable();
