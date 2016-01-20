@@ -36,7 +36,7 @@ class BranchController extends Controller
 							->orderByCustom($request)
 							->limit($request)
 							->get();
-		$count = $branches->count();
+		$count = $branches->count();		
 		
 		//SE ITERA SOBRE LAS BRANCHES PARA AGREGARLE LOS TAGS Y DARLE FORMA AL JSON
 		foreach($branches as $branch){

@@ -21,7 +21,7 @@ class JWTAuth extends BaseJWTMiddleware
     {
 
         if (! $token = $this->auth->setRequest($request)->getToken()) {
-            return $this->respond('tymon.jwt.absent', 'token_not_provided', 400);
+            return $this->respond('tymon.jwt.absent', ['error' => 'token_not_provided','code' => 400], 400);
         }
 
         $rolesStr = strtoupper($roles);
@@ -47,9 +47,9 @@ class JWTAuth extends BaseJWTMiddleware
                 if($user)
                     $user->roleAuth = $role;
             } catch (TokenExpiredException $e) {
-                return $this->respond('tymon.jwt.expired', 'token_expired', $e->getStatusCode(), [$e]);
+                return $this->respond('tymon.jwt.expired', ['error' => 'token_expired','code' => $e->getStatusCode()], $e->getStatusCode(), [$e]);
             } catch (JWTException $e) {
-                return $this->respond('tymon.jwt.invalid', 'token_invalid', $e->getStatusCode(), [$e]);
+                return $this->respond('tymon.jwt.invalid', ['error' => 'token_invalid','code' => $e->getStatusCode()], $e->getStatusCode(), [$e]);
             }
 
             if (! $user) {
