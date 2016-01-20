@@ -68,14 +68,16 @@ class News extends ServissoModel
 
     protected $betweenFields = [
         'created',
-        'updated'
+        'updated',
+		'deleted'
     ];
 
     protected $orderByFields = [
         'created',
         'updated',
+		'deleted',
 		'admin_id',
-		'title',
+		'title'
     ];
 
 
@@ -94,31 +96,28 @@ class News extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('title')){
-	$where="where";       
+    public function scopeSearchBy($query, $request, $defaultFields=array('title')){      
 	   $fields = $this->searchParametersAreValid($request);
         if($fields){   
             $search = $request->input('search');
+			$where="where"; 
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'title':
                         //search by the description of the title
                         $query->$where('title', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
 					case 'content':
                         //search by the description of the content
                         $query->$where('content', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
 					case 'admin_id':
                         //search by the description of the admin_id
                         $query->$where('admin_id', 'LIKE', '%'.$search.'%');
-						$where="OrWhere";
                         break;
-                    
-                }  
+                } 
+				$where="OrWhere";
             }
         }
         return $query;
@@ -135,26 +134,35 @@ class News extends ServissoModel
     public function scopeBetweenBy($query, $request, $defaultFields=array('created')){
         $fields = $this->betweenParametersAreValid($request);
         if($fields){
-            $start = $request->get('start');
-            $end = $request->get('end');
+            $start = $request->get('start') . " 00:00:00";
+            $end = $request->get('end') . " 23:59:59";
+			$where = "where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->where('created_at', '>=', $start);
+                            $query->$where('created_at', '>=', $start);
                         if($end)
                             $query->where('created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->where('updated_at', '>=', $start);
+                            $query->$where('updated_at', '>=', $start);
                         if($end)
                             $query->where('updated_at', '<=', $end);
                         break;
+					case 'deleted':
+                        //search depending on the deleted time
+                        if($start)
+                            $query->$where('deleted_at', '>=', $start);
+                        if($end)
+                            $query->where('deleted_at', '<=', $end);
+                        break;
                 }
+				$where = "orWhere";
             }
         } 
         return $query;
@@ -170,7 +178,7 @@ class News extends ServissoModel
     public function scopeOrderByCustom($query, $request){
         $orderFields = $this->orderByParametersAreValid($request);
         if($orderFields){
-            $orderTypes = explode(',', $request->input('orderTypes'));
+            $orderTypes = explode(',', ($request->input('orderType')) ? $request->input('orderType') : 'desc');
             $cont=0;
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
@@ -178,15 +186,15 @@ class News extends ServissoModel
                     case 'created':
                         $query->orderBy('created_at', $orderType);
                         break;
-
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
                         break; 
-					
+					case 'deleted':
+                        $query->orderBy('deleted_at', $orderType);
+                        break; 
 					case 'admin_id':
                         $query->orderBy('admin_id', $orderType);  
                         break;
-						
 					case 'title':
                         $query->orderBy('title', $orderType);
                         break;	

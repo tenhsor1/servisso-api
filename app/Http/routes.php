@@ -1,5 +1,5 @@
 <?php
-   
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -25,14 +25,13 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('call', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
-	
+
 	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
 	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
-    Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
-    Route::resource('company','CompanyController',['only' => ['update','destroy','show','store']]);
+    Route::post('partner/confirm','PartnerController@confirm');
+    Route::post('user/confirm','UserController@confirm');
 
-  
     Route::get('branch/{branch}/services','BranchController@services');//to get all services that belongs to one branch
     Route::resource('branch','BranchController',['only' => ['update','destroy','show','store']]);
 
@@ -48,8 +47,12 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('admin', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('news', 'NewController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('newcomment', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::resource('country', 'CountryController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::resource('state', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('email', 'EmailController', ['only' => ['store']]);
+	Route::post('image/{id}', 'CompanyController@image');
 });
-         
-        
-     
-    
+
+
+
+

@@ -145,8 +145,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\JWTServiceProvider::class,
+        Barryvdh\Cors\ServiceProvider::class,
         //Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
-
+		'Intervention\Image\ImageServiceProvider',
 
     ],
 
@@ -162,7 +163,7 @@ return [
     */
 
     'aliases' => [
-
+		'Image' => 'Intervention\Image\Facades\Image',
         'App'       => Illuminate\Support\Facades\App::class,
         'Artisan'   => Illuminate\Support\Facades\Artisan::class,
         'Auth'      => Illuminate\Support\Facades\Auth::class,
@@ -205,6 +206,10 @@ return [
 
     'api_url' => 'http://localhost/v1/',
     'user_types' => ['user' => 'App\User', 'guest' => 'App\Guest'],
-    'admin_roles' => ['SUPER' => 0, 'NORMAL' => 1],   
-	'user_roles' => ['ADMIN' => 1, 'PARTNER' => 2, 'USER' => 3]
+    'admin_roles' => ['SUPER' => 0, 'NORMAL' => 1],
+	'user_roles' => ['ADMIN' => 1, 'PARTNER' => 2, 'USER' => 3],
+    'emails' => ['NOREPLY' => 'no-reply@servisso.com.mx'
+                ,'CONTACT' => 'contacto@servisso.com.mx'],
+    'email_names' => ['NOREPLY' => 'Servisso'
+                    ,'CONTACT' => 'Servisso Contact']
 ];

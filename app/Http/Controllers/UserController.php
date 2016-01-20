@@ -93,6 +93,7 @@ class UserController extends Controller
                             , 'zipcode'
                         ];
             $this->updateModel($request, $userRequested, $attributes);
+            unset($userRequested->roleAuth);
             $userRequested->save();
             return response()->json(['data'=>$userRequested], 200);
         }else{
@@ -123,11 +124,10 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
-	
-    public function confirm(Request $request){
+
+	public function confirm(Request $request){
         $validation = ['code' => 'string|required|min:30'];
         $messages = User::getMessages();
-		
         $v = Validator::make($request->all(),$validation,$messages);
         if($v->fails()){
             $response = ['error' => $v->messages(),'code' => 404];

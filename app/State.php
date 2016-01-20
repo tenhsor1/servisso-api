@@ -1,28 +1,47 @@
 <?php
 
 namespace App;
-
-// use Illuminate\Database\Eloquent\Model;
-use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
-class NewComment extends ServissoModel
+//use Illuminate\Database\Eloquent\Model;
+use App\Extensions\ServissoModel;
+class State extends ServissoModel
 {
-    use SoftDeletes;
-	protected $table="news_comments";
+   use SoftDeletes;
+	protected $table="states";
+	
+	protected $fillable = array('state','abbreviation');
 	
 
-    protected $fillable = array('news_id','user_type','user_id','comment');
+    protected $hidden = ['county_id','created_at','role_id','role','updated_at','deleted_at'];
 
-
-    protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
-
-    public function news()
+    public function admin()
     {
-        // 1 comment is related to one new
-        return $this->belongsTo('App\News');
+        // 1 new is related to one admin who created it
+        return $this->belongsTo('App\Admin');
     }
 	
-	  public static function getMessages(){
+	public function partner()
+    {
+        // 1 new is related to one admin who created it
+        return $this->belongsTo('App\Partner');
+    }
+	
+	public function user()
+    {
+        // 1 new is related to one admin who created it
+        return $this->belongsTo('App\User');
+    }
+	
+	public function country()
+    {
+        // 1 new is related to one admin who created it
+        return $this->belongsTo('App\Country');
+    }
+	
+		 /**
+     * Se obtienen los mensajes de errores
+     */
+    public static function getMessages(){
         $messages = [
             'required' => ':attribute is required',
             'email' => ':attribute has invalid format',
@@ -39,23 +58,20 @@ class NewComment extends ServissoModel
     /**
      * Se obtienen las validaciones del modelo Partner
      */
-     public static function getValidations(){
+    public static function getValidations(){
         $validation = [
-			'news_id' => 'required',
-            'user_id' => '',
-            'comment' => 'required|max:500|min:7',
-            'user_type' => '',
-            'role_id' => '',
-            'role' => ''
-			];
-
+            'country_id' => 'required',
+            'state' => 'required|max:150|min:3',
+            'abbreviation' => ''
+        ];
 
         return $validation;
     }
-	
+
 	 protected $searchFields = [
-        'news_id',
-        'comment'
+        'country_id',
+	    'state',
+        'abbreviation'
     ];
 
     protected $betweenFields = [
@@ -67,8 +83,10 @@ class NewComment extends ServissoModel
     protected $orderByFields = [
         'created',
         'updated',
-		'deleted',
-		'news_id'
+        'deleted',
+		'country_id',
+        'state',
+        'abbreviation'
     ];
 
 
@@ -77,17 +95,16 @@ class NewComment extends ServissoModel
     {
       return $this->morphTo();
     }
-
- 
+  
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
-     * request (example: newcomment?search=test&fields=id_new,comment)
+     * request (example: admin?search=test&fields=description,company,address)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('comment')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('state')){      
 	   $fields = $this->searchParametersAreValid($request);
         if($fields){   
             $search = $request->input('search');
@@ -95,17 +112,20 @@ class NewComment extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'comment':
-                        //search by the description of the service
-                        $query->$where('comment', 'LIKE', '%'.$search.'%');
+                    case 'state':
+                        //search by the description of the country
+                        $query->$where('state', 'LIKE', '%'.$search.'%');
                         break;
-					case 'news_id':
-                        //search by the description of the service
-                        $query->$where('news_id', 'LIKE', '%'.$search.'%');
+					case 'abbreviation':
+                        //search by the description of the country
+                        $query->$where('abbreviation', 'LIKE', '%'.$search.'%');
                         break;
-                    
+					case 'country_id':
+                        //search by the description of the country
+                        $query->$where('country_id', 'LIKE', '%'.$search.'%');
+                        break;
                 }
-				$where="OrWhere";				
+				$where="OrWhere";
             }
         }
         return $query;
@@ -113,7 +133,7 @@ class NewComment extends ServissoModel
 
     /**
      * Used for search between a end and a start, based on query parameters passed to the
-     * request (example: newcomment?start=2015-11-19&end=2015-12-31&betweenFields=updated,created)
+     * request (example: admin?start=2015-11-19&end=2015-12-31&betweenFields=updated,created)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @param  array  $defaultFields    The default fields if there are no 'betweenFields' param passed
@@ -158,7 +178,7 @@ class NewComment extends ServissoModel
 
     /**
      * Used for ordering the result of a get request
-     * (example: newcomment?orderBy=created,updated&orderTypes=ASC,DESC) 
+     * (example: admin?orderBy=created,updated&orderTypes=ASC,DESC)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @return [QueryBuilder]           The new query builder
@@ -174,14 +194,20 @@ class NewComment extends ServissoModel
                     case 'created':
                         $query->orderBy('created_at', $orderType);
                         break;
-					case 'deleted':
-                        $query->orderBy('deleted_at', $orderType);
-                        break;
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
+                        break;
+					case 'deleted':
+                        $query->orderBy('deleted_at', $orderType);
                         break; 
-					case 'news_id':
-                        $query->orderBy('news_id', $orderType);  
+					case 'state':
+                        $query->orderBy('state', $orderType);  
+                        break;
+					case 'abbreviation':
+                        $query->orderBy('abbreviation', $orderType);  
+                        break;
+					case 'country_id':
+                        $query->orderBy('country_id', $orderType);  
                         break;
                 }
                 $cont++;
@@ -189,4 +215,5 @@ class NewComment extends ServissoModel
         }
         return $query;
     }
+	
 }

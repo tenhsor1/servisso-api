@@ -11,7 +11,7 @@ class Company extends ServissoModel
 	use SoftDeletes;
     protected $table = 'companies';
 
-	protected $fillable = ['name','description','companiescol','partner_id','category_id'];
+	protected $fillable = ['name','description','companiescol','partner_id','category_id','image','thumbnail'];
 	
 	protected $hidden = ['partner_id','deleted_at','created_at','updated_at','role_id','role'];
 	

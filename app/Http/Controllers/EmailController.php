@@ -1,15 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers;
 
+use Mail;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 
-class AuthController extends Controller
+class EmailController extends Controller
 {
+    public function __construct(){
+        $this->middleware('jwt.auth:admin', ['only' => ['store']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,39 +21,6 @@ class AuthController extends Controller
     public function index()
     {
         //
-    }
-
-    public function authenticate(Request $request, $role="user")
-    {
-
-        $role = strtoupper($role);
-        if($role == 'USER'){
-            $model = 'App\User';
-        }else if($role == 'PARTNER'){
-            $model = 'App\Partner';
-        }else if($role == 'ADMIN'){
-            $model = 'App\Admin';
-        }else{
-            $model = 'App\User';
-            $role = 'USER';
-        }
-
-        \Config::set('auth.model', $model);
-        $credentials = $request->only('email', 'password');
-        $extraClaims = ['role'=>$role];
-        try {
-            // verify the credentials and create a token for the user
-            if (! $token = JWTAuth::attempt($credentials, $extraClaims)) {
-                return response()->json(['error' => 'Invalid Credentials', 'code'=> 403], 401);
-            }
-        } catch (JWTException $e) {
-            // something went wrong
-            return response()->json(['error' => 'Could not create token', 'code'=> 500], 500);
-        }
-        // if no errors are encountered we can return a JWT
-        $response = ['data'=> compact('token')];
-
-        return response()->json($response);
     }
 
     /**
@@ -71,7 +41,21 @@ class AuthController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        /*$result = Mail::send('emails.test', ['testVar' => 'Second Email'], function ($m){
+            $m->from('no-reply@servisso.com.mx', 'Servisso');
+
+            $m->to('ricardo.romo.ramirez@gmail.com', 'Rick')->subject('Second email');
+        });*/
+
+        //\Log::debug($result);
+        $tokenArray = ['random' => str_random(16)
+                            , 'email' => 'test'
+                            , 'role' => 'PARTNER'];
+        $encrypted = \Crypt::encrypt($tokenArray);
+        $decrypted = \Crypt::decrypt($encrypted);
+
+        $message = ['encrypted' => $encrypted, 'decrypted' => $decrypted];
+        return response()->json(['data'=>[], 'message'=>$message], 200);
     }
 
     /**
