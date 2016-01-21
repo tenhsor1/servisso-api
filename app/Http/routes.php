@@ -20,6 +20,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
+	Route::post('user/predict', 'UserController@predict');
     Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('guest', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
