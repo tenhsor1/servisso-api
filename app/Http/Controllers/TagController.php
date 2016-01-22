@@ -45,6 +45,23 @@ class TagController extends Controller
     {
         //
     }
+	
+	public function storeImage(Request $request){
+		$random = "test".rand(1,100);
+        /*$imageName = $random.".".$request->file('image')->getClientOriginalExtension();
+		$request->file('image')->move(base_path() . '/public/images/', $imageName);*/
+		
+		$path = base_path() . '/public/images/';		
+		$file = $request->file('image');
+		$imageName = $random.".".$file->getClientOriginalName();
+		$image = \Image::make($file);
+		$image->save($path.$imageName);
+		$image->resize(240,200);
+		$image->save($path.'thumb_'.$random.".".$file->getClientOriginalName());
+	
+		$response = ['count' => 1,'code' => 200,'data' => $imageName];
+		return response()->json($response,200);
+	}
 
     /**
      * Store a newly created resource in storage.
