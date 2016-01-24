@@ -23,7 +23,7 @@ return [
     | Defaults to 1 hour
     |
     */
-
+    //'ttl' => 2,
     'ttl' => 30 * 24 * 60,
 
     /*

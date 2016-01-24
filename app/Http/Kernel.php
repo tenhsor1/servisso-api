@@ -31,7 +31,7 @@ class Kernel extends HttpKernel
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'jwt.auth' => \App\Http\Middleware\JWTAuth::class,
-        'jwt.refresh' => \App\Http\Middleware\JWTRefresh::class,
+        'jwt.refresh' => 'Tymon\JWTAuth\Middleware\RefreshToken',
         'default.headers' => \App\Http\Middleware\DefaultHeaders::class,
     ];
 }

@@ -17,6 +17,7 @@ Route::get('/', function () {
 Route::group(['prefix' => 'v1'], function()
 {
     Route::resource('auth', 'Auth\AuthController', ['only' => ['index']]);
+    Route::get('auth/refresh', 'Auth\AuthController@refresh');
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
