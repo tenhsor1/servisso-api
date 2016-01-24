@@ -12,13 +12,13 @@ use JWTAuth;
 use App\Extensions\utils;
 class CompanyController extends Controller
 {
-	
+
 	public function __construct(){
         $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
-	
+
     /**
      * Display a listing of the resource.
      *
@@ -26,7 +26,7 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
-		
+
 		//$companies = Company::with('branches')->get();
 		$companies = Company::with('branches')
 							->searchBy($request)
@@ -36,7 +36,7 @@ class CompanyController extends Controller
 							->get();
 		$count = $companies->count();
 		$response = ['count' => $count,'code' => 200,'data' => $companies];
-		
+
 		return response()->json($response,200);
     }
 
@@ -59,38 +59,38 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
 		$partnerRequested = \Auth::User();
-		
+
 		$messages = Company::getMessages();
 		$validation = Company::getValidations();
-		
-        $v = Validator::make($request->all(),$validation,$messages);		
-		
+
+        $v = Validator::make($request->all(),$validation,$messages);
+
 		$response = ['error' => $v->messages(), 'code' =>  406];
-		
+
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
-		if($v->fails()){	
+		if($v->fails()){
 			return response()->json($response,422);
 		}
-				
+
 		//ID DEL ASOCIADO QUE LE PERTENECE LA COMPANY
 		$partner_id = $request->partner_id;
 		$partner = Partner::find($partner_id);
-		
+
 		//SE VALIDA QUE EL PARTNER EXISTA
 		if(!is_null($partner)){
-			
+
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
 			if($partnerRequested->id == $partner->id){
-				
+
 				//SE HACE UNA INSTANCIA DE COMPANY
 				$company = new Company;
 				$company->partner_id = $partner_id;
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
-				
+
 				$row = $company->save();
-				
+
 				if($row != false){
 					$response = ['data' => $company,'code' => 200,'message' => 'Company was created succefully'];
 					return response()->json($response,200);
@@ -102,16 +102,16 @@ class CompanyController extends Controller
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
 			}
-						
+
 		}else{
 			//EN DADO CASO QUE EL ID DE PARTNER NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Partner does not exist','code' => 422];
 			return response()->json($response,422);
 		}
-						
+
     }
 
-	
+
 	 public function image(Request $request, $id)
     {
 		$adminRequested = \Auth::User();
@@ -129,18 +129,18 @@ class CompanyController extends Controller
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
 				$img = utils::StorageImage($id,$request);
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
-				$company->image = $img['image'];			
-				$company->thumbnail = $img['thumbnail'];			
-				$company->save();	
-	
+				$company->image = $img['image'];
+				$company->thumbnail = $img['thumbnail'];
+				$company->save();
+
 				if($company != false){
-					$response = ['code' => 200,'message' => 'Image was save succefully'];		
+					$response = ['code' => 200,'message' => 'Image was save succefully'];
 					return response()->json($response,200);
 				}else{
 					$response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
 					return response()->json($response,500);
-				}	
-				
+				}
+
 			}else{
 				//EN DADO CASO QUE EL ID DE COMPANY NO SE HALLA ENCONTRADO
 				$response = ['error' => 'Company does not exist','code' => 422];
@@ -152,10 +152,10 @@ class CompanyController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
-	
-	
-	
-	
+
+
+
+
     /**
      * Display the specified resource.
      *
@@ -164,31 +164,31 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();	
-			
+		$partnerRequested = \Auth::User();
+
 		$company = Company::find($id);
-		
+
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
-			
+
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA OBTENER INFO DE SUS COMPANIES
 			if($partnerRequested->id == $company->partner_id){
-				
+
 				$response = ['code' => 200,'data' => $company];
 				return response()->json($response,200);
-				
+
 			}else{
-				
+
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
-			}			
-				
+			}
+
 		}else{
 			$response = ['error' => 'Company does no exist','code' => 422];
 			return response()->json($response,422);
-		}	
-		
-        
+		}
+
+
     }
 
     /**
@@ -212,48 +212,48 @@ class CompanyController extends Controller
     public function update(Request $request, $id)
     {
 		$userRequested = \Auth::User();
-		
+
         $company = Company::find($id);
-		
+
 		//SE VERIFICA QUE COMPANY EXISTA
 		if(!is_null($company)){
-			
+
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
 			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
-				
+
 				$messages = Company::getMessages();
 				$validation = Company::getValidations();
-				
-				$v = Validator::make($request->all(),$validation,$messages);	
-				
+
+				$v = Validator::make($request->all(),$validation,$messages);
+
 				//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 				if($v->fails()){
 					$response = ['error' => $v->messages(),'code' => 422];
 					return response()->json($response,422);
 				}
-				
+
 				//SE LE COLOCAN LOS NUEVOS VALORES
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];
-				
-				$company->save();	
-				
+
+				$company->save();
+
 				if($company != false){
 					$response = ['data' =>$company,'code' => 200,'message' => "Company was updated succefully"];
 					return response()->json($response,200);
 				}else{
 					$response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
 					return response()->json($response,500);
-				}	
-				
+				}
+
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
-			}						
-			
+			}
+
 		}else{
 			//EN DADO CASO QUE EL ID DE COMPANY NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Company does not exist','code' => 422];
@@ -269,23 +269,23 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-		$userRequested = \Auth::User();	
-		
+		$userRequested = \Auth::User();
+
         $company = Company::find($id);
-		
+
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
-			
+
 			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
 			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
-				
+
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];
 				$company->save();
-				
+
 				//SE BORRA LA COMPANY
 				$row = $company->delete();
-				
+
 				if($row != false){
 					$response = ['code' => 200,'message' => "Company was deleted succefully"];
 					return response()->json($response,200);
@@ -293,18 +293,18 @@ class CompanyController extends Controller
 					$response = ['error' => 'It has occurred an error trying to delete the company','code' => 500];
 					return response()->json($response,500);
 				}
-				
+
 			}else{
-				
+
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
-			}								
-			
+			}
+
 		}else{
 			//EN DADO CASO QUE EL ID DE LA COMPANY NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Company does not exist','code' => 422];
 			return response()->json($response,422);
 		}
     }
-	
+
 }

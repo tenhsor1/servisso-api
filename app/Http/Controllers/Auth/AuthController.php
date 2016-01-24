@@ -10,6 +10,10 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
+    public function __construct(){
+        $this->middleware('jwt.refresh', ['only' => ['refresh']]);
+        $this->middleware('default.headers');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -50,6 +54,13 @@ class AuthController extends Controller
         // if no errors are encountered we can return a JWT
         $response = ['data'=> compact('token')];
 
+        return response()->json($response);
+    }
+
+    public function refresh(Request $request)
+    {
+        $data = ["success"=> true, "Message"=> "Token refreshed correctly"];
+        $response = ['data'=> $data];
         return response()->json($response);
     }
 
