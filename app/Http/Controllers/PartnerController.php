@@ -8,14 +8,15 @@ use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use Validator;
 use App\Partner;
+use App\Company;
 use JWTAuth;
 
 class PartnerController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update']]);
         $this->middleware('default.headers');
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update', 'companies']]);
 		$this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
     }
@@ -41,6 +42,30 @@ class PartnerController extends Controller
 		return response()->json($response,200);
 
 
+    }
+
+    public function companies(Request $request, $partnerId)
+    {
+        $userRequested = \Auth::User();
+        if($userRequested->roleAuth == 'PARTNER'){
+            if($userRequested->id != $partnerId){
+                $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+                return response()->json($errorJSON, 403);
+            }
+        }
+
+        $companies = Company::with('branches')
+                            ->where('partner_id', $partnerId)
+                            ->searchBy($request)
+                            ->betweenBy($request)
+                            ->orderByCustom($request)
+                            ->limit($request)
+                            ->get();
+        $count = $companies->count();
+        $response = ['count' => $count,'code' => 200,'data' => $companies];
+
+        return response()->json($response,200);
     }
 
     /**

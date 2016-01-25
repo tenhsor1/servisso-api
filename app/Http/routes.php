@@ -30,6 +30,7 @@ Route::group(['prefix' => 'v1'], function()
 
 	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
 	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
+    Route::get('partner/{partner_id}/companies', 'PartnerController@companies');
 
     Route::post('partner/confirm','PartnerController@confirm');
     Route::post('user/confirm','UserController@confirm');
