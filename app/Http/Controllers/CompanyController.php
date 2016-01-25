@@ -14,7 +14,7 @@ class CompanyController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image']]);
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image', 'companiesUser']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
