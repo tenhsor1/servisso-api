@@ -45,21 +45,24 @@ class AuthController extends Controller
         try {
             // verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials, $extraClaims)) {
-                return response()->json(['error' => 'Invalid Credentials', 'code'=> 403], 401);
+                return response()->json(['error' => 'Email y/o password incorrectos', 'code'=> 403], 401);
             }
         } catch (JWTException $e) {
             // something went wrong
-            return response()->json(['error' => 'Could not create token', 'code'=> 500], 500);
+            return response()->json(['error' => 'No se pudo crear el token', 'code'=> 500], 500);
         }
         // if no errors are encountered we can return a JWT
-        $response = ['data'=> compact('token')];
+        $user = JWTAuth::toUser($token);
+        $user->access = $token;
+
+        $response = ['data'=> $user];
 
         return response()->json($response);
     }
 
     public function refresh(Request $request)
     {
-        $data = ["success"=> true, "Message"=> "Token refreshed correctly"];
+        $data = ["success"=> true, "Message"=> "El token se generó correctamente"];
         $response = ['data'=> $data];
         return response()->json($response);
     }
