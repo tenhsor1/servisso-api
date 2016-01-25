@@ -1,4 +1,13 @@
+/vendor
+/node_modules
+Homestead.yaml
+Homestead.json
 /bootstrap/compiled.php
 .env.*.php
 .env.php
 .env
+/.idea
+composer.lock
+/public/image/*
+/public/images/*
+/public/thumb/*
