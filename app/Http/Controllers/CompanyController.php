@@ -36,7 +36,7 @@ class CompanyController extends Controller
 							->get();
 		$count = $companies->count();
 		$response = ['count' => $count,'code' => 200,'data' => $companies];
-		return response()->json($response,200;
+		return response()->json($response,200);
     }
 
     /**
