@@ -157,20 +157,28 @@ class UserController extends Controller
 	
 	public function predict(Request $request){
 		
-		//SE BUSCA EL TOKEN Y SE VALIDA QUE NO HALLA EXPIRADO, SI YA EXPIRO ENTONCES SE BUSCA OTRO NUEVO
-		$time = time();
-		$token = \DB::table('token_prediction')->where('expired','>',$time)->orderBy('id','desc')->take(1)->get();
+		//SE VALIDA QUE SE HALLA ENVIADO LA FRASE
+		if($request->phrase){
 		
-		if($token != null){
-			$token = $token[0]->token;
+			//SE BUSCA EL TOKEN Y SE VALIDA QUE NO HALLA EXPIRADO, SI YA EXPIRO ENTONCES SE BUSCA OTRO NUEVO
+			$time = time();
+			$token = \DB::table('token_prediction')->where('expired','>',$time)->orderBy('id','desc')->take(1)->get();
 			$phrase = $request->phrase;
+			
+			if($token != null){
+				$token = $token[0]->token;			
+			}else{
+				$token = $this::getPredictionToken();			
+			}
+			
 			$detectedCategory = $this::predictAPI($token,$phrase);
+					
+			$response = ['code' => 200,'data' => $detectedCategory];
+			return response()->json($response,200);
 		}else{
-			$token = $this::getPredictionToken();
+			$response = ['code' => 403,'error' => "Phrase not found"];
+            return response()->json($response,403);
 		}
-				
-		$response = ['code' => 200,'data' => $detectedCategory];
-        return response()->json($response,200);
 	}
 	
 	/**
@@ -183,7 +191,7 @@ class UserController extends Controller
 		$headerBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$headerBase64);//A esto se llema safeBase64
 		
 		$issued = time();
-		$expire = time() + 3600; //los token maximo duran una hora
+		$expire = $issued + 3600; //los token maximo duran una hora
 		
 		$payload = '{"iss":"servsl@testwebdev-962.iam.gserviceaccount.com","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
 
@@ -215,7 +223,7 @@ class UserController extends Controller
 		curl_setopt($temp, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt($temp, CURLOPT_RETURNTRANSFER, true);
 		if (!$data = curl_exec($temp)) { 
-			return "UNKNOW ERROR";
+			return "UNKNOWN ERROR";
 		} else {
 			curl_close($temp);
 			
@@ -227,6 +235,8 @@ class UserController extends Controller
 			}else{
 				$result = json_decode($data, true);
 				$token = $result['access_token'];
+				
+				\DB::table('token_prediction')->truncate();
 				
 				//SE GUARDA EL TOKEN
 				\DB::table('token_prediction')->insert([
