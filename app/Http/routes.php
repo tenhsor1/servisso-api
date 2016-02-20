@@ -17,6 +17,7 @@ Route::get('/', function () {
 Route::group(['prefix' => 'v1'], function()
 {
     Route::resource('auth', 'Auth\AuthController', ['only' => ['index']]);
+    Route::get('auth/refresh', 'Auth\AuthController@refresh');
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
@@ -29,6 +30,7 @@ Route::group(['prefix' => 'v1'], function()
 
 	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
 	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
+    Route::get('partner/{partner_id}/companies', 'PartnerController@companies');
 
     Route::post('partner/confirm','PartnerController@confirm');
     Route::post('user/confirm','UserController@confirm');

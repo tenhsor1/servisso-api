@@ -44,4 +44,19 @@ class JWTAuth extends TymonJWTAuth
             $user->roleAuth = $role;
         return $user;
     }
+
+    /**
+     * Find a user using the user identifier in the subject claim.
+     *
+     * @param bool|string $token
+     *
+     * @return mixed
+     */
+    public function toUser($token = false)
+    {
+        if (! $user = $this->authenticate($token)) {
+            return false;
+        }
+        return $user;
+    }
 }

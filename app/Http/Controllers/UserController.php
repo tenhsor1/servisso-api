@@ -26,7 +26,7 @@ class UserController extends Controller
     {
         return "index";
     }
-	
+
     /**
      * Store a newly created resource in storage.
      *
@@ -36,7 +36,7 @@ class UserController extends Controller
     public function store(Requests\UserStoreRequest $request)
     {
         $newUser = User::create($request->all());
-		
+
         $extraClaims = ['role'=>'USER'];
         $token = JWTAuth::fromUser($newUser,$extraClaims);
         $reflector = new \ReflectionClass('JWTAuth');
@@ -52,7 +52,7 @@ class UserController extends Controller
                     ,'code' => 404];
         return response()->json($response,404);
     }
-	
+
     /**
      * Display the specified resource.
      *
@@ -72,7 +72,7 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
-	
+
     /**
      * Update the specified resource in storage.
      *
@@ -97,12 +97,12 @@ class UserController extends Controller
             $userRequested->save();
             return response()->json(['data'=>$userRequested], 200);
         }else{
-             $errorJSON = ['error'   => 'Unauthorized'
+            $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
             return response()->json($errorJSON, 403);
         }
     }
-	
+
     /**
      * Remove the specified resource from storage.
      *
@@ -154,9 +154,8 @@ class UserController extends Controller
                         return response()->json($response,403);
         }
     }
-	
+
 	public function predict(Request $request){
-		
 		//SE VALIDA QUE SE HALLA ENVIADO LA FRASE
 		if($request->phrase){
 		
@@ -180,12 +179,11 @@ class UserController extends Controller
             return response()->json($response,403);
 		}
 	}
-	
+
 	/**
 	* Este método solicita un token para poder usar la API Google Prediction
 	*/
 	private function getPredictionToken(){
-		
 		$header = '{"alg":"RS256","typ":"JWT"}';
 		$headerBase64 = base64_encode($header);
 		$headerBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$headerBase64);//A esto se llema safeBase64
@@ -249,7 +247,7 @@ class UserController extends Controller
 			}			
 		}		
 	}
-	
+
 	/**
 	* Método para detectar a que categoría pertenece una frase.
 	* @param string $token token requerido para poder hacer uso de Google Prediction
@@ -257,36 +255,36 @@ class UserController extends Controller
 	* @return string cada de texto con la mejor categoria elegida por Google Prediction
 	*/
 	private function predictAPI($token,$phrase){
-		//--------------ESTE CODIGO ES PARA MANDAR UNA FRASE Y QUE GOOGLE PREDICTION NOS REGRESE A QUE CATEGORIA PERTENECE---------------	
-		$data = '{"input":{"csvInstance":["'.$phrase.'"]}}';                                                                    
+		//--------------ESTE CODIGO ES PARA MANDAR UNA FRASE Y QUE GOOGLE PREDICTION NOS REGRESE A QUE CATEGORIA PERTENECE---------------
+		$data = '{"input":{"csvInstance":["'.$phrase.'"]}}';
 		$data_string = $data;
-		
+
 		$temp = curl_init("https://www.googleapis.com//prediction/v1.6/projects/870494030602/trainedmodels/TrainingModelServ/predict");
 		curl_setopt($temp, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($temp, CURLOPT_POSTFIELDS, $data_string);
 		curl_setopt($temp, CURLOPT_SSL_VERIFYPEER , false );
 		curl_setopt($temp, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Authorization: Bearer '.$token.' '));
 		curl_setopt($temp, CURLOPT_RETURNTRANSFER, true);
-		if (!$data = curl_exec($temp)) { 
+		if (!$data = curl_exec($temp)) {
 			return "UNKNOW ERROR";
 		} else {
 			curl_close($temp);
-			
+
 			//SE VALIDA QUE LA RESPUESTA NO CONTENGA ERRORES, SI CONTIENE ENTONCES SE MUESTRAN LOS ERRORES
 			if(strpos($data,'error')){
-				
+
 				$result = json_decode($data, true);
 				$code = $result['error']['code'];
 				$message = $result['error']['message'];
 				$errors = $result['error']['errors'];
-				$location = $errors[0]['location']; //En la primera posicion estan los errores			
+				$location = $errors[0]['location']; //En la primera posicion estan los errores
 				return "Codigo: ".$code." Message: ".$message." Location: ".$location;
-				
+
 			}else{
-				
+
 				$result = json_decode($data, true);
-				return $result['outputLabel'];	
-				
+				return $result['outputLabel'];
+
 				//ESTAS SON LAS DEMAS CATEGORIAS QUE PUEDEN SER POSIBLES RESULTADOS DE LA FRASE BUSCADA
 				/*for($i = 0;$i < count($result['outputMulti']);$i++){
 					$output = $result['outputMulti'][$i];
@@ -294,8 +292,8 @@ class UserController extends Controller
 					$puntuacion = $output['score'];
 					echo $categoria."  ".$puntuacion."</br>";
 				}*/
-				
-			}		
-		}		
+
+			}
+		}
 	}
 }
