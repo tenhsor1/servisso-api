@@ -32,12 +32,27 @@ class BranchController extends Controller
     {
 
 		//SE OBTINEN LAS BRANCHES
-		$branches = Branch::searchBy($request)
+		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
+                            ->searchBy($request)
                             ->within($request)
 							->betweenBy($request)
 							->orderByCustom($request)
 							->limit($request)
-							->get();
+							->select('branches.id',
+                                'branches.company_id',
+                                'branches.phone',
+                                'branches.latitude',
+                                'branches.longitude',
+                                'branches.state_id',
+                                'branches.schedule',
+                                'branches.name',
+                                'companies.partner_id',
+                                'companies.name AS company_name',
+                                'companies.description',
+                                'companies.category_id',
+                                'companies.image',
+                                'companies.thumbnail')
+                            ->get();
 
 		$count = $branches->count();
 
