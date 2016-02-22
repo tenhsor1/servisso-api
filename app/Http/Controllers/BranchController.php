@@ -33,14 +33,17 @@ class BranchController extends Controller
 
 		//SE OBTINEN LAS BRANCHES
 		$branches = Branch::searchBy($request)
+                            ->within($request)
 							->betweenBy($request)
 							->orderByCustom($request)
 							->limit($request)
 							->get();
+
 		$count = $branches->count();
 
 		//SE ITERA SOBRE LAS BRANCHES PARA AGREGARLE LOS TAGS Y DARLE FORMA AL JSON
-		foreach($branches as $branch){
+
+        foreach($branches as $branch){
 
 			$tags = \DB::table('tags_branches')
 			->join('tags','tags_branches.tag_id','=','tags.id')
