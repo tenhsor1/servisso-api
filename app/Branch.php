@@ -214,28 +214,28 @@ class Branch extends ServissoModel
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
 					case 'address':
-                        $query->orderBy('address', $orderType);
+                        $query->orderBy('branches.address', $orderType);
                         break;
 					case 'phone':
-                        $query->orderBy('phone', $orderType);
+                        $query->orderBy('branches.phone', $orderType);
                         break;
 					case 'latitude':
-                        $query->orderBy('latitude', $orderType);
+                        $query->orderBy('branches.latitude', $orderType);
                         break;
 					case 'longitude':
-                        $query->orderBy('longitude', $orderType);
+                        $query->orderBy('branches.longitude', $orderType);
                         break;
 					case 'schedule':
-                        $query->orderBy('schedule', $orderType);
+                        $query->orderBy('branches.schedule', $orderType);
                         break;
                     case 'created':
-                        $query->orderBy('created_at', $orderType);
+                        $query->orderBy('branches.created_at', $orderType);
                         break;
                     case 'updated':
-                        $query->orderBy('updated_at', $orderType);
+                        $query->orderBy('branches.updated_at', $orderType);
                         break;
 					case 'deleted':
-						$query->orderBy('deleted_at', $orderType);
+						$query->orderBy('branches.deleted_at', $orderType);
 						break;
                 }
                 $cont++;
