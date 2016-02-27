@@ -22,10 +22,9 @@ class CountryController extends Controller
      */
     public function index(Request $request)
     {
-	\DB::connection()->enableQueryLog();
+	// \DB::connection()->enableQueryLog();
        $adminRequested = \Auth::User();
-            $country = Country::with('state')
-						->searchBy($request)
+            $country = Country::searchBy($request)
 						->betweenBy($request)
 						->orderByCustom($request)
 						->limit($request)
@@ -42,6 +41,8 @@ class CountryController extends Controller
      
     }
 
+		
+	
     /**
      * Show the form for creating a new resource.
      *
