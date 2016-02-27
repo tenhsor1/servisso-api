@@ -8,36 +8,36 @@ class Country extends ServissoModel
 {
     use SoftDeletes;
 	protected $table="countries";
-	
-	protected $fillable = array('country');
-	
 
-    protected $hidden = ['id','created_at','role_id','role','updated_at','deleted_at'];
+	protected $fillable = array('country');
+
+
+    protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
 
     public function admin()
     {
         // 1 new is related to one admin who created it
         return $this->belongsTo('App\Admin');
     }
-	
+
 	public function partner()
     {
         // 1 new is related to one admin who created it
         return $this->belongsTo('App\Partner');
     }
-	
+
 	public function user()
     {
         // 1 new is related to one admin who created it
         return $this->belongsTo('App\User');
     }
-	
+
 	public function state()
     {
         // 1 new is related to one admin who created it
         return $this->hasMany('App\State');
     }
-	
+
 	 /**
      * Se obtienen los mensajes de errores
      */
@@ -89,7 +89,7 @@ class Country extends ServissoModel
     {
       return $this->morphTo();
     }
-  
+
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: admin?search=test&fields=description,company,address)
@@ -98,11 +98,11 @@ class Country extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('country')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('country')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
@@ -158,7 +158,7 @@ class Country extends ServissoModel
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
@@ -185,9 +185,9 @@ class Country extends ServissoModel
                         break;
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
-                        break; 
+                        break;
 					case 'country':
-                        $query->orderBy('country', $orderType);  
+                        $query->orderBy('country', $orderType);
                         break;
                 }
                 $cont++;
@@ -195,6 +195,6 @@ class Country extends ServissoModel
         }
         return $query;
     }
-	
-	
+
+
 }
