@@ -33,6 +33,7 @@ class BranchController extends Controller
 
 		//SE OBTINEN LAS BRANCHES
 		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
+                            ->join('categories', 'companies.category_id', '=', 'categories.id')
                             ->searchBy($request)
                             ->within($request)
 							->betweenBy($request)
@@ -50,6 +51,7 @@ class BranchController extends Controller
                                 'companies.name AS company_name',
                                 'companies.description',
                                 'companies.category_id',
+                                'categories.name AS category_name',
                                 'companies.image',
                                 'companies.thumbnail')
                             ->get();
@@ -124,7 +126,7 @@ class BranchController extends Controller
 				$branch->phone = $request->phone;
 				$branch->latitude = $request->latitude;
 				$branch->longitude = $request->longitude;
-				$branch->state_id = 1;
+				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
 
 				$branch->save();

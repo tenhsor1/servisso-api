@@ -35,13 +35,12 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('partner/confirm','PartnerController@confirm');
     Route::post('user/confirm','UserController@confirm');
 
-    Route::get('branch/{branch}/services','BranchController@services');//to get all services that belongs to one branch
-    Route::resource('branch','BranchController',['only' => ['update','destroy','show','store']]);
+    Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
+    Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
     Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
-	Route::resource('branch','BranchController',['only' => ['index','update','destroy','show','store']]);
 	Route::get('category/{id}/tags','CategoryController@categoryTags');
 	Route::resource('category','CategoryController',['only' => ['index']]);
 	Route::resource('tag','TagController',['only' => ['index','store','show','update','destroy']]);
