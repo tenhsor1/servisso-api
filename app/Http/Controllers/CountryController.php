@@ -11,7 +11,7 @@ use JWTAuth;
 class CountryController extends Controller
 {
 	 public function __construct(){
-        $this->middleware('jwt.auth:admin|partner|user', ['only' => ['update','show','store','index','destroy']]);
+        $this->middleware('jwt.auth:admin|partner|user', ['except' => ['update','show','store','index','destroy']]);
         $this->middleware('default.headers');
 		$this->UserRoles = \Config::get('app.user_roles');
     }
@@ -30,10 +30,10 @@ class CountryController extends Controller
 						->orderByCustom($request)
 						->limit($request)
 						->get();
-	$query = \DB::getQueryLog();
+	// $query = \DB::getQueryLog();
 			$count = $country->count();    
 			 if(!is_null($country)){   
-                $response = ['code' => 200,'Count' => $count,'Query'=>$query,'data' => $country];
+                $response = ['code' => 200,'Count' => $count,'data' => $country];
                 return response()->json($response,200);
             }else{
                 $response = ['error' => 'Countries are empty','code' => 404];
@@ -62,7 +62,7 @@ class CountryController extends Controller
     {
        $adminRequested = \Auth::User();
 		//SE VALIDA QUE EL USUARIO SEA DE TIPO ADMIN Y QUE EL ID DEL ADMIN LE PERTENEZCA A QUIEN CREA LA NOTICIA
-        if($adminRequested->roleAuth  == "ADMIN"){
+        // if($adminRequested->roleAuth  == "ADMIN"){
         $messages = Country::getMessages();
         $validation = Country::getValidations();
         $v = Validator::make($request->all(),$validation,$messages);
@@ -85,11 +85,11 @@ class CountryController extends Controller
             $response = ['error' => 'It has occurred an error trying to save the country','code' => 404];
             return response()->json($response,404);
         }
-        }else{
-            $errorJSON = ['error'   => 'Unauthorized'
-                , 'code' => 403];
-            return response()->json($errorJSON, 403);
-        }
+        // }else{
+            // $errorJSON = ['error'   => 'Unauthorized'
+                // , 'code' => 403];
+            // return response()->json($errorJSON, 403);
+        // }
     }
 
     /**
@@ -136,7 +136,7 @@ class CountryController extends Controller
 
             $adminRequested = \Auth::User();//quien hizo la peticion
 
-            if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion le pertenecen sus datos
+            // if($adminRequested->roleAuth  == "ADMIN"){ //se valida quien mando la peticion le pertenecen sus datos
 
                 $messages = Country::getMessages();
                 $validation = Country::getValidations();
@@ -161,14 +161,14 @@ class CountryController extends Controller
                 }
 
 
-            }else{
+            // }else{
                 //EN DADO CASO QUE EL ID DE NO SEA UN ADMINISTRADOR
-                $response = ['error' => 'Unauthorized','code' => 403];
-                return response()->json($response,403);
-            }
+                // $response = ['error' => 'Unauthorized','code' => 403];
+                // return response()->json($response,403);
+            // }
 
         }else{
-            //EN DADO CASO QUE EL ID DEL ADMIN NO SE HALLA ENCONTRADO
+            //EN DADO CASO QUE EL ID DEL COUNTRY NO SE HALLA ENCONTRADO
             $response = ['error' => 'News does not exist','code' => '404'];
             return response()->json($response,404);
         }
@@ -185,7 +185,7 @@ class CountryController extends Controller
          $country = Country::find($id);
         if(!is_null($country)){
             $adminRequested = \Auth::User();//quien hizo la peticion
-			 if($adminRequested->roleAuth  == "ADMIN"){
+			 // if($adminRequested->roleAuth  == "ADMIN"){
 				$country->role_id = $adminRequested->id;//id de quien modifico
                 $country->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
                 $country->save(); 
@@ -197,13 +197,13 @@ class CountryController extends Controller
                     $response = ['error' => 'It has occurred an error trying to delete the country','code' => 404];
                     return response()->json($response,404);
                 }  
-            }else{
+            // }else{
                 //EN DADO CASO QUE EL ID DE NEWS NO LE PERTENEZCA
-                $response = ['error' => 'Unauthorized','code' => 403];
-                return response()->json($response,403);
-            }
+                // $response = ['error' => 'Unauthorized','code' => 403];
+                // return response()->json($response,403);
+            // }
         }else{
-            //EN DADO CASO QUE EL ID DEL ADMIN NO SE HALLA ENCONTRADO
+            //EN DADO CASO QUE EL ID DEL COUNTRY NO SE HALLA ENCONTRADO
             $response = ['error' => 'Contry does not exist','code' => '404'];
             return response()->json($response,404);
         }
