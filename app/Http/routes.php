@@ -49,10 +49,12 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('admin', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('news', 'NewController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('newcomment', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::get('country/{id}/state', 'StateController@states');
 	Route::resource('country', 'CountryController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 	Route::resource('state', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('email', 'EmailController', ['only' => ['store']]);
 	Route::post('image/{id}', 'CompanyController@image');
+	
 });
 
 

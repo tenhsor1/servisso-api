@@ -11,7 +11,7 @@ use JWTAuth;
 class StateController extends Controller
 {
 	public function __construct(){
-        $this->middleware('jwt.auth:admin|partner|user', ['except' => ['update','show','store','index','destroy']]);
+        $this->middleware('jwt.auth:admin|partner|user', ['except' => ['update','show','store','index','destroy','states']]);
         $this->middleware('default.headers');
 		$this->UserRoles = \Config::get('app.user_roles');
     }
@@ -104,6 +104,27 @@ class StateController extends Controller
         $state = State::find($id);
         if(!is_null($state)){
             $response = ['code' => 200,'data' => $state];
+            return response()->json($response,200);
+        }else{
+            $response = ['error' => 'State does no exist','code' => 404];
+            return response()->json($response,404);
+        }
+    }
+	
+	 /**
+     * Show the states by id city.
+     *
+     */
+	public function states($id)
+    {
+		// \DB::connection()->enableQueryLog();
+        $state = State::
+		where('country_id', '=', $id)
+		->get();
+		// $query = \DB::getQueryLog();
+		$count = $state->count(); 
+        if(!is_null($state)){
+            $response = ['code' => 200,'Count' => $count,'data' => $state];
             return response()->json($response,200);
         }else{
             $response = ['error' => 'State does no exist','code' => 404];
