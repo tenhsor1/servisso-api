@@ -22,7 +22,8 @@ class Branch extends ServissoModel
         'phone',
         'latitude',
 		'longitude',
-		'schedule'
+		'schedule',
+        'category'
     ];
 
     protected $betweenFields = [
@@ -121,6 +122,10 @@ class Branch extends ServissoModel
 						//search by the schedule of the service
                         $query->$where('schedule', 'LIKE', '%'.$search.'%');
 						break;
+                    case 'category':
+                        //search by the schedule of the service
+                        $query->$where('categories.name', '=', $search);
+                        break;
                 }
 				$where = "orWhere";
             }
