@@ -18,10 +18,10 @@ class CompaniesMigration extends Migration
 			$table->string('name',60);
 			$table->text('description',500);
 			$table->integer('category_id')->unsigned();
-			$table->integer('role_id')->unsigned()->default(0);
-			$table->integer('role')->unsigned()->default(0);
-			$table->text('image',150);
-			$table->text('thumbnail',150);
+			$table->integer('role_id')->unsigned()->nullable();
+            $table->integer('role')->unsigned()->nullable();
+			$table->text('image',150)->nullable();
+			$table->text('thumbnail',150)->nullable();
 			$table->softDeletes();
             $table->timestamps();
 
