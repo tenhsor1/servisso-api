@@ -20,8 +20,8 @@ class BranchesMigration extends Migration
 			$table->string('phone',20);
 			$table->double('latitude',11,7);
 			$table->double('longitude',11,7);
-			$table->integer('state_id')->unsigned();
-			$table->string('schedule',100);
+			$table->integer('state_id')->unsigned()->nullable();
+            $table->string('schedule',100)->nullable();
 			$table->integer('role_id')->unsigned()->nullable();
             $table->integer('role')->unsigned()->nullable();
 			$table->softDeletes();
