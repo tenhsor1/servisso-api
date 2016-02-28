@@ -19,6 +19,8 @@ class GuestsMigration extends Migration
             $table->string('address', 90)->nullable();
             $table->string('phone', 20);
             $table->string('zipcode', 10)->nullable();
+            $table->integer('role_id')->unsigned()->nullable();
+            $table->integer('role')->unsigned()->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

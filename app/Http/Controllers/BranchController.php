@@ -42,6 +42,7 @@ class BranchController extends Controller
 							->select('branches.id',
                                 'branches.company_id',
                                 'branches.phone',
+                                'branches.address',
                                 'branches.latitude',
                                 'branches.longitude',
                                 'branches.state_id',
