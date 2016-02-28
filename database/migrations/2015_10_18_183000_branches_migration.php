@@ -17,13 +17,17 @@ class BranchesMigration extends Migration
             $table->increments('id');
             $table->integer('company_id')->unsigned();
 			$table->string('address',150);
-			$table->string('phone',20);
+			$table->string('phone',20)->nullable();
 			$table->double('latitude',11,7);
 			$table->double('longitude',11,7);
 			$table->integer('state_id')->unsigned()->nullable();
             $table->string('schedule',100)->nullable();
 			$table->integer('role_id')->unsigned()->nullable();
             $table->integer('role')->unsigned()->nullable();
+            $table->integer('id_negocio')->nullable();
+            $table->boolean('inegi')->default(false);
+            $table->string('name', 150)->nullable();
+            $table->string('clase_actividad', 200)->nullable();
 			$table->softDeletes();
             $table->timestamps();
 
