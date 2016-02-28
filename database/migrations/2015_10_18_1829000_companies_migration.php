@@ -20,8 +20,8 @@ class CompaniesMigration extends Migration
 			$table->integer('category_id')->unsigned();
 			$table->integer('role_id')->unsigned()->nullable();
             $table->integer('role')->unsigned()->nullable();
-			$table->text('image',150)->nullable();
-			$table->text('thumbnail',150)->nullable();
+			$table->string('image',120)->nullable();
+			$table->string('thumbnail',120)->nullable();
 			$table->softDeletes();
             $table->timestamps();
 
