@@ -143,7 +143,13 @@ class Branch extends ServissoModel
             $bottomLongitude = $bottomLimit[1]; //b
             $topLatitude = $topLimit[0]; //c
             $topLongitude = $topLimit[1]; //d
-
+"SELECT * FROM branches WHERE  LIMIT 20;";
+            $query->whereRaw("ST_Intersects(geom,
+                ST_SETSRID(ST_MakeBox2D(
+                    ST_SetSRID(ST_MakePoint(?, ?),4326), ST_SetSRID(ST_MakePoint(?, ?), 4326)
+                ), 4326)
+                )", [$bottomLongitude, $bottomLatitude, $topLongitude, $topLatitude]);
+            /*
             $query->whereRaw("
                 (? < ? AND latitude BETWEEN ? AND ?)
                     OR (? < ? AND latitude BETWEEN ? AND ?)
@@ -153,7 +159,7 @@ class Branch extends ServissoModel
                 [$bottomLatitude, $topLatitude, $bottomLatitude, $topLatitude,
                 $topLatitude, $bottomLatitude, $topLatitude, $bottomLatitude,
                 $bottomLongitude, $topLongitude, $bottomLongitude, $topLongitude,
-                $topLongitude, $bottomLongitude, $topLongitude, $bottomLongitude]);
+                $topLongitude, $bottomLongitude, $topLongitude, $bottomLongitude]);*/
         }
         return $query;
     }
