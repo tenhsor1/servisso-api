@@ -21,11 +21,11 @@ class UsersMigration extends Migration
             $table->string('phone', 20);
             $table->string('address', 90)->nullable();
             $table->string('zipcode', 10)->nullable();
-			$table->integer('role_id')->unsigned();
-            $table->integer('update_id')->unsigned();
+			$table->integer('role_id')->unsigned()->nullable();
+            $table->integer('update_id')->unsigned()->nullable();
             $table->integer('state_id')->unsigned();
             $table->integer('country_id')->unsigned();
-            $table->string('token', 255)->nullable();
+            $table->string('token', 500)->nullable();
             $table->boolean('confirmed')->default(false);
             $table->softDeletes();
             $table->timestamps();

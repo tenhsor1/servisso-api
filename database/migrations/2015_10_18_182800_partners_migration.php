@@ -28,7 +28,7 @@ class PartnersMigration extends Migration
 			$table->integer('plan_id')->unsigned()->default(0);
 			$table->integer('role_id')->unsigned()->default(0);
 			$table->integer('role')->unsigned()->default(0);
-            $table->string('token', 255)->nullable();
+            $table->string('token', 500)->nullable();
             $table->boolean('confirmed')->default(false);
 			$table->softDeletes();
             $table->timestamps();
