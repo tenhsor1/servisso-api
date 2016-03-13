@@ -93,7 +93,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'Bad request'
                             , 'code' => 422
                             , 'data' => [
-                                'guest_id'=> 'Missing the id of the user/guest requesting the service'
+                                'guest_id'=> ['Missing the id of the user/guest requesting the service']
                                 ]];
             return response()->json($errorJSON, 422);
         }
@@ -130,7 +130,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 404
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 404);
         }
@@ -163,7 +163,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 422
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 422);
         }

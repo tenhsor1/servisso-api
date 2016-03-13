@@ -103,7 +103,7 @@ class BranchController extends Controller
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
 
@@ -230,7 +230,7 @@ class BranchController extends Controller
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
 
