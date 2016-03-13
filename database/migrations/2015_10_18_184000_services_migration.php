@@ -18,6 +18,9 @@ class ServicesMigration extends Migration
             $table->integer('branch_id')->unsigned();
             $table->integer('userable_id')->unsigned();
             $table->string('userable_type');
+            $table->string('address', 90)->nullable();
+            $table->string('phone', 20)->nullable();
+            $table->string('zipcode', 10)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
