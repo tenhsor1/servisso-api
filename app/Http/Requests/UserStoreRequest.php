@@ -27,7 +27,7 @@ class UserStoreRequest extends Request
             'name' => 'required|max:45|min:2|alpha',
             'email' => 'required|unique:users|email',
             'password' => 'required|min:8',
-            'last_name' => 'required|min:2|max:45|alpha',
+            'last_name' => 'min:2|max:45|alpha',
             'phone' => 'max:20',
             'address' => 'max:90',
             'zipcode' => 'max:10|alpha_num',

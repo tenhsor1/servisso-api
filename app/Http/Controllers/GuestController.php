@@ -40,7 +40,7 @@ class GuestController extends Controller
 
         $v = Validator::make($request->all(),$validation,$messages);
 
-        $response = ['error' => $v->messages(), 'code' =>  422];
+        $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 
         //Validate if something failed with the fields passed
         if($v->fails()){
@@ -92,7 +92,7 @@ class GuestController extends Controller
 
             $v = Validator::make($request->all(),$validation,$messages);
 
-            $response = ['error' => $v->messages(), 'code' =>  422];
+            $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 
             //Validate if something failed with the fields passed
             if($v->fails()){
