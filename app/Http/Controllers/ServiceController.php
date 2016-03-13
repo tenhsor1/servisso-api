@@ -75,13 +75,16 @@ class ServiceController extends Controller
 
             $service->description = $request->input('description');
             $service->branch_id = $request->input('branch_id');
+            $service->address = $request->input('address');
+            $service->phone = $request->input('phone');
+            $service->zipcode = $request->input('zipcode');
 
             $save = $user->services()->save($service);
             if($save){
                 return response()->json(['data'=>$service], 200);
             }else{
                 return response()->json([
-                    'error' => 'It has occurred an error trying to save the guest'
+                    'error' => 'It has occurred an error trying to save the server'
                     ,'code' => 500], 500);
             }
 
