@@ -30,9 +30,9 @@ class AdminController extends Controller
                                 ->betweenBy($request)
                                 ->orderByCustom($request)
                                 ->limit($request)
-                                ->get();   
-			$count = $admin->count();    
-			 if(!is_null($admin)){   
+                                ->get();
+			$count = $admin->count();
+			 if(!is_null($admin)){
                 $response = ['code' => 200,'Count' => $count,'data' => $admin];
                 return response()->json($response,200);
             }else{
@@ -72,9 +72,9 @@ class AdminController extends Controller
 
             //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
             if ($v->fails()) {
-                $response = ['error' => $v->messages(), 'code' => 422];
+                $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' => 422];
                 return response()->json($response, 422);
-            }    
+            }
 
             //SE CREA UN ADMIN
             $admin = new Admin;
@@ -156,12 +156,12 @@ class AdminController extends Controller
                 $v = Validator::make($request->all(),$validation,$messages);
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
-                    $response = ['error' => $v->messages(),'code' => 404];
-                    return response()->json($response,404);
+                    $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
+                    return response()->json($response,422);
                 }
-				
-				
-				
+
+
+
                 $admin->email = $request->email;
                 $admin->password = $request->password;
                 $admin->name = $request->name;
@@ -186,7 +186,7 @@ class AdminController extends Controller
                     return response()->json($response, 500);
                 }
 
-            }else{ 
+            }else{
                 //EN DADO CASO QUE EL ID DEL ADMIN NO LE PERTENEZCA
                 $response = ['error' => 'Unauthorized','code' => '404'];
                 return response()->json($response,404);
@@ -209,7 +209,7 @@ class AdminController extends Controller
     public function destroy($id)
     {
         $adminRequested = \Auth::User();
-        if($adminRequested->role_id == $this->AdminRole['SUPER']) {  
+        if($adminRequested->role_id == $this->AdminRole['SUPER']) {
             $admin = Admin::find($id);
             if(!is_null($admin)){
 				$admin->update_id = $adminRequested->id;//quien modifico

@@ -21,39 +21,40 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin|partner)'); //just match auth/{user|admin|partner}
 
-	Route::post('user/predict', 'UserController@predict');
-    Route::resource('user', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
-    Route::resource('guest', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
-    Route::resource('service', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
-    Route::resource('call', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
+	Route::post('users/predict', 'UserController@predict');
+    Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('guests', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::resource('services', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
+    Route::resource('calls', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
 
-	Route::resource('partner','PartnerController',['only' => ['update','destroy','show','store','index']]);
-	Route::resource('company','CompanyController',['only' => ['index','update','destroy','show','store']]);
-    Route::get('partner/{partner_id}/companies', 'PartnerController@companies');
+	Route::resource('partners','PartnerController',['only' => ['update','destroy','show','store','index']]);
+	Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
+    Route::get('partners/{partner_id}/companies', 'PartnerController@companies');
 
-    Route::post('partner/confirm','PartnerController@confirm');
-    Route::post('user/confirm','UserController@confirm');
+    Route::post('partners/confirm','PartnerController@confirm');
+    Route::post('users/confirm','UserController@confirm');
 
-    Route::get('branch/{branch}/services','BranchController@services');//to get all services that belongs to one branch
-    Route::resource('branch','BranchController',['only' => ['update','destroy','show','store']]);
+    Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
+    Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
-    Route::resource('partnerrate','PartnerRateController',['only' => ['update','destroy','show','store']]);
-    Route::resource('userrate','UserRateController',['only' => ['update','destroy','show','store']]);
-	Route::resource('branch','BranchController',['only' => ['index','update','destroy','show','store']]);
-	Route::get('category/{id}/tags','CategoryController@categoryTags');
-	Route::resource('category','CategoryController',['only' => ['index']]);
-	Route::resource('tag','TagController',['only' => ['index','store','show','update','destroy']]);
+    Route::resource('partnerrates','PartnerRateController',['only' => ['update','destroy','show','store']]);
+    Route::resource('userrates','UserRateController',['only' => ['update','destroy','show','store']]);
+	Route::get('categories/{id}/tags','CategoryController@categoryTags');
+	Route::resource('categories','CategoryController',['only' => ['index']]);
+	Route::resource('tags','TagController',['only' => ['index','store','show','update','destroy']]);
 
 
-    Route::resource('admin', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('admins', 'AdminController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('news', 'NewController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-    Route::resource('newcomment', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-	Route::resource('country', 'CountryController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-	Route::resource('state', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-    Route::resource('email', 'EmailController', ['only' => ['store']]);
-	Route::post('image/{id}', 'CompanyController@image');
+    Route::resource('newcomments', 'NewCommentController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::get('countries/{id}/states', 'StateController@states');
+	Route::resource('countries', 'CountryController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+	Route::resource('states', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('emails', 'EmailController', ['only' => ['store']]);
+	Route::post('images/{id}', 'CompanyController@image');
+
 });
 
 

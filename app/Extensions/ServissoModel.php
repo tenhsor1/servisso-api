@@ -46,6 +46,40 @@ class ServissoModel extends Model
     }
 
     /**
+     * Check that the query parameters for search based on latitude and logitude within is correct
+     * @param  [Request] $request HTTP Request with the query parameters in it
+     * @return [mixed] False if no 'within' param, null if 'searchFields' are wrong,
+     *                 True if no 'searchFields' param, array if 'searchFields' and they are correct
+     */
+    protected function withinParametersAreValid($request){
+        /**
+         * Check if search parameters are valid, if fields were passed on the request
+         * then return them as an array
+         */
+        if($request->input('withinTop') && $request->input('withinBottom')){
+            $withinTopArray = explode(',', $request->input('withinTop'));
+            $withinBottomArray = explode(',', $request->input('withinBottom'));
+
+            if(count($withinTopArray) != 2 || count($withinBottomArray) != 2){
+                abort(400, "The within limits doesn't have the correct number of parameters");
+                return null;
+            }
+            $topLatitude = $withinTopArray[0];
+            $topLongitude = $withinTopArray[1];
+            $bottomLatitude = $withinBottomArray[0];
+            $bottomLongitude = $withinBottomArray[1];
+
+            if(!is_numeric($topLatitude) || !is_numeric($topLongitude) || !is_numeric($bottomLatitude) || !is_numeric($bottomLongitude)){
+                abort(400, "The within limits are not correct numbers");
+                return null;
+            }
+
+            return [[$bottomLatitude, $bottomLongitude], [$topLatitude, $topLongitude]];
+        }
+        return False;
+    }
+
+    /**
      * Check if between parameters are valid, if fields were passed on the request
      * @param  [Request] $request HTTP Request with the query parameters in it
      * @return [mixed] False if no 'start' or 'end' params, null if 'betweenFields' are wrong,
@@ -170,6 +204,10 @@ class ServissoModel extends Model
         if($request->input('limit')){
             $limit = (int)$request->input('limit');
             if($limit){
+                if($limit > 2000){
+                    abort(422, "The limit can't be bigger than 2000");
+                        return null;
+                }
                 if($request->input('page')){
                     $page = (int)$request->input('page');
                     if(!$page or $page == 0){
@@ -196,6 +234,9 @@ class ServissoModel extends Model
 			}else{
 				$query->take($limit);
 			}
+        }else{
+            //if not limit passed, then just show 2000 results as max
+            $query->take(2000);
         }
         return $query;
     }

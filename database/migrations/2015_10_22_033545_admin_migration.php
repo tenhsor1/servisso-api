@@ -23,7 +23,8 @@ class AdminMigration extends Migration
             $table->string('zipcode', 10);
             $table->integer('state_id')->unsigned();
             $table->integer('country_id')->unsigned();
-            $table->integer('role_id')->unsigned();
+            $table->integer('role_id')->unsigned()->nullable();
+            $table->integer('role')->unsigned()->nullable();
             $table->integer('update_id')->unsigned();
             $table->timestamps();
             $table->softDeletes();

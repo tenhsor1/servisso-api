@@ -64,7 +64,7 @@ class CompanyController extends Controller
 
         $v = Validator::make($request->all(),$validation,$messages);
 
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  406];
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
@@ -153,8 +153,6 @@ class CompanyController extends Controller
     }
 
 
-
-
     /**
      * Display the specified resource.
      *
@@ -227,7 +225,7 @@ class CompanyController extends Controller
 
 				//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 				if($v->fails()){
-					$response = ['error' => $v->messages(),'code' => 422];
+					$response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
 					return response()->json($response,422);
 				}
 

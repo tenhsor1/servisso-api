@@ -9,20 +9,21 @@ use App\Extensions\ServissoModel;
 
 class Branch extends ServissoModel
 {
-	
+
 	use SoftDeletes;
     protected $table = 'branches';
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id');
-	
+
 	protected $hidden = ['deleted_at','created_at','updated_at','role_id','role'];
-	
+
 	protected $searchFields = [
         'address',
         'phone',
         'latitude',
 		'longitude',
-		'schedule'
+		'schedule',
+        'category'
     ];
 
     protected $betweenFields = [
@@ -53,27 +54,27 @@ class Branch extends ServissoModel
         // 1 branch can have multiple services
         return $this->hasMany('App\Service');
     }
-	
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
 	public static function getMessages(){
-		$messages = 
+		$messages =
 		[
 			'required' => ':attribute is required',
 			'max' => ':attribute length too long',
 			'min' => ':attribute length too short',
 			'numeric' => ':attribute should be a number'
 		];
-		
+
 		return $messages;
 	}
-	
+
 	/**
 	* Se obtienen las validaciones del modelo Branch
 	*/
 	public static function getValidations(){
-		$validation = 
+		$validation =
 			[
 				'address' => 'required|max:59|min:4',
 				'phone' => 'required|max:70|min:10',
@@ -81,10 +82,10 @@ class Branch extends ServissoModel
 				'longitude' => 'required|numeric',
 				'schedule' => 'required|max:99|min:4'
 			];
-		
+
 		return $validation;
 	}
-	
+
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: services?search=test&searchFields=description,company,address)
@@ -93,7 +94,7 @@ class Branch extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields = array('address')){		
+    public function scopeSearchBy($query, $request, $defaultFields = array('address')){
         $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
@@ -103,7 +104,7 @@ class Branch extends ServissoModel
                 switch ($searchField) {
                     case 'address':
                         //search by the address of the service
-                        $query->$where('address', 'LIKE', '%'.$search.'%');						
+                        $query->$where('address', 'LIKE', '%'.$search.'%');
                         break;
                     case 'phone':
                         //search by the phone of the service
@@ -111,23 +112,58 @@ class Branch extends ServissoModel
                         break;
                     case 'latitude':
                         //search by the latitude of the service
-                        $query->$where('latitude', 'LIKE', '%'.$search.'%');	
+                        $query->$where('latitude', 'LIKE', '%'.$search.'%');
                         break;
 					case 'longitude':
 						//search by the longitude of the service
                         $query->$where('longitude', 'LIKE', '%'.$search.'%');
-						break;							
+						break;
 					case 'schedule':
 						//search by the schedule of the service
                         $query->$where('schedule', 'LIKE', '%'.$search.'%');
 						break;
+                    case 'category':
+                        //search by the schedule of the service
+                        $query->$where('categories.name', '=', $search);
+                        break;
                 }
 				$where = "orWhere";
             }
         }
         return $query;
     }
-	
+
+    public function scopeWithin($query, $request){
+        $within = $this->withinParametersAreValid($request);
+        if($within){
+            $bottomLimit = $within[0];
+            $topLimit = $within[1];
+
+            $bottomLatitude = $bottomLimit[0]; //a
+            $bottomLongitude = $bottomLimit[1]; //b
+            $topLatitude = $topLimit[0]; //c
+            $topLongitude = $topLimit[1]; //d
+"SELECT * FROM branches WHERE  LIMIT 20;";
+            $query->whereRaw("ST_Intersects(geom,
+                ST_SETSRID(ST_MakeBox2D(
+                    ST_SetSRID(ST_MakePoint(?, ?),4326), ST_SetSRID(ST_MakePoint(?, ?), 4326)
+                ), 4326)
+                )", [$bottomLongitude, $bottomLatitude, $topLongitude, $topLatitude]);
+            /*
+            $query->whereRaw("
+                (? < ? AND latitude BETWEEN ? AND ?)
+                    OR (? < ? AND latitude BETWEEN ? AND ?)
+                AND
+                (? < ? AND longitude BETWEEN ? AND ?)
+                    OR (? < ? AND longitude BETWEEN ? AND ?)",
+                [$bottomLatitude, $topLatitude, $bottomLatitude, $topLatitude,
+                $topLatitude, $bottomLatitude, $topLatitude, $bottomLatitude,
+                $bottomLongitude, $topLongitude, $bottomLongitude, $topLongitude,
+                $topLongitude, $bottomLongitude, $topLongitude, $bottomLongitude]);*/
+        }
+        return $query;
+    }
+
 	/**
      * Used for search between a end and a start, based on query parameters passed to the
      * request (example: services?start=2015-11-19&end=2015-12-31&betweenFields=updated,created)
@@ -136,8 +172,8 @@ class Branch extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'betweenFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeBetweenBy($query, $request, $defaultFields = array('created')){		
-        $fields = $this->betweenParametersAreValid($request);		
+    public function scopeBetweenBy($query, $request, $defaultFields = array('created')){
+        $fields = $this->betweenParametersAreValid($request);
         if($fields){
             $start = $request->get('start') . " 00:00:00";
             $end = $request->get('end') . " 23:59:59";
@@ -172,7 +208,7 @@ class Branch extends ServissoModel
         }
         return $query;
     }
-	
+
 	/**
      * Used for ordering the result of a get request
      * (example: services?orderBy=created,updated&orderTypes=ASC,DESC)
@@ -180,37 +216,37 @@ class Branch extends ServissoModel
      * @param  [Request] $request       The HTTP Request object of the call
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeOrderByCustom($query, $request){		
+    public function scopeOrderByCustom($query, $request){
         $orderFields = $this->orderByParametersAreValid($request);
-        if($orderFields){		
+        if($orderFields){
             $orderTypes = explode(',', ($request->input('orderType')) ? $request->input('orderType') : 'desc');
             $cont=0;
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
 					case 'address':
-                        $query->orderBy('address', $orderType);
+                        $query->orderBy('branches.address', $orderType);
                         break;
 					case 'phone':
-                        $query->orderBy('phone', $orderType);
+                        $query->orderBy('branches.phone', $orderType);
                         break;
 					case 'latitude':
-                        $query->orderBy('latitude', $orderType);
+                        $query->orderBy('branches.latitude', $orderType);
                         break;
 					case 'longitude':
-                        $query->orderBy('longitude', $orderType);
+                        $query->orderBy('branches.longitude', $orderType);
                         break;
 					case 'schedule':
-                        $query->orderBy('schedule', $orderType);
+                        $query->orderBy('branches.schedule', $orderType);
                         break;
                     case 'created':
-                        $query->orderBy('created_at', $orderType);
+                        $query->orderBy('branches.created_at', $orderType);
                         break;
                     case 'updated':
-                        $query->orderBy('updated_at', $orderType);
+                        $query->orderBy('branches.updated_at', $orderType);
                         break;
 					case 'deleted':
-						$query->orderBy('deleted_at', $orderType);
+						$query->orderBy('branches.deleted_at', $orderType);
 						break;
                 }
                 $cont++;

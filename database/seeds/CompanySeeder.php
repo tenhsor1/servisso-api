@@ -22,8 +22,8 @@ class CompanySeeder extends Seeder
 		$categoryIds = 5;//default
 
 		//Verify if the tables exists in the database to retrieve the data
-		if(Schema::hasTable('companies'))
-			$partnerIds = Partner::all()->count();
+		if(Schema::hasTable('partners'))
+			$partnerIds = Partner::all()->count() - 1;
 
 		if(Schema::hasTable('categories'))
 			$categoryIds = Category::all()->count();

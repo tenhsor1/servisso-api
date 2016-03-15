@@ -75,13 +75,16 @@ class ServiceController extends Controller
 
             $service->description = $request->input('description');
             $service->branch_id = $request->input('branch_id');
+            $service->address = $request->input('address');
+            $service->phone = $request->input('phone');
+            $service->zipcode = $request->input('zipcode');
 
             $save = $user->services()->save($service);
             if($save){
                 return response()->json(['data'=>$service], 200);
             }else{
                 return response()->json([
-                    'error' => 'It has occurred an error trying to save the guest'
+                    'error' => 'It has occurred an error trying to save the server'
                     ,'code' => 500], 500);
             }
 
@@ -90,7 +93,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'Bad request'
                             , 'code' => 422
                             , 'data' => [
-                                'guest_id'=> 'Missing the id of the user/guest requesting the service'
+                                'guest_id'=> ['Missing the id of the user/guest requesting the service']
                                 ]];
             return response()->json($errorJSON, 422);
         }
@@ -127,7 +130,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 404
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 404);
         }
@@ -160,7 +163,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 422
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 422);
         }

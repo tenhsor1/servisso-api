@@ -91,7 +91,7 @@ class PartnerController extends Controller
 
         $v = Validator::make($request->all(),$validation,$messages);
 
-		$response = ['error' => $v->messages(), 'code' =>  422];
+		$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
@@ -125,8 +125,8 @@ class PartnerController extends Controller
             $response = ['data' => $partner,'code' => 200,'message' => 'Partner was created succefully'];
 			return response()->json($response,200);
 		}else{
-			$response = ['error' => 'It has occurred an error trying to save the partner','code' => 404];
-			return response()->json($response,404);
+			$response = ['error' => 'It has occurred an error trying to save the partner','code' => 500];
+			return response()->json($response,500);
 		}
         $response = ['code' => 200,'message' => 'Partner was created succefully'];
         return response()->json($response,200);
@@ -199,8 +199,8 @@ class PartnerController extends Controller
 
 				//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 				if($v->fails()){
-					$response = ['error' => $v->messages(),'code' => 404];
-					return response()->json($response,404);
+					$response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
+					return response()->json($response,422);
 				}
 
 				$partner->email = $request->email;
@@ -289,8 +289,8 @@ class PartnerController extends Controller
 
         $v = Validator::make($request->all(),$validation,$messages);
         if($v->fails()){
-            $response = ['error' => $v->messages(),'code' => 404];
-            return response()->json($response,404);
+            $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' => 422];
+            return response()->json($response,422);
         }
         $partner = Partner::where('token', '=', $request->code)->first();
         if($partner){

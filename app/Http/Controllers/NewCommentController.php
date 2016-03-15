@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\NewComment;
 use Validator;
-use JWTAuth;  
+use JWTAuth;
 use App\Http\Controllers\Controller;
 
 class NewCommentController extends Controller
@@ -15,7 +15,7 @@ class NewCommentController extends Controller
         $this->middleware('jwt.auth:admin|partner', ['only' => ['store','update','destroy']]);
 		$this->UserRoles = \Config::get('app.user_roles');
     }
-    /**  
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -28,7 +28,7 @@ class NewCommentController extends Controller
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->get();
-		$count = $comment->count();  
+		$count = $comment->count();
 		 if(!is_null($comment)){
             $response = ['code' => 200,'Count' => $count,'data' => $comment];
             return response()->json($response,200);
@@ -62,16 +62,15 @@ class NewCommentController extends Controller
         $v = Validator::make($request->all(),$validation,$messages);
         //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
         if($v->fails()){
-            $response = ['error' => $v->messages(), 'code' =>  406];
-            return response()->json($response,460);
+            $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
         }
-		  
+
 			$comment = new NewComment;
             $comment->news_id = $request->news_id;
-            $comment->user_id = $userRequested->id;  
-            $comment->comment = $request->comment;  	
-            $comment->user_type = $this->UserRoles[$userRequested->roleAuth]; 
+            $comment->user_id = $userRequested->id;
+            $comment->comment = $request->comment;
+            $comment->user_type = $this->UserRoles[$userRequested->roleAuth];
 			$comment->role_id = $userRequested->id;//id de quien modifico
             $comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
             $row= $comment->save();
@@ -134,14 +133,14 @@ class NewCommentController extends Controller
                 $v = Validator::make($request->all(),$validation,$messages);
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
-                    $response = ['error' => $v->messages(),'code' => 422];
-                    return response()->json($response,404);
+                    $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
+                    return response()->json($response,422);
                 }
 
                 $comment->news_id = $request->news_id;
 				$comment->user_id = $userRequested->id;
 				$comment->comment = $request->comment;
-				$comment->user_type = $this->UserRoles[$userRequested->roleAuth];  
+				$comment->user_type = $this->UserRoles[$userRequested->roleAuth];
 				$comment->role_id = $userRequested->id;//id de quien modifico
 				$comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
                 $row = $comment->save();
@@ -178,7 +177,7 @@ class NewCommentController extends Controller
 			if($userRequested->id == $comment->user_id || $userRequested->roleAuth  == "ADMIN"){
 					$comment->role_id = $userRequested->id;//id de quien modifico
 					$comment->role = $this->UserRoles[$userRequested->roleAuth];//rol de quien modifico
-					$comment->save(); 
+					$comment->save();
 					$rows = $comment->delete();
 					if($rows > 0){
 						$response = ['code' => 200,'message' => "Comment was deleted succefully"];
@@ -187,7 +186,7 @@ class NewCommentController extends Controller
 						$response = ['error' => 'It has occurred an error trying to delete the Comment','code' => 404];
 						return response()->json($response,404);
 					}
-				
+
 			}else{
 				$errorJSON = ['error'   => 'Unauthorized'
 					, 'code' => 403];

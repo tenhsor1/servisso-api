@@ -26,7 +26,7 @@ class UserRateSeeder extends Seeder {
             $serviceIds = Service::all()->count();
 
         if(Schema::hasTable('partners'))
-            $partnerIds = Partner::all()->count();
+            $partnerIds = Partner::all()->count() - 1;
 
 
 

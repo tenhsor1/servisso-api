@@ -34,6 +34,20 @@ class PartnerSeeder extends Seeder
 			$planIds = Plan::all()->count();
 
 		Partner::create([
+			'id' => 0,
+			'email' => 'notaccount@servisso.com.mx',
+			'password' => 'Jisk3sl20sll32pñ0',
+			'name' => 'NOT',
+			'lastname' => 'ACCOUNT',
+			'phone' => '0000000000',
+			'address' => 'NONE',
+			'zipcode' => '00000',
+			'state_id' => 1,
+			'country_id' => 1,
+			'plan_id' => 0
+		]);
+
+		Partner::create([
 			'email' => 'tenhsor@hotmail.com',
 			'password' => 'Tenhsor123',
 			'name' => $faker->firstName,

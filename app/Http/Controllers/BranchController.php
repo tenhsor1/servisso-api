@@ -32,15 +32,36 @@ class BranchController extends Controller
     {
 
 		//SE OBTINEN LAS BRANCHES
-		$branches = Branch::searchBy($request)
+		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
+                            ->join('categories', 'companies.category_id', '=', 'categories.id')
+                            ->searchBy($request)
+                            ->within($request)
 							->betweenBy($request)
 							->orderByCustom($request)
 							->limit($request)
-							->get();
+							->select('branches.id',
+                                'branches.company_id',
+                                'branches.phone',
+                                'branches.address',
+                                'branches.latitude',
+                                'branches.longitude',
+                                'branches.state_id',
+                                'branches.schedule',
+                                'branches.name',
+                                'companies.partner_id',
+                                'companies.name AS company_name',
+                                'companies.description',
+                                'companies.category_id',
+                                'categories.name AS category_name',
+                                'companies.image',
+                                'companies.thumbnail')
+                            ->get();
+
 		$count = $branches->count();
 
 		//SE ITERA SOBRE LAS BRANCHES PARA AGREGARLE LOS TAGS Y DARLE FORMA AL JSON
-		foreach($branches as $branch){
+
+        foreach($branches as $branch){
 
 			$tags = \DB::table('tags_branches')
 			->join('tags','tags_branches.tag_id','=','tags.id')
@@ -82,7 +103,7 @@ class BranchController extends Controller
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
 
@@ -106,7 +127,7 @@ class BranchController extends Controller
 				$branch->phone = $request->phone;
 				$branch->latitude = $request->latitude;
 				$branch->longitude = $request->longitude;
-				$branch->state_id = 1;
+				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
 
 				$branch->save();
@@ -209,7 +230,7 @@ class BranchController extends Controller
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
 
