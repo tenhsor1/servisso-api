@@ -167,7 +167,7 @@ class UserController extends Controller
 			if($token != null){
 				$token = $token[0]->token;
 			}else{
-				$token = $this::getPredictionToken();
+				$this::getPredictionToken();
 			}
 
 			$detectedCategory = $this::predictAPI($token,$phrase);
@@ -196,8 +196,7 @@ class UserController extends Controller
 		$payloadBase64 = base64_encode($payload);
 		$payloadBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$payloadBase64);//A esto se llema safeBase64
 
-		$secret = "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCHHOn151C+YgQhn2w0/PJhgmq/O0WRHxZMZcN0K4WaryQsUvTbFI8+BJe/jioRIO7lypYD4P3lxG2QGvMK5PF/pJrgTR+tE9Mj8t+NKU31oMw6Q0fqNzb5TnHbhkd6ZN3xtT6Khguwkb82cZRVus1RxGRpq5PL/xDxpiXGAUjb56XQXe6kwMVI+Ag9C7XRxrntptCTpTPSUlccWR7DafiXh+ETABeuKGpW7PpUdnUOrut11Ydj7UgD8eDyhznd3FKCxoTaPih0VEiJjyxZXvvChRdr7NOpN15MLDJZ1aI6vkF4xNYiR7qPZOQYwZOYVUNduQFXarerHR/jH6fINPTRAgMBAAECggEAI6/RY+/q9b4x1SekjwJYisTFqSjgoQoS+67NRzvPmCG2bjajEdKGWx0fb6r/FXMbZnpx0Sh2J2AQiEV1+GSsHMi/V4tHWJGp7Q7TWReVzdDg4Gqw7f4TeRntHMyEyKEnthXnJPNu1v5IAPtS8KncXUKAOyDkcrc2JH178KaaNeq8tZMwxrW4OHL36K6zBviciPXrkkUZtoS7jKbDpnojHJ71s4yNGIMb+61W2GGJGNtVfbbuhmZiShrxUSSX4Mr0PlY7uJftV/GPnUgS1DQ40gr5R/xX+H4WakMZk7jikGUm0Ws7vW4RjliyhIxryH29sOhMGKn9iVkOkcxia2HOGQKBgQD7YgRjbDf+YqfpiPFr1Xftcqc+4VRmhSxX6AHNw+QjpMBXQeaFFoSzlRhWlvMr2TZIuQuh3ByZDGP/zm9+IJz7bwUljNwM18sA5sXLma31XAXfz+ISqL5Uraq5Bw6WOUWLWzS38DY2TAf4pTm2KvXWnTyZX0jsumM3/kT+mXTNGwKBgQCJmDRb1oEpXP42Xw5fjZJzmqPtgTSsW1bjhz6ODxWHeL0Ihco0Xqswm6ez1cLqpC0lk4VNEHuivnMtxuwmQnw5+42jlheDKrw4XGytjzoLx5sAUEScE2bsGEllWInYX2qVqOA6dm05bIg9N4CkmAgbZuxQxAOH/CJ3XZQdC1AAgwKBgF/qoF4HNr47inITLHrGssHJE4NsmrWbbrYD8lw+uFfZTwJ8RKbXVr7mzqiLZDGA6bOJ16Rkxgynq6g5blUjwII3dDFFs9i6pdysMSBkfPm3qQ4i1dHkzOqmcRO0W556L8ziehUM9MJ29DutX33gmnjO+gZTUxHwdFczD8RNbUGtAoGAb8795Q7mwDzv2jDeFimNs2EbCllu+wvyDEwPOhLp1L75JR7K1EmFZKdn3Eu86zzj7t/0d04ImZOXNsCpjuGB3wAZ9a92hcDJWCdKrLJxYbcerl+LkSR3Ay0tHyyWPvwyOVEUfI1Vbk9SWiRq5dUg6Vt2dp8Bm5P4UfT58awKo48CgYBi9UL5bNIQYwjOR0XBzOZ6NvNGAFEuTKr1gQf8gpZN+8yf/OSl8TGKc7jQeb5Oh8U0Qir7kzV/GMgOFsUdt7pND6yFrUkFeQ0iItFkcccWVVapcW5IP967GlWep5Cq88IgobXyic4eg7aq0lu64ltBJYLrQi+wjpONgWuGe1AfeA";
-
+		$secret = env('PREDICT_SECRET');
 		$s = $headerBase64.".".$payloadBase64;
 
 		$rsa = new \Crypt_RSA();
@@ -212,7 +211,7 @@ class UserController extends Controller
 		$jwt = urlencode($s.".".$signatureBase64);
 
 		//------------- ESTE CODIGO ES PARA OBTENER UN TOKEN Y PODER HACER CONSULTAS A LA API DE GOOGLE PREDICTION --------------
-		$postvars = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=".$jwt;
+		$postvars = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=".$jwt;
 
 		$temp = curl_init("https://www.googleapis.com/oauth2/v4/token");
 		curl_setopt($temp, CURLOPT_POST, true);
@@ -240,7 +239,9 @@ class UserController extends Controller
 				\DB::table('token_prediction')->insert([
 					'token' => $token,
 					'expired' => $expire,
-					'issued' => $issued
+					'issued' => $issued,
+					'created_at' => date('Y-m-d h:i:s',time()),
+					'updated_at' => date('Y-m-d h:i:s',time())
 				]);
 
 				return $token;
@@ -258,8 +259,8 @@ class UserController extends Controller
 		//--------------ESTE CODIGO ES PARA MANDAR UNA FRASE Y QUE GOOGLE PREDICTION NOS REGRESE A QUE CATEGORIA PERTENECE---------------
 		$data = '{"input":{"csvInstance":["'.$phrase.'"]}}';
 		$data_string = $data;
-
-		$temp = curl_init("https://www.googleapis.com//prediction/v1.6/projects/870494030602/trainedmodels/TrainingModelServ/predict");
+		$model_url = env('PREDICT_MODEL');
+		$temp = curl_init($model_url);
 		curl_setopt($temp, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($temp, CURLOPT_POSTFIELDS, $data_string);
 		curl_setopt($temp, CURLOPT_SSL_VERIFYPEER , false );
