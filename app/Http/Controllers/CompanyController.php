@@ -14,7 +14,7 @@ class CompanyController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image']]);
+        $this->middleware('jwt.auth:partner|admin', ['only' => ['destroy','update','store','image']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -168,21 +168,12 @@ class CompanyController extends Controller
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA OBTENER INFO DE SUS COMPANIES
-			if($partnerRequested->id == $company->partner_id){
-
-				$response = ['code' => 200,'data' => $company];
-				return response()->json($response,200);
-
-			}else{
-
-				$response = ['error'   => 'Unauthorized','code' => 403];
-				return response()->json($response, 403);
-			}
+			$response = ['code' => 200,'data' => $company];
+			return response()->json($response,200);
 
 		}else{
-			$response = ['error' => 'Company does no exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Company does no exist','code' => 404];
+			return response()->json($response,404);
 		}
 
 
