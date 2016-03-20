@@ -167,7 +167,7 @@ class UserController extends Controller
 			if($token != null){
 				$token = $token[0]->token;
 			}else{
-				$this::getPredictionToken();
+				$token = $this::getPredictionToken();
 			}
 
 			$detectedCategory = $this::predictAPI($token,$phrase);
