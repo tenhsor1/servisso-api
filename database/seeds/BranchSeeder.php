@@ -25,26 +25,26 @@ class BranchSeeder extends Seeder
 			$companyIds = Company::all()->count();
 
 		/*if(Schema::hasTable('states'))
-			$stateIds = State::all()->count();*/			
+			$stateIds = State::all()->count();*/
 
 		for($i = 0;$i < $stateIds;$i++){
-			
+
 			$randomNumber = rand(1,$stateIds);
-			
+
 			DB::table('branches')->insert([
 				'company_id' => $randomNumber,
 				'address' => $faker->address,
 				'phone' => $faker->phoneNumber,
 				'latitude' => $faker->latitude,
 				'longitude' => $faker->longitude,
-				'state_id' => $randomNumber,
+				'state_id' => 14,
 				'schedule' => $faker->text(50),
 				'created_at' => date('Y-m-d H:i:s',time()),
 				'updated_at' => date('Y-m-d H:i:s',time()),
 			]);
-			
+
 		}
-		
+
 		/*Branch::create(
 			[
 				'company_id' => $faker->numberBetween(1,$companyIds),

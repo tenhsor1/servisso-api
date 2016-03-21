@@ -63,6 +63,12 @@ class Branch extends ServissoModel
         return $this->hasMany('App\Service');
     }
 
+    public function state()
+    {
+        // 1 branch can have multiple services
+        return $this->belongsTo('App\States');
+    }
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
@@ -72,7 +78,8 @@ class Branch extends ServissoModel
 			'required' => ':attribute is required',
 			'max' => ':attribute length too long',
 			'min' => ':attribute length too short',
-			'numeric' => ':attribute should be a number'
+			'numeric' => ':attribute should be a number',
+            'exists' => ':attribute doesn\t exist',
 		];
 
 		return $messages;
@@ -88,7 +95,8 @@ class Branch extends ServissoModel
 				'phone' => 'required|max:70|min:10',
 				'latitude' => 'required|numeric',
 				'longitude' => 'required|numeric',
-				'schedule' => 'required|max:99|min:4'
+				'schedule' => 'required|max:99|min:4',
+                'state_id' => 'required|integer|exists:states,id',
 			];
 
 		return $validation;
