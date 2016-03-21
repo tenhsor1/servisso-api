@@ -87,6 +87,7 @@ class CompanyController extends Controller
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
+                $company->web = $request->web;
 
 				$row = $company->save();
 
@@ -163,7 +164,11 @@ class CompanyController extends Controller
     {
 		$partnerRequested = \Auth::User();
 
-		$company = Company::find($id);
+        $company = Company::with('category')
+                        ->with('partner')
+                        ->with('branches')
+                        ->where('id','=',$id)
+                        ->first();
 
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){

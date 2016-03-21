@@ -1,6 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
+//use Illuminate\Database\Schema\Blueprint;
+use Phaza\LaravelPostgis\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class BranchesMigration extends Migration
@@ -28,6 +29,7 @@ class BranchesMigration extends Migration
             $table->boolean('inegi')->default(false);
             $table->string('name', 150)->nullable();
             $table->string('clase_actividad', 200)->nullable();
+            $table->point('geom')->nullable();
 			$table->softDeletes();
             $table->timestamps();
 

@@ -5,12 +5,15 @@ namespace App;
 //use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Extensions\ServissoModel;
-
+use Phaza\LaravelPostgis\Eloquent\PostgisTrait;
+use Phaza\LaravelPostgis\Geometries\Point;
 
 class Branch extends ServissoModel
 {
 
 	use SoftDeletes;
+    use PostgisTrait;
+
     protected $table = 'branches';
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id');
@@ -23,13 +26,13 @@ class Branch extends ServissoModel
         'latitude',
 		'longitude',
 		'schedule',
-        'category'
+        'category',
     ];
 
     protected $betweenFields = [
         'created',
         'updated',
-		'deleted'
+		'deleted',
     ];
 
     protected $orderByFields = [
@@ -40,8 +43,13 @@ class Branch extends ServissoModel
 		'phone',
 		'latitude',
 		'longitude',
-		'schedule'
+		'schedule',
     ];
+
+    protected $postgisFields = [
+        'geom' => Point::class,
+    ];
+
 
 	public function company()
     {
