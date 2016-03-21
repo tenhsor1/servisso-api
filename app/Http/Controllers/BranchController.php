@@ -36,6 +36,7 @@ class BranchController extends Controller
 		//SE OBTINEN LAS BRANCHES
 		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
                             ->join('categories', 'companies.category_id', '=', 'categories.id')
+                            ->join('states', 'branches.state_id', '=', 'states.id')
                             ->searchBy($request)
                             ->within($request)
 							->betweenBy($request)
@@ -182,6 +183,8 @@ class BranchController extends Controller
     {
 		//SE OBTIENE LA BRANCH SOLICITIDA JUNTO CON LA COMPANY QUE LE PERTENECE
         $branch = Branch::with('company')
+                        ->with('state')
+                        ->with('state.country')
                         ->where('id','=',$id)
                         ->first();
 
