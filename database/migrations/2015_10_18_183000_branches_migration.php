@@ -19,6 +19,7 @@ class BranchesMigration extends Migration
             $table->integer('company_id')->unsigned();
 			$table->string('address',150);
 			$table->string('phone',20)->nullable();
+            $table->string('email',70)->nullable();
 			$table->double('latitude',11,7);
 			$table->double('longitude',11,7);
 			$table->integer('state_id')->unsigned();
