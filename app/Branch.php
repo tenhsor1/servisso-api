@@ -95,7 +95,8 @@ class Branch extends ServissoModel
 				'phone' => 'required|max:70|min:10',
 				'latitude' => 'required|numeric',
 				'longitude' => 'required|numeric',
-				'schedule' => 'required|max:99|min:4',
+				'email' => 'email|max:70|min:8',
+                'schedule' => 'max:99|min:4',
                 'state_id' => 'required|integer|exists:states,id',
 			];
 
