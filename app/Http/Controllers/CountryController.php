@@ -30,19 +30,19 @@ class CountryController extends Controller
 						->limit($request)
 						->get();
 	// $query = \DB::getQueryLog();
-			$count = $country->count();    
-			 if(!is_null($country)){   
+			$count = $country->count();
+			 if(!is_null($country)){
                 $response = ['code' => 200,'Count' => $count,'data' => $country];
                 return response()->json($response,200);
             }else{
                 $response = ['error' => 'Countries are empty','code' => 404];
                 return response()->json($response,404);
             }
-     
+
     }
 
-		
-	
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -74,7 +74,7 @@ class CountryController extends Controller
         }
 
             $country = new Country;
-            $country->country = $request->country;
+            $country->country = $request->name;
 			$country->role_id = $adminRequested->id;//id de quien modifico
             $country->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
             $row= $country->save();
@@ -148,8 +148,8 @@ class CountryController extends Controller
                     return response()->json($response,404);
                 }
 
-                  
-                $country->country = $request->country;
+
+                $country->country = $request->name;
                 $country->role_id = $adminRequested->id;//id de quien modifico
                 $country->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
                 $row = $country->save();
@@ -189,15 +189,15 @@ class CountryController extends Controller
 			 // if($adminRequested->roleAuth  == "ADMIN"){
 				$country->role_id = $adminRequested->id;//id de quien modifico
                 $country->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
-                $country->save(); 
-                $rows = $country->delete();  
+                $country->save();
+                $rows = $country->delete();
 				if($rows > 0){
                     $response = ['code' => 200,'message' => "Country was deleted succefully"];
                     return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to delete the country','code' => 404];
                     return response()->json($response,404);
-                }  
+                }
             // }else{
                 //EN DADO CASO QUE EL ID DE NEWS NO LE PERTENEZCA
                 // $response = ['error' => 'Unauthorized','code' => 403];

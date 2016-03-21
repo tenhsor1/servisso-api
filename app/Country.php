@@ -9,7 +9,7 @@ class Country extends ServissoModel
     use SoftDeletes;
 	protected $table="countries";
 
-	protected $fillable = array('country');
+	protected $fillable = array('name');
 
 
     protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
@@ -60,14 +60,14 @@ class Country extends ServissoModel
      */
     public static function getValidations(){
         $validation = [
-            'country' => 'required|max:150|min:3'
+            'name' => 'required|max:150|min:3'
         ];
 
         return $validation;
     }
 
 	 protected $searchFields = [
-        'country'
+        'name'
     ];
 
     protected $betweenFields = [
@@ -80,7 +80,7 @@ class Country extends ServissoModel
         'created',
         'updated',
         'deleted',
-		'country'
+		'name'
     ];
 
 
@@ -98,7 +98,7 @@ class Country extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('country')){
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
 	   $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
@@ -106,9 +106,9 @@ class Country extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'country':
+                    case 'name':
                         //search by the description of the country
-                        $query->$where('country', 'LIKE', '%'.$search.'%');
+                        $query->$where('name', 'LIKE', '%'.$search.'%');
                         break;
                 }
 				$where="OrWhere";
@@ -186,8 +186,8 @@ class Country extends ServissoModel
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
                         break;
-					case 'country':
-                        $query->orderBy('country', $orderType);
+					case 'name':
+                        $query->orderBy('name', $orderType);
                         break;
                 }
                 $cont++;
