@@ -12,7 +12,8 @@
         "aws/aws-sdk-php-laravel": "~3.0",
         "barryvdh/laravel-cors": "0.7.x",
         "intervention/image": "^2.3",
-        "phpseclib/phpseclib": "~0.3.10"
+        "phpseclib/phpseclib": "~0.3.10",
+        "phaza/laravel-postgis": "2.*"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.5",

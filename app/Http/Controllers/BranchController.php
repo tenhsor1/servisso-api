@@ -14,6 +14,8 @@ use App\TagBranch;
 use Validator;
 use JWTAuth;
 
+use Phaza\LaravelPostgis\Geometries\Point;
+
 class BranchController extends Controller
 {
 
@@ -129,6 +131,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
+                $branch->geom = new Point($request->latitude, $request->longitude);
 
 				$branch->save();
 
@@ -178,7 +181,9 @@ class BranchController extends Controller
     public function show($id)
     {
 		//SE OBTIENE LA BRANCH SOLICITIDA JUNTO CON LA COMPANY QUE LE PERTENECE
-        $branch = Branch::with('company')->where('id','=',$id)->first();
+        $branch = Branch::with('company')
+                        ->where('id','=',$id)
+                        ->first();
 
 		//SE VALIDA QUE EXISTA LA BRANCH
 		if(!is_null($branch)){
@@ -371,7 +376,9 @@ class BranchController extends Controller
 					$row = \DB::table('tags_branches')->insert(
 							[
 										'tag_id' => $tag->tag_id,
-										'branch_id' => $branch->id
+										'branch_id' => $branch->id,
+                                        'created_at' => date('Y-m-d h:i:s',time()),
+                                        'updated_at' => date('Y-m-d h:i:s',time())
 							]
 						);
 
