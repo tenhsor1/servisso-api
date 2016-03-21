@@ -21,7 +21,7 @@ class BranchesMigration extends Migration
 			$table->string('phone',20)->nullable();
 			$table->double('latitude',11,7);
 			$table->double('longitude',11,7);
-			$table->integer('state_id')->unsigned()->nullable();
+			$table->integer('state_id')->unsigned();
             $table->string('schedule',100)->nullable();
 			$table->integer('role_id')->unsigned()->nullable();
             $table->integer('role')->unsigned()->nullable();
@@ -34,6 +34,7 @@ class BranchesMigration extends Migration
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies');
+            $table->foreign('state_id')->references('id')->on('states');
         });
     }
 

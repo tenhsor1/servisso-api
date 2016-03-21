@@ -229,6 +229,7 @@ class CompanyController extends Controller
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
+                $company->web = $request->web;
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];
 

@@ -14,28 +14,28 @@ class State extends ServissoModel
 
     protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
 
-    public function admin()
+    public function country()
     {
-        // 1 new is related to one admin who created it
-        return $this->belongsTo('App\Admin');
-    }
-
-	public function partner()
-    {
-        // 1 new is related to one admin who created it
-        return $this->belongsTo('App\Partner');
-    }
-
-	public function user()
-    {
-        // 1 new is related to one admin who created it
-        return $this->belongsTo('App\User');
-    }
-
-	public function country()
-    {
-        // 1 new is related to one admin who created it
         return $this->belongsTo('App\Country');
+    }
+
+    public function admins()
+    {
+        return $this->hasMany('App\Admin');
+    }
+
+	public function partners()
+    {
+        return $this->hasMany('App\Partner');
+    }
+
+	public function users()
+    {
+        return $this->hasMany('App\User');
+    }
+
+    public function branches(){
+         return $this->hasMany('App\Branch');
     }
 
 		 /**
