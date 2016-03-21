@@ -66,7 +66,7 @@ class Branch extends ServissoModel
     public function state()
     {
         // 1 branch can have multiple services
-        return $this->belongsTo('App\States');
+        return $this->belongsTo('App\State');
     }
 
 	/**
