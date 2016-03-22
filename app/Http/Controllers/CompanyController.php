@@ -167,6 +167,8 @@ class CompanyController extends Controller
         $company = Company::with('category')
                         ->with('partner')
                         ->with('branches')
+                        ->with('branches.state')
+                        ->with('branches.state.country')
                         ->where('id','=',$id)
                         ->first();
 

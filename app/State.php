@@ -9,7 +9,7 @@ class State extends ServissoModel
    use SoftDeletes;
 	protected $table="states";
 
-	protected $fillable = array('state','abbreviation');
+	protected $fillable = array('name','abbreviation');
 
 
     protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
@@ -61,7 +61,7 @@ class State extends ServissoModel
     public static function getValidations(){
         $validation = [
             'country_id' => 'required',
-            'state' => 'required|max:150|min:3',
+            'name' => 'required|max:150|min:3',
             'abbreviation' => ''
         ];
 
@@ -70,7 +70,7 @@ class State extends ServissoModel
 
 	 protected $searchFields = [
         'country_id',
-	    'state',
+	    'name',
         'abbreviation'
     ];
 
@@ -85,7 +85,7 @@ class State extends ServissoModel
         'updated',
         'deleted',
 		'country_id',
-        'state',
+        'name',
         'abbreviation'
     ];
 
@@ -104,7 +104,7 @@ class State extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('state')){
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
 	   $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
@@ -112,9 +112,9 @@ class State extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'state':
+                    case 'name':
                         //search by the description of the country
-                        $query->$where('state', 'LIKE', '%'.$search.'%');
+                        $query->$where('name', 'LIKE', '%'.$search.'%');
                         break;
 					case 'abbreviation':
                         //search by the description of the country
@@ -200,8 +200,8 @@ class State extends ServissoModel
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
                         break;
-					case 'state':
-                        $query->orderBy('state', $orderType);
+					case 'name':
+                        $query->orderBy('name', $orderType);
                         break;
 					case 'abbreviation':
                         $query->orderBy('abbreviation', $orderType);
