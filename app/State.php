@@ -24,11 +24,6 @@ class State extends ServissoModel
         return $this->hasMany('App\Admin');
     }
 
-	public function partners()
-    {
-        return $this->hasMany('App\Partner');
-    }
-
 	public function users()
     {
         return $this->hasMany('App\User');

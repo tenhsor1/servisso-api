@@ -15,7 +15,6 @@ class DatabaseSeeder extends Seeder
         Model::unguard();
 
         $this->call(UserSeeder::class);
-        $this->call(PartnerSeeder::class);
         $this->call(CategorySeeder::class);
         $this->call(CompanySeeder::class);
         $this->call(BranchSeeder::class);

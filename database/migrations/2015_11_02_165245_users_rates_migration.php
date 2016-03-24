@@ -17,12 +17,12 @@ class UsersRatesMigration extends Migration
             $table->integer('service_id')->unsigned();
             $table->float('rate');
             $table->text('comment')->nullable();
-            $table->integer('partner_id')->unsigned();
+            $table->integer('user_id')->unsigned();
 			$table->softDeletes();
             $table->timestamps();
 
             $table->foreign('service_id')->references('id')->on('services');
-            $table->foreign('partner_id')->references('id')->on('partners');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

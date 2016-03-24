@@ -20,12 +20,6 @@ class Country extends ServissoModel
         return $this->belongsTo('App\Admin');
     }
 
-	public function partner()
-    {
-        // 1 new is related to one admin who created it
-        return $this->belongsTo('App\Partner');
-    }
-
 	public function user()
     {
         // 1 new is related to one admin who created it
@@ -83,12 +77,6 @@ class Country extends ServissoModel
 		'name'
     ];
 
-
-
-    public function userable()
-    {
-      return $this->morphTo();
-    }
 
     /**
      * Used for search using 'LIKE', based on query parameters passed to the

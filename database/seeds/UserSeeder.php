@@ -23,6 +23,19 @@ class UserSeeder extends Seeder {
 		$stateIds = 32;//default;
         $countryIds = 1;//default
         // Creamos un bucle para cubrir 5 fabricantes:
+        User::create([
+            'id' => 0,
+            'email' => 'notaccount@servisso.com.mx',
+            'password' => 'Jisk3sl20sll32pñ0',
+            'name' => 'NOT',
+            'last_name' => 'ACCOUNT',
+            'phone' => '0000000000',
+            'address' => 'NONE',
+            'zipcode' => '00000',
+            'state_id' => 1,
+            'country_id' => 1
+        ]);
+
         User::create(
             [
                 'email'=>'ricardo.romo.ramirez@gmail.com',
