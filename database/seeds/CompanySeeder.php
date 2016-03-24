@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use App\Partner;
+use App\User;
 use App\Category;
 use App\Company;
 use Faker\Factory as Faker;
@@ -23,7 +23,7 @@ class CompanySeeder extends Seeder
 
 		//Verify if the tables exists in the database to retrieve the data
 		if(Schema::hasTable('users'))
-			$userIds = Partner::all()->count() - 1;
+			$userIds = User::all()->count() - 1;
 
 		if(Schema::hasTable('categories'))
 			$categoryIds = Category::all()->count();

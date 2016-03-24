@@ -51,7 +51,7 @@ class State extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo User
      */
     public static function getValidations(){
         $validation = [

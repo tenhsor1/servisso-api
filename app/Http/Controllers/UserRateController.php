@@ -10,7 +10,7 @@ use JWTAuth;
 use Validator;
 use App\Service;
 use App\Branch;
-use App\Partner;
+use App\User;
 use App\User;
 use App\Company;
 
@@ -84,7 +84,7 @@ class UserRateController extends Controller
 				$rate->service_id = $request->service_id;
 				$rate->rate = $request->rate;
 				$rate->comment = $request->comment;
-				$rate->partner_id = $company->partner_id;
+				$rate->user_id = $company->user_id;
 
 				$rate = $rate->save();
 

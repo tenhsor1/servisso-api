@@ -50,7 +50,7 @@ class Country extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo Country
      */
     public static function getValidations(){
         $validation = [

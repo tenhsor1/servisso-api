@@ -14,7 +14,7 @@ class NewController extends Controller
 {
 
     public function __construct(){
-        $this->middleware('jwt.auth:admin|partner', ['only' => ['update','store','destroy']]);
+        $this->middleware('jwt.auth:admin', ['only' => ['update','store','destroy']]);
 		$this->UserRoles = \Config::get('app.user_roles');
 	}
     /**

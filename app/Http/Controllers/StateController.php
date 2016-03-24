@@ -11,7 +11,7 @@ use JWTAuth;
 class StateController extends Controller
 {
 	public function __construct(){
-        $this->middleware('jwt.auth:admin|partner|user', ['except' => ['update','show','store','index','destroy','states']]);
+        $this->middleware('jwt.auth:admin|user', ['except' => ['update','show','store','index','destroy','states']]);
         $this->middleware('default.headers');
 		$this->UserRoles = \Config::get('app.user_roles');
     }

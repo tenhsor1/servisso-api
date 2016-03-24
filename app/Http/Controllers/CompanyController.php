@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Company;
-use App\Partner;
+use App\User;
 use Validator;
 use JWTAuth;
 use App\Extensions\utils;
@@ -14,7 +14,7 @@ class CompanyController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['destroy','update','store','image']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['destroy','update','store','image']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -57,7 +57,7 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
 		$messages = Company::getMessages();
 		$validation = Company::getValidations();
@@ -72,18 +72,18 @@ class CompanyController extends Controller
 		}
 
 		//ID DEL ASOCIADO QUE LE PERTENECE LA COMPANY
-		$partner_id = $request->partner_id;
-		$partner = Partner::find($partner_id);
+		$user_id = $request->user_id;
+		$user = User::find($user_id);
 
-		//SE VALIDA QUE EL PARTNER EXISTA
-		if(!is_null($partner)){
+		//SE VALIDA QUE EL USER EXISTA
+		if(!is_null($user)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
-			if($partnerRequested->id == $partner->id){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
+			if($userRequested->id == $user->id){
 
 				//SE HACE UNA INSTANCIA DE COMPANY
 				$company = new Company;
-				$company->partner_id = $partner_id;
+				$company->user_id = $user_id;
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
@@ -104,8 +104,8 @@ class CompanyController extends Controller
 			}
 
 		}else{
-			//EN DADO CASO QUE EL ID DE PARTNER NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Partner does not exist','code' => 422];
+			//EN DADO CASO QUE EL ID DE USER NO SE HALLA ENCONTRADO
+			$response = ['error' => 'User does not exist','code' => 422];
 			return response()->json($response,422);
 		}
 
@@ -114,10 +114,10 @@ class CompanyController extends Controller
 
 	 public function image(Request $request, $id)
     {
-		$adminRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		$company = Company::find($id);
-		//SE VALIDA QUE EL USUARIO SEA DE TIPO PARTNER O ADMIN
-        if($adminRequested->roleAuth  == "PARTNER" && $adminRequested->id == $company->partner_id || $adminRequested->roleAuth  == "ADMIN"){
+		//SE VALIDA QUE EL USUARIO SEA DE TIPO USER O ADMIN
+        if($userRequested->roleAuth  == "USER" && $userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 			 if(!is_null($company)){
 				$ext = $request->file('image')->getClientOriginalExtension();
 				// Se verifica si es un formato de imagen permitido
@@ -162,10 +162,10 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
         $company = Company::with('category')
-                        ->with('partner')
+                        ->with('user')
                         ->with('branches')
                         ->with('branches.state')
                         ->with('branches.state.country')
@@ -213,8 +213,8 @@ class CompanyController extends Controller
 		//SE VERIFICA QUE COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				$messages = Company::getMessages();
 				$validation = Company::getValidations();
@@ -272,8 +272,8 @@ class CompanyController extends Controller
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];

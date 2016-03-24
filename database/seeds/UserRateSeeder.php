@@ -3,7 +3,7 @@
 use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
 use App\Service;
-use App\Partner;
+use App\User;
 use App\UserRate;
 class UserRateSeeder extends Seeder {
 
@@ -26,7 +26,7 @@ class UserRateSeeder extends Seeder {
             $serviceIds = Service::all()->count();
 
         if(Schema::hasTable('users'))
-            $userIds = Partner::all()->count() - 1;
+            $userIds = User::all()->count() - 1;
 
 
 
