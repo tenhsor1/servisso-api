@@ -28,7 +28,7 @@ class Partner extends ServissoModel implements AuthenticatableContract,
 
 	//protected $guarded = ['state_id','country_id','plan_id'];
 
-	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role', 'token'];
+	protected $hidden = ['password','deleted_at','created_at','updated_at','role_id','role'];
 
 	protected $searchFields = [
         'email',
