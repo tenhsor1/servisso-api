@@ -188,7 +188,7 @@
 <tbody>
 <tr>
 <td align="center" valign="middle" class="kmButtonContent" style='border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0;color:white;font-family:"Helvetica Neue", Arial;font-size:16px;padding:15px;padding-top:11px;padding-bottom:11px;padding-left:20px;padding-right:20px;color:#ffffff;font-weight:normal;font-size:16px;font-family:"Helvetica Neue", Arial;'>
-<a class="kmButton" title="" href="http://localhost/partner/verify?code={{$code}}" target="_self" style='word-wrap:break-word;font-weight:normal;letter-spacing:-0.5px;line-height:100%;text-align:center;text-decoration:underline;color:#334454;font-family:"Helvetica Neue", Arial;font-size:16px;text-decoration:initial;color:#ffffff;font-weight:normal;font-size:16px;font-family:"Helvetica Neue", Arial;padding-top:0;padding-bottom:0;'>Verificar E-mail</a>
+<a class="kmButton" title="" href="http://localhost/users/verify?code={{$code}}" target="_self" style='word-wrap:break-word;font-weight:normal;letter-spacing:-0.5px;line-height:100%;text-align:center;text-decoration:underline;color:#334454;font-family:"Helvetica Neue", Arial;font-size:16px;text-decoration:initial;color:#ffffff;font-weight:normal;font-size:16px;font-family:"Helvetica Neue", Arial;padding-top:0;padding-bottom:0;'>Verificar E-mail</a>
 </td>
 </tr>
 </tbody>

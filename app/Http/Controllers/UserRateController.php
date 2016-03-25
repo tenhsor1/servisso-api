@@ -11,7 +11,6 @@ use Validator;
 use App\Service;
 use App\Branch;
 use App\User;
-use App\User;
 use App\Company;
 
 class UserRateController extends Controller

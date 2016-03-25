@@ -32,8 +32,7 @@ class UserSeeder extends Seeder {
             'phone' => '0000000000',
             'address' => 'NONE',
             'zipcode' => '00000',
-            'state_id' => 1,
-            'country_id' => 1
+            'state_id' => 1
         ]);
 
         User::create(
@@ -45,7 +44,6 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -59,7 +57,6 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -73,7 +70,6 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -87,7 +83,6 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );

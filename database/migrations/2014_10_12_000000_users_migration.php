@@ -21,8 +21,7 @@ class UsersMigration extends Migration
             $table->string('phone', 20)->nullable();
             $table->string('address', 90)->nullable();
             $table->string('zipcode', 10)->nullable();
-            $table->integer('state_id')->unsigned();
-            $table->integer('country_id')->unsigned();
+            $table->integer('state_id')->unsigned()->nullable();
 			$table->integer('role_id')->unsigned()->nullable();
             $table->integer('role')->unsigned()->nullable();
             $table->string('token', 600)->nullable();

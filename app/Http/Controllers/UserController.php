@@ -7,12 +7,14 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\Company;
 use JWTAuth;
+use Validator;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store','predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
