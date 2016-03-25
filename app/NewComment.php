@@ -9,7 +9,7 @@ class NewComment extends ServissoModel
 {
     use SoftDeletes;
 	protected $table="news_comments";
-	
+
 
     protected $fillable = array('news_id','user_type','user_id','comment');
 
@@ -21,7 +21,7 @@ class NewComment extends ServissoModel
         // 1 comment is related to one new
         return $this->belongsTo('App\News');
     }
-	
+
 	  public static function getMessages(){
         $messages = [
             'required' => ':attribute is required',
@@ -37,7 +37,7 @@ class NewComment extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo News
      */
      public static function getValidations(){
         $validation = [
@@ -52,7 +52,7 @@ class NewComment extends ServissoModel
 
         return $validation;
     }
-	
+
 	 protected $searchFields = [
         'news_id',
         'comment'
@@ -78,7 +78,7 @@ class NewComment extends ServissoModel
       return $this->morphTo();
     }
 
- 
+
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: newcomment?search=test&fields=id_new,comment)
@@ -87,11 +87,11 @@ class NewComment extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('comment')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('comment')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
@@ -103,9 +103,9 @@ class NewComment extends ServissoModel
                         //search by the description of the service
                         $query->$where('news_id', 'LIKE', '%'.$search.'%');
                         break;
-                    
+
                 }
-				$where="OrWhere";				
+				$where="OrWhere";
             }
         }
         return $query;
@@ -152,13 +152,13 @@ class NewComment extends ServissoModel
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
     /**
      * Used for ordering the result of a get request
-     * (example: newcomment?orderBy=created,updated&orderTypes=ASC,DESC) 
+     * (example: newcomment?orderBy=created,updated&orderTypes=ASC,DESC)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @return [QueryBuilder]           The new query builder
@@ -179,9 +179,9 @@ class NewComment extends ServissoModel
                         break;
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
-                        break; 
+                        break;
 					case 'news_id':
-                        $query->orderBy('news_id', $orderType);  
+                        $query->orderBy('news_id', $orderType);
                         break;
                 }
                 $cont++;

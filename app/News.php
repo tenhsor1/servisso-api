@@ -5,11 +5,11 @@ namespace App;
 // use Illuminate\Database\Eloquent\Model;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
-class News extends ServissoModel 
+class News extends ServissoModel
 {
     use SoftDeletes;
 	protected $table="news";
-	
+
 
     protected $fillable = array('admin_id','title','content','image');
 
@@ -43,7 +43,7 @@ class News extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo New
      */
     public static function getValidations(){
         $validation = [
@@ -59,7 +59,7 @@ class News extends ServissoModel
 
         return $validation;
     }
-	
+
 	 protected $searchFields = [
         'admin_id',
 		'title',
@@ -90,17 +90,17 @@ class News extends ServissoModel
 
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
-     * request (example: news?search=test&fields=title,content) 
+     * request (example: news?search=test&fields=title,content)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('title')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('title')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
@@ -116,7 +116,7 @@ class News extends ServissoModel
                         //search by the description of the admin_id
                         $query->$where('admin_id', 'LIKE', '%'.$search.'%');
                         break;
-                } 
+                }
 				$where="OrWhere";
             }
         }
@@ -164,13 +164,13 @@ class News extends ServissoModel
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
     /**
      * Used for ordering the result of a get request
-     * (example: news?orderBy=created,updated&orderTypes=ASC,DESC) 
+     * (example: news?orderBy=created,updated&orderTypes=ASC,DESC)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @return [QueryBuilder]           The new query builder
@@ -188,16 +188,16 @@ class News extends ServissoModel
                         break;
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
-                        break; 
+                        break;
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
-                        break; 
+                        break;
 					case 'admin_id':
-                        $query->orderBy('admin_id', $orderType);  
+                        $query->orderBy('admin_id', $orderType);
                         break;
 					case 'title':
                         $query->orderBy('title', $orderType);
-                        break;	
+                        break;
                 }
                 $cont++;
             }

@@ -50,7 +50,7 @@ class EmailController extends Controller
         //\Log::debug($result);
         $tokenArray = ['random' => str_random(16)
                             , 'email' => 'test'
-                            , 'role' => 'PARTNER'];
+                            , 'role' => 'USER'];
         $encrypted = \Crypt::encrypt($tokenArray);
         $decrypted = \Crypt::decrypt($encrypted);
 

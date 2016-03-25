@@ -13,7 +13,7 @@ class GuestController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['index', 'update', 'destroy']]);
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('default.headers');
         //$this->api_url = \Config::get('app.api_url');
     }

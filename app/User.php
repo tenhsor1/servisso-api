@@ -36,6 +36,7 @@ class User extends Model implements AuthenticatableContract,
                             , 'phone'
                             , 'address'
                             , 'zipcode'
+                            , 'state_id'
                         ];
 
     /**
@@ -43,7 +44,7 @@ class User extends Model implements AuthenticatableContract,
      *
      * @var array
      */
-    protected $hidden = ['state_id','country_id','password', 'deleted_at', 'created_at', 'updated_at','token'];
+    protected $hidden = ['state_id','password', 'deleted_at', 'created_at', 'updated_at','token'];
 
     public static function boot()
     {
@@ -76,5 +77,28 @@ class User extends Model implements AuthenticatableContract,
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = \Hash::make($value);
+    }
+
+    public function getBranch($id){
+        $branch = Branch::find($id)
+            ->with('company')
+            ->leftJoin('companies','companies.id','=','branches.company_id')
+            ->leftJoin('users','users.id','=','companies.user_id')
+            ->where('users.id', $this->id)
+            ->where('branches.id', $id)
+            ->select('branches.*')
+            ->get();
+        return $branch;
+    }
+
+    public static function getMessages(){
+        $messages =
+        [
+            'required' => ':attribute is required',
+            'max' => ':attribute length too long',
+            'min' => ':attribute length too short',
+        ];
+
+        return $messages;
     }
 }

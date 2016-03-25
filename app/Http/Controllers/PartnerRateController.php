@@ -16,7 +16,7 @@ class PartnerRateController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner', ['only' => ['store','show','update','destroy']]);
+        $this->middleware('jwt.auth:user', ['only' => ['store','show','update','destroy']]);
         $this->middleware('default.headers');
     }
 
@@ -50,7 +50,7 @@ class PartnerRateController extends Controller
      */
     public function store(Request $request)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
 		$messages = PartnerRate::getMessages();
 		$validation = PartnerRate::getValidations();
@@ -71,8 +71,8 @@ class PartnerRateController extends Controller
 
 			$company = $service->branch->company;
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
-			if($partnerRequested->id == $company->partner_id){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
+			if($userRequested->id == $company->user_id){
 
 				$rate = new PartnerRate;
 				$rate->service_id = $request->service_id;
@@ -109,7 +109,7 @@ class PartnerRateController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
         $rate = PartnerRate::find($id);
 

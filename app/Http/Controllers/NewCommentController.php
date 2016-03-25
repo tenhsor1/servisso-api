@@ -12,7 +12,7 @@ use App\Http\Controllers\Controller;
 class NewCommentController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:admin|partner', ['only' => ['store','update','destroy']]);
+        $this->middleware('jwt.auth:admin|user', ['only' => ['store','update','destroy']]);
 		$this->UserRoles = \Config::get('app.user_roles');
     }
     /**
