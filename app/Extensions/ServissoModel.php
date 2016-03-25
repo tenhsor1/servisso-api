@@ -134,13 +134,7 @@ class ServissoModel extends Model
 			 false: if value has an incorrect format
 	*/
 	protected function isValidSearch($value){
-		//permite numeros '0' hasta '9', minusculas de 'a' hasta 'z' y signo '+' entre palabras. 'mecanico' o 'mecanico+elec+etc...'
-		$pattern = "/^([a-z0-9](\+[a-z0-9])?)+$/";
-
-		if(preg_match($pattern,$value))
-			return true;
-
-		return false;
+		return count($value) > 0;
 	}
 
 	protected function isValidDate($value){
