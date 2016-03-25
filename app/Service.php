@@ -76,12 +76,12 @@ class Service extends ServissoModel
       return $this->morphTo();
     }
 
-    public function scopeWherePartner($query, $partnerId)
+    public function scopeWhereUser($query, $userId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
               ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->leftJoin('partners','partners.id','=','companies.partner_id')
-              ->where('partners.id', $partnerId)
+              ->leftJoin('users','users.id','=','companies.user_id')
+              ->where('users.id', $userId)
               ->select('services.*');
     }
 

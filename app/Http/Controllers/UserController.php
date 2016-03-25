@@ -7,12 +7,14 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\Company;
 use JWTAuth;
+use Validator;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store','predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -41,6 +43,7 @@ class UserController extends Controller
         $token = JWTAuth::fromUser($newUser,$extraClaims);
         $reflector = new \ReflectionClass('JWTAuth');
         $newUser->access = $token;
+
         if($newUser){
             $this->mailer->sendVerificationEmail($newUser);
             $response = ['data' => $newUser
@@ -50,7 +53,7 @@ class UserController extends Controller
         }
         $response = ['error' => 'It has occurred an error trying to save the user'
                     ,'code' => 404];
-        return response()->json($response,404);
+        return response()->json($response,500);
     }
 
     /**
@@ -73,6 +76,31 @@ class UserController extends Controller
         }
     }
 
+
+    public function companies(Request $request, $userId)
+    {
+        $userRequested = \Auth::User();
+        if($userRequested->roleAuth == 'USER'){
+            if($userRequested->id != $userId){
+                $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+                return response()->json($errorJSON, 403);
+            }
+        }
+
+        $companies = Company::with('branches')
+                            ->where('user_id', $userId)
+                            ->searchBy($request)
+                            ->betweenBy($request)
+                            ->orderByCustom($request)
+                            ->limit($request)
+                            ->get();
+        $count = $companies->count();
+        $response = ['count' => $count,'code' => 200,'data' => $companies];
+
+        return response()->json($response,200);
+    }
+
     /**
      * Update the specified resource in storage.
      *
@@ -91,6 +119,8 @@ class UserController extends Controller
                             , 'phone'
                             , 'address'
                             , 'zipcode'
+                            , 'state_id'
+                            , 'country_id'
                         ];
             $this->updateModel($request, $userRequested, $attributes);
             unset($userRequested->roleAuth);
@@ -118,6 +148,28 @@ class UserController extends Controller
             $userRequested->delete();
             $respDelete = ['message'=> 'User deleted correctly'];
             return response()->json(['data'=>$respDelete], 200);
+        }else if ($userRequested->roleAuth == 'ADMIN'){
+            $user = User::find($id);
+            if(!is_null($user)){
+
+                $user->role_id = $userRequested->id;
+                $user->role = $this->user_roles[$userRequested->roleAuth];
+                $user->save();
+                $row = $user->delete();
+
+                if($row != false){
+                    $response = ['code' => 200,'message' => "User was deleted succefully"];
+                    return response()->json($response,200);
+                }else{
+                    $response = ['error' => 'It has occurred an error trying to delete the user','code' => 404];
+                    return response()->json($response,500);
+                }
+            }else{
+                //EN DADO CASO QUE EL ID DEL USER NO SE HALLA ENCONTRADO
+                $response = ['error' => 'User does not exist','code' => '404'];
+                return response()->json($response,404);
+            }
+
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];

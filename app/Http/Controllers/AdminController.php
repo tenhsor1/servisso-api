@@ -214,7 +214,7 @@ class AdminController extends Controller
             if(!is_null($admin)){
 				$admin->update_id = $adminRequested->id;//quien modifico
 				$admin->save();
-                //SE BORRAR EL PARTNER
+                //SE BORRAR EL admin
                 $admin->delete();
 
                 if(!is_null($admin)){

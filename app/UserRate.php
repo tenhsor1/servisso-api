@@ -14,44 +14,44 @@ class UserRate extends Model
     protected $fillable = array('service_id','rate','comment');
 
 
-    protected $hidden = ['partner_id','created_at','updated_at'];
-	
+    protected $hidden = ['user_id','created_at','updated_at'];
+
 	public function service()
     {
         // 1 user rate is related to one service
         return $this->belongsTo('App\Service');
     }
-	
+
 	public function partner(){
 		//1 user rate is related to one partner
-		return $this->belongsTo('App\Partner');
+		return $this->belongsTo('App\User');
 	}
-	
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
 	public static function getMessages(){
-		$messages = 
+		$messages =
 		[
 			'required' => ':attribute is required',
 			'max' => ':attribute length too long',
 			'min' => ':attribute length too short',
 			'numeric' => ':attribute should be a number'
 		];
-		
+
 		return $messages;
 	}
-	
+
 	/**
 	* Se obtienen las validaciones del modelo Branch
 	*/
 	public static function getValidations(){
-		$validation = 
+		$validation =
 			[
 				'service_id' => 'required|numeric',
 				'rate' => 'required|numeric'
 			];
-		
+
 		return $validation;
 	}
 }

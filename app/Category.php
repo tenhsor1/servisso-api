@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Category extends ServissoModel
 {
 	use SoftDeletes;
-    protected $table = "categories";  
+    protected $table = "categories";
 
 
     protected $fillable = array('name','description');
@@ -16,7 +16,7 @@ class Category extends ServissoModel
 
     protected $hidden = ['role_id','role','created_at','updated_at','deleted_at'];
 
-	
+
 	public function tags()
     {
         // 1 category can have multiple tags
@@ -38,7 +38,7 @@ class Category extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo Category
      */
     public static function getValidations(){
         $validation = [
@@ -50,8 +50,8 @@ class Category extends ServissoModel
 
 
         return $validation;
-   
-    }     
+
+    }
 
     protected $searchFields = [
         'name',
@@ -78,7 +78,7 @@ class Category extends ServissoModel
       return $this->morphTo();
     }
 
-   
+
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: categories?search=test&fields=description,name)
@@ -87,11 +87,11 @@ class Category extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('name')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
@@ -151,13 +151,13 @@ class Category extends ServissoModel
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
     /**
      * Used for ordering the result of a get request
-     * (example: categories?orderBy=created,updated&orderTypes=ASC,DESC) 
+     * (example: categories?orderBy=created,updated&orderTypes=ASC,DESC)
      * @param  [QueryBuilder] $query    The consecutive query
      * @param  [Request] $request       The HTTP Request object of the call
      * @return [QueryBuilder]           The new query builder
@@ -175,12 +175,12 @@ class Category extends ServissoModel
                         break;
                     case 'updated':
                         $query->orderBy('updated_at', $orderType);
-                        break; 
+                        break;
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
-                        break; 
+                        break;
 					case 'name':
-                        $query->orderBy('name', $orderType);  
+                        $query->orderBy('name', $orderType);
                         break;
                 }
                 $cont++;

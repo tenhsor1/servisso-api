@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Branch;
-use App\Partner;
+use App\User;
 use App\Company;
 use App\Service;
 use App\Tag;
@@ -20,7 +20,7 @@ class BranchController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['store','update','destroy','services']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['store','update','destroy','services']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -51,7 +51,7 @@ class BranchController extends Controller
                                 'branches.state_id',
                                 'branches.schedule',
                                 'branches.name',
-                                'companies.partner_id',
+                                'companies.user_id',
                                 'companies.name AS company_name',
                                 'companies.description',
                                 'companies.category_id',
@@ -116,12 +116,12 @@ class BranchController extends Controller
 
 		if(!is_null($company)){
 
-			$partnerRequested = \Auth::User();
-			$role = $partnerRequested->authRole;
+			$userRequested = \Auth::User();
+			$role = $userRequested->authRole;
 
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
-			if(($partnerRequested->id == $company->partner_id) || $role == 'ADMIN'){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
+			if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
 
 				//SE UNA INSTANCIA DE BRANCH
 				$branch = new Branch;
@@ -139,7 +139,7 @@ class BranchController extends Controller
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
-				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL PARTNER
+				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
 				$this->newTag($request->tag_new,$company->category_id);
 
 				//SE VALIDA QUE LA BRANCH SE HALLA GUARDADO
@@ -251,8 +251,8 @@ class BranchController extends Controller
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS BRANCHES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS BRANCHES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				//SE LE COLOCAN LOS NUEVOS VALORES
 				$branch->address = $request->address;
@@ -269,7 +269,7 @@ class BranchController extends Controller
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
-				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL PARTNER
+				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
 				$this->newTag($request->tag_new,$company->category_id);
 
 				//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
@@ -323,8 +323,8 @@ class BranchController extends Controller
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth == "ADMIN"){
 
 				$branch->role_id = $userRequested->id;
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
@@ -396,7 +396,7 @@ class BranchController extends Controller
 	}
 
 	/**
-	* Guarda tags nuevos creados por el partner
+	* Guarda tags nuevos creados por el user
 	*/
 	private function newTag($array,$category){
 
@@ -407,7 +407,7 @@ class BranchController extends Controller
 			$tags_new = array_filter($array);
 
 			if(!empty($tags_new)){
-					//SE GUARDAN NUEVOS TAGS CREADOS POR EL PARTNER
+					//SE GUARDAN NUEVOS TAGS CREADOS POR EL USER
 				for($i = 0;$i < count($tags_new);$i++){
 					$tag_new = (object) $tags_new[$i];
 
@@ -434,9 +434,9 @@ class BranchController extends Controller
 			$response = ['error' => 'Branch not found ','code' => 403];
 			return response()->json($response, 403);
 		}
-		if($user->roleAuth == 'PARTNER'){
+		if($user->roleAuth == 'USER'){
 			$branch = $user->getBranch($id);
-			//if the partner is not the owner of the branch, then send a 403
+			//if the user is not the owner of the branch, then send a 403
 			if(!$branch){
 				$response = ['error' => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);

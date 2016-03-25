@@ -26,7 +26,7 @@ class ServiceStoreRequest extends Request
         return [
             'description' => 'string',
             'guest_id' => 'integer',
-            'branch_id' => 'required|integer'
+            'branch_id' => 'required|integer|exists:branches,id'
         ];
     }
 }

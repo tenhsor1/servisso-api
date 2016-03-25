@@ -14,7 +14,7 @@ class CompaniesMigration extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('partner_id')->unsigned();
+            $table->integer('user_id')->unsigned();
 			$table->string('name',60);
 			$table->text('description',500);
 			$table->integer('category_id')->unsigned();
@@ -27,7 +27,7 @@ class CompaniesMigration extends Migration
             $table->timestamps();
 
 			$table->foreign('category_id')->references('id')->on('categories');
-            $table->foreign('partner_id')->references('id')->on('partners');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

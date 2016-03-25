@@ -14,8 +14,8 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:partner', ['only' => ['update']]);
-        $this->middleware('jwt.auth:partner|user|admin', ['only' => ['index']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
 
         $this->middleware('default.headers');
         $this->apiUrl = \Config::get('app.api_url');
@@ -40,8 +40,8 @@ class ServiceController extends Controller
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->get();
-        }else if($user->roleAuth == 'PARTNER'){
-            $services = Service::wherePartner($user->id)
+        }else if($user->roleAuth == 'USER'){
+            $services = Service::whereUser($user->id)
                                 ->with('branch')
                                 ->with('userable')
                                 ->with('userRate')

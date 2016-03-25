@@ -11,9 +11,9 @@ class Company extends ServissoModel
 	use SoftDeletes;
     protected $table = 'companies';
 
-	protected $fillable = ['name','description','companiescol','partner_id','category_id','image','thumbnail'];
+	protected $fillable = ['name','description', 'user_id','category_id','image','thumbnail'];
 
-	protected $hidden = ['partner_id','deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['user_id','deleted_at','created_at','updated_at','role_id','role'];
 
 	protected $searchFields = [
         'name',
@@ -34,10 +34,10 @@ class Company extends ServissoModel
 		'description'
     ];
 
-	public function partner()
+	public function user()
     {
-        // 1 company is related to one partner
-        return $this->belongsTo('App\Partner');
+        // 1 company is related to one partner/user
+        return $this->belongsTo('App\User');
     }
 
     public function category()
@@ -68,14 +68,15 @@ class Company extends ServissoModel
 	}
 
 	/**
-	* Se obtienen las validaciones del modelo Partner
+	* Se obtienen las validaciones del modelo Company
 	*/
 	public static function getValidations(){
 		$validation =
 			[
 				'name' => 'required|max:59|min:4',
 				'description' => 'required|max:499|min:4',
-				'category_id' => 'required'
+				'category_id' => 'required',
+                'user_id' => 'required|exists:users,id'
 			];
 
 		return $validation;
