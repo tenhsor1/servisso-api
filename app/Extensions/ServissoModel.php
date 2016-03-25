@@ -26,7 +26,7 @@ class ServissoModel extends Model
          * then return them as an array
          */
         if($request->input('search')){
-            if($this->isValidSearch($request->input('search'))){
+            if(!$this->isValidSearch($request->input('search'))){
                 abort(400, "The value for search can only have alphanumeric values, and spaces");
                 return null;
             }
