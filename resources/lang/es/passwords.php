@@ -18,4 +18,5 @@ return [
     'reset.sent' => 'Un correo ha sido enviado con el enlace para cambiar tu contraseña',
     'reset.user_invalid' => 'El correo no existe',
     'reset.success' => '¡Su contraseña ha sido restablecida!',
+    'reset.token_invalid' => 'El token no es válido',
 ];

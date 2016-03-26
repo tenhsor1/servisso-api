@@ -22,4 +22,5 @@ return [
     'reset.sent' => 'An email has been sent with your password reset link',
     'reset.user_invalid' => 'The E-mail doesn\'t exist',
     'reset.success' => 'Your password has been reset!',
+    'reset.token_invalid' => 'Invalid token',
 ];

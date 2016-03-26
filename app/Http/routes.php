@@ -21,7 +21,9 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin)'); //just match auth/{user|admin}
 
-    Route::post('password/email', 'Auth\PasswordController@postEmail');
+    Route::post('password/email', 'Auth\PassController@postEmail');
+    Route::post('password/reset', 'Auth\PassController@postReset');
+
 	Route::post('users/predict', 'UserController@predict');
     Route::post('users/confirm','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');

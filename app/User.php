@@ -101,4 +101,12 @@ class User extends Model implements AuthenticatableContract,
 
         return $messages;
     }
+
+    public function scopeByEmail($query, $request){
+        $email = $request->input('email', null);
+        if($email){
+            $query->where('email', '=', $email);
+        }
+        return $query;
+    }
 }
