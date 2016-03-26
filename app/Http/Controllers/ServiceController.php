@@ -18,7 +18,6 @@ class ServiceController extends Controller
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
 
         $this->middleware('default.headers');
-        $this->apiUrl = \Config::get('app.api_url');
         $this->userTypes = \Config::get('app.user_types');
     }
     /**

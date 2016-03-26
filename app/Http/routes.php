@@ -21,10 +21,13 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin)'); //just match auth/{user|admin}
 
+    Route::post('password/email', 'Auth\PasswordController@postEmail');
 	Route::post('users/predict', 'UserController@predict');
     Route::post('users/confirm','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+
+
     Route::resource('guests', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('services', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('calls', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
