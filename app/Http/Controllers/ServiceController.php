@@ -54,6 +54,24 @@ class ServiceController extends Controller
         return response()->json(['data'=>$services], 200);
     }
 
+    public function indexPerCompany(Request $request, $companyId)
+    {
+
+        $services = Service::whereCompany($companyId)
+                                ->with('userable')
+                                ->with('userRate')
+                                ->with('partnerRate')
+                                ->searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->get();
+
+        $count = $services->count();
+        $response = ['count' => $count,'code' => 200,'data' => $services];
+        return response()->json($response,200);
+    }
+
     /**
      * Store a newly created resource in storage.
      *

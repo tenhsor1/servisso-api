@@ -16,6 +16,17 @@ use Validator;
 class PassController extends Controller{
     use ResetsPasswords;
 
+    /**
+     * Create a new password controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('guest');
+        $this->subject = trans('passwords.reset.subject');
+    }
+
     public function postEmail(Request $request)
     {
         $rules = ['email' => 'required|email'];
@@ -41,7 +52,7 @@ class PassController extends Controller{
             case Password::INVALID_USER:
                 $resp = ['code' => 400,
                         'data' => $request->only('email'),
-                        'message' => trans('passwords.reset.user_invalid')];
+                        'error' => trans('passwords.reset.user_invalid')];
                 return response()->json($resp,400);
         }
     }
@@ -82,7 +93,7 @@ class PassController extends Controller{
             default:
                 $resp = ['code' => 400,
                         'data' => $request->only('email'),
-                        'message' => trans('passwords.reset.token_invalid')];
+                        'error' => trans('passwords.reset.token_invalid')];
                 return response()->json($resp,400);
         }
     }
