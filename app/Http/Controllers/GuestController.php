@@ -15,7 +15,6 @@ class GuestController extends Controller
         $this->middleware('jwt.auth:admin', ['only' => ['index', 'update', 'destroy']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('default.headers');
-        //$this->api_url = \Config::get('app.api_url');
     }
     /**
      * Display a listing of the resource.
