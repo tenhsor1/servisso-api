@@ -85,6 +85,18 @@ class Service extends ServissoModel
               ->select('services.*');
     }
 
+    public function scopeWhereCompany($query, $companyId)
+    {
+        return $query->leftJoin('branches','branches.id','=','services.branch_id')
+              ->leftJoin('companies','companies.id','=','branches.company_id')
+              ->where('companies.id', $companyId)
+              ->select('services.*',
+                      'branches.id AS branch_id',
+                      'branches.address AS branch_address',
+                      'branches.phone AS branch_phone',
+                      'branches.name AS branch_name');
+    }
+
     public function scopeWhereBranch($query, $branchId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
