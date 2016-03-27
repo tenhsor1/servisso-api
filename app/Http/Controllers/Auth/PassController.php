@@ -12,6 +12,8 @@ use Illuminate\Foundation\Auth\ResetsPasswords;
 use JWTAuth;
 use App\User;
 use Validator;
+use Carbon\Carbon;
+use DB;
 
 class PassController extends Controller{
     use ResetsPasswords;
@@ -97,4 +99,25 @@ class PassController extends Controller{
                 return response()->json($resp,400);
         }
     }
+
+    function checkToken(Request $request, $token){
+        // I want to add some filter here like
+        // if( token_is_expired($token) ) return false;
+        $expireLimit = \Config::get('auth.password.expire');
+        $tokenDB = DB::table('password_resets')
+            ->where('token','=',$token)
+            ->where('created_at','>',Carbon::now()->subMinutes($expireLimit))
+            ->first();
+
+        if($tokenDB){
+            $response = ['code' => 200,
+                        'data' => ['email' => $tokenDB->email],
+                        'message' => trans('passwords.reset.token_valid')];
+                return response()->json($response,200);
+        }
+        $response = ['code' => 403,
+                        'data' => ['token' => $token],
+                        'error' => trans('passwords.reset.token_not_found')];
+        return response()->json($response,403);
+     }
 }

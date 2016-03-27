@@ -23,4 +23,6 @@ return [
     'reset.user_invalid' => 'The E-mail doesn\'t exist',
     'reset.success' => 'Your password has been reset!',
     'reset.token_invalid' => 'Invalid token',
+    'reset.token_not_found' => 'Token not found, maybe has expired?',
+    'reset.token_valid' => 'Valid token',
 ];

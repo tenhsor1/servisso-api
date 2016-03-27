@@ -19,4 +19,6 @@ return [
     'reset.user_invalid' => 'El correo no existe',
     'reset.success' => '¡Su contraseña ha sido restablecida!',
     'reset.token_invalid' => 'El token no es válido',
+    'reset.token_not_found' => 'No se encontró el token, ¿Quizás ya expiró?',
+    'reset.token_valid' => 'El token es válido',
 ];
