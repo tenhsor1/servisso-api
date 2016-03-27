@@ -151,8 +151,9 @@ class Branch extends ServissoModel
     }
 
     public function scopeCategory($query, $request, $defaultFields = array('address')){
-        $categoryId = $request->input('category-id');
-        if($categoryId){
+        $category = $request->input('category-id');
+        if(isset($category)){
+            $categoryId = (int) $request->input('category-id');
             $search = $request->input('search');
             $query->where('categories.id', '=', $categoryId);
         }
