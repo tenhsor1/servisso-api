@@ -17,7 +17,7 @@ class UsersMigration extends Migration
             $table->string('email',70)->unique();
             $table->string('password', 100);
             $table->string('name', 45);
-            $table->string('last_name', 45)->nullable();
+            $table->string('lastname', 45)->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('address', 90)->nullable();
             $table->string('zipcode', 10)->nullable();
