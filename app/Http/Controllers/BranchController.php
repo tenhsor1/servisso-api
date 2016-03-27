@@ -37,6 +37,7 @@ class BranchController extends Controller
 		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
                             ->join('categories', 'companies.category_id', '=', 'categories.id')
                             ->join('states', 'branches.state_id', '=', 'states.id')
+                            ->category($request)
                             ->searchBy($request)
                             ->within($request)
 							->betweenBy($request)

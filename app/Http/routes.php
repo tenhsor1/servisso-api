@@ -23,6 +23,7 @@ Route::group(['prefix' => 'v1'], function()
 
     Route::post('password/email', 'Auth\PassController@postEmail');
     Route::post('password/reset', 'Auth\PassController@postReset');
+    Route::get('password/token/{token}', 'Auth\PassController@checkToken');
 
 	Route::post('users/predict', 'UserController@predict');
     Route::post('users/confirm','UserController@confirm');

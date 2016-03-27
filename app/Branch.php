@@ -141,11 +141,20 @@ class Branch extends ServissoModel
 						break;
                     case 'category':
                         //search by the schedule of the service
-                        $query->$where('categories.name', '=', $search);
+                        $query->$where('categories.id', '=', $search);
                         break;
                 }
 				$where = "orWhere";
             }
+        }
+        return $query;
+    }
+
+    public function scopeCategory($query, $request, $defaultFields = array('address')){
+        $categoryId = $request->input('category-id');
+        if($categoryId){
+            $search = $request->input('search');
+            $query->where('categories.id', '=', $categoryId);
         }
         return $query;
     }
