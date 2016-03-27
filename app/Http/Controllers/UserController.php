@@ -35,8 +35,18 @@ class UserController extends Controller
      * @param  \Illuminate\Http\UserStoreRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Requests\UserStoreRequest $request)
+    public function store(Request $request)
     {
+		$rules = User::getRules();
+		$messages = User::getMessages();		
+	
+		$validator = Validator::make($request->all(),$rules,$messages); 
+		
+		if($validator->fails()){
+			$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
+			return response()->json($response,400);
+		}
+		
         $newUser = User::create($request->all());
 
         $extraClaims = ['role'=>'USER'];
@@ -115,7 +125,7 @@ class UserController extends Controller
             $attributes = ['name'
                             , 'email'
                             , 'password'
-                            , 'last_name'
+                            , 'lastname'
                             , 'phone'
                             , 'address'
                             , 'zipcode'
