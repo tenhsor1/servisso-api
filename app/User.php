@@ -30,7 +30,7 @@ class User extends Model implements AuthenticatableContract,
      * @var array
      */
     protected $fillable = [   'name'
-                            , 'last_name'
+                            , 'lastname'
                             , 'email'
                             , 'password'
                             , 'phone'
@@ -90,15 +90,41 @@ class User extends Model implements AuthenticatableContract,
             ->get();
         return $branch;
     }
+	
+	public static function getRules(){
+		$rules = array(
+				'email' => ['required','email'],
+				'password' => ['required','min:8'],
+				'name' => ['required','min:3','max:45'],
+				'lastname' => ['required','min:3','max:45']
+			);
+			
+		return $rules;
+	}
 
     public static function getMessages(){
         $messages =
         [
-            'required' => ':attribute is required',
-            'max' => ':attribute length too long',
-            'min' => ':attribute length too short',
+            'email.required' => 'Email es obligatorio',
+            'email.email' => 'Email no válido',
+			'password.required' => 'Contraseña es obligatoria',
+            'password.min' => 'Contraseña debe tener minimo :min',
+			'name.required' => 'Nombre es obligatorio',
+            'name.min' => 'Nombre debe tener minimo :min',
+            'name.max' => 'Nombre debe tener máximo :max',
+			'lastname.required' => 'Apellido es obligatorio',
+            'lastname.min' => 'Apellido debe tener minimo :min',
+            'lastname.max' => 'Apellido debe tener máximo :max'
         ];
 
         return $messages;
+    }
+
+    public function scopeByEmail($query, $request){
+        $email = $request->input('email', null);
+        if($email){
+            $query->where('email', '=', $email);
+        }
+        return $query;
     }
 }

@@ -21,16 +21,23 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
         ->where('role', '(?i)(user|admin)'); //just match auth/{user|admin}
 
+    Route::post('password/email', 'Auth\PassController@postEmail');
+    Route::post('password/reset', 'Auth\PassController@postReset');
+    Route::get('password/token/{token}', 'Auth\PassController@checkToken');
+
 	Route::post('users/predict', 'UserController@predict');
     Route::post('users/confirm','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+
+
     Route::resource('guests', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('services', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('calls', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
 
-	Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
+	Route::get('companies/{companyId}/services', 'ServiceController@indexPerCompany');
+    Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
     Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
     Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
