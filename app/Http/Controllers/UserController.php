@@ -187,15 +187,15 @@ class UserController extends Controller
         }
     }
 
-	public function confirm(Request $request){
-        $validation = ['code' => 'string|required|min:30'];
+	public function confirm(Request $request,$code){
+        /*$validation = ['code' => 'string|required|min:30'];
         $messages = User::getMessages();
-        $v = Validator::make($request->all(),$validation,$messages);
+        $v = Validator::make($code,$validation,$messages);
         if($v->fails()){
             $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
             return response()->json($response,422);
-        }
-        $user = User::where('token', '=', $request->code)->first();
+        }*/
+        $user = User::where('token', '=', $code)->first();
         if($user){
             $user->confirmed = true;
             $user->token = null;
