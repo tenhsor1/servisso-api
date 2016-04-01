@@ -26,7 +26,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('password/token/{token}', 'Auth\PassController@checkToken');
 
 	Route::post('users/predict', 'UserController@predict');
-    Route::post('users/confirm','UserController@confirm');
+    Route::get('users/confirm/{code}','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
 
