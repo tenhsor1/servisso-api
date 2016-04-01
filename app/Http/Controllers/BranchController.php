@@ -14,8 +14,6 @@ use App\TagBranch;
 use Validator;
 use JWTAuth;
 
-use Phaza\LaravelPostgis\Geometries\Point;
-
 class BranchController extends Controller
 {
 
@@ -133,7 +131,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
-                $branch->geom = new Point($request->latitude, $request->longitude);
+                $branch->geom = [$request->latitude, $request->longitude];
 
 				$branch->save();
 

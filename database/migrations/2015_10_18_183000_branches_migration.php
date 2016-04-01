@@ -1,7 +1,6 @@
 <?php
 
-//use Illuminate\Database\Schema\Blueprint;
-use Phaza\LaravelPostgis\Schema\Blueprint;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class BranchesMigration extends Migration
@@ -30,13 +29,13 @@ class BranchesMigration extends Migration
             $table->boolean('inegi')->default(false);
             $table->string('name', 150)->nullable();
             $table->string('clase_actividad', 200)->nullable();
-            $table->point('geom')->nullable();
 			$table->softDeletes();
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('state_id')->references('id')->on('states');
         });
+        DB::statement('ALTER TABLE branches ADD COLUMN geom geometry(Point,4326);');
     }
 
     /**
