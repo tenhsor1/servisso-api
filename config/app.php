@@ -148,7 +148,6 @@ return [
         Barryvdh\Cors\ServiceProvider::class,
         //Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
 		'Intervention\Image\ImageServiceProvider',
-        'Phaza\LaravelPostgis\DatabaseServiceProvider',
     ],
 
     /*
