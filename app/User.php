@@ -108,13 +108,13 @@ class User extends Model implements AuthenticatableContract,
             'email.required' => 'Email es obligatorio',
             'email.email' => 'Email no válido',
 			'password.required' => 'Contraseña es obligatoria',
-            'password.min' => 'Contraseña debe tener minimo :min',
+            'password.min' => 'Contraseña debe tener minimo :min caracteres',
 			'name.required' => 'Nombre es obligatorio',
-            'name.min' => 'Nombre debe tener minimo :min',
-            'name.max' => 'Nombre debe tener máximo :max',
+            'name.min' => 'Nombre debe tener minimo :min caracteres',
+            'name.max' => 'Nombre debe tener máximo :max caracteres',
 			'lastname.required' => 'Apellido es obligatorio',
-            'lastname.min' => 'Apellido debe tener minimo :min',
-            'lastname.max' => 'Apellido debe tener máximo :max'
+            'lastname.min' => 'Apellido debe tener minimo :min caracteres',
+            'lastname.max' => 'Apellido debe tener máximo :max caracteres'
         ];
 
         return $messages;

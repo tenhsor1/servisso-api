@@ -9,6 +9,7 @@ use App\Service;
 use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Validator;
 
 class ServiceController extends Controller
 {
@@ -78,7 +79,7 @@ class ServiceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Requests\ServiceStoreRequest $request)
+    public function store(Request $request)
     {
         $user = $this->checkAuthUser('user');
         if($user && !is_array($user)){
@@ -88,6 +89,17 @@ class ServiceController extends Controller
             $user = Guest::find($guestId);
         }
         if($user){
+			
+			$rules = Service::getRules();
+			$messages = Service::getMessages();
+			
+			$validator = Validator::make($request->all(),$rules,$messages); 
+		
+			if($validator->fails()){
+				$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
+				return response()->json($response,400);
+			}
+			
             $service = new Service;
 
             $service->description = $request->input('description');

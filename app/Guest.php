@@ -30,17 +30,29 @@ class Guest extends Model
     public function services(){
         return $this->morphMany('App\Service', 'userable');
     }
+	
+	public static function getRules(){
+		$rules = [
+			'email' => ['required','email'],
+			'name' => ['required','min:2','max:30'],
+			'address' => ['max:150'],
+			'phone' => ['max:30'],
+			'zipcode' => ['max:8']
+		];
+		
+		return $rules;
+	}
 
     public static function getMessages(){
         $messages = [
-        'required' => ':attribute is required',
-        'email' => ':attribute has invalid format',
-        'date' => ':attribute should be 10 digits',
-        'mimes' => ':attribute invalid format, allow: jpeg,png,bmp',
-        'digits' => ':attribute should be 10 digits',
-        'max' => ':attribute length too long',
-        'min' => ':attribute length too short',
-        'string' => ':attribute should be characters only'
+			'email.required' => 'Email es obligatorio',
+            'email.email' => 'Email no válido',
+			'name.required' => 'Nombre es obligatorio',
+			'name.min' => 'Nombre debe tener minimo :min caracteres',
+			'name.max' => 'Nombre debe tener máximo :max caracteres',
+			'address.max' => 'Dirección debe tener máximo :max caracteres',
+			'phone.max' => 'Teléfono debe tener máximo :max caracteres',
+			'zipcode.max' => 'Código postal debe tener máximo :max caracteres'
         ];
 
         return $messages;
