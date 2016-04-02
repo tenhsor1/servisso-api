@@ -200,12 +200,12 @@ class UserController extends Controller
                             return response()->json($response,200);
             }else{
                 $response = ['code' => 500
-                        ,'error' => "Something happened when trying to confirm the email"];
+                        ,'error' => "Algun error ha ocurrido cuando se trato de confirmar tu correo, contacta al equipo de soporte"];
                         return response()->json($response,500);
             }
         }else{
             $response = ['code' => 403
-                        ,'error' => "User with code validation not found"];
+                        ,'error' => "El usuario con el codigo de verificacion no fue encontrado"];
                         return response()->json($response,403);
         }
     }
