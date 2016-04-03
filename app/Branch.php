@@ -68,6 +68,17 @@ class Branch extends ServissoModel
         // 1 branch can have multiple services
         return $this->belongsTo('App\State');
     }
+	
+	public static function getRules(){
+		$rules = [
+			'address' => ['required','min:2','max:120'],
+			'phone' => ['required','min:8','max:20'],
+			'latitude' => ['required','min:2'],
+			'state_id' => ['required','exists:states,id']
+		];
+		
+		return $rules;
+	}
 
 	/**
 	* Se obtienen los mensajes de errores
@@ -75,32 +86,19 @@ class Branch extends ServissoModel
 	public static function getMessages(){
 		$messages =
 		[
-			'required' => ':attribute is required',
-			'max' => ':attribute length too long',
-			'min' => ':attribute length too short',
-			'numeric' => ':attribute should be a number',
-            'exists' => ':attribute doesn\t exist',
+			'address.required' => 'Dirección es obligatoria',
+			'address.min' => 'Dirección debe tener minimo :min caracteres',
+			'address.max' => 'Dirección debe tener máximo :max caracteres',
+			'phone.required' => 'Teléfono es obligatorio',
+			'phone.min' => 'Teléfono debe tener minimo :min caracteres',
+			'phone.max' => 'Teléfono debe tener máximo :max caracteres',
+			'latitude.required' => 'Latitude es obligatoria',
+			'latitude.min' => 'Ubicación no encontrada',
+			'state_id.required' => 'Estado es obligatorio',
+			'state_id.exists' => 'Estado es obligatorio'
 		];
 
 		return $messages;
-	}
-
-	/**
-	* Se obtienen las validaciones del modelo Branch
-	*/
-	public static function getValidations(){
-		$validation =
-			[
-				'address' => 'required|max:59|min:4',
-				'phone' => 'required|max:70|min:10',
-				'latitude' => 'required|numeric',
-				'longitude' => 'required|numeric',
-				'email' => 'email|max:70|min:8',
-                'schedule' => 'max:99|min:4',
-                'state_id' => 'required|integer|exists:states,id',
-			];
-
-		return $validation;
 	}
 
 	/**

@@ -101,14 +101,14 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $messages = Branch::getMessages();
-		$validation = Branch::getValidations();
+		$rules = Branch::getRules();
 
-		$v = Validator::make($request->all(),$validation,$messages);
+		$v = Validator::make($request->all(),$rules,$messages);
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
-			return response()->json($response,422);
+			$response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+			return response()->json($response,400);
 		}
 
 		//SE OBTIENE EL ID DE LA COMPANY QUE LE PERTENCE LA BRANCH
@@ -141,7 +141,7 @@ class BranchController extends Controller
 				$this->saveTag($request->tag,$branch);
 
 				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
-				$this->newTag($request->tag_new,$company->category_id);
+				$this->newTag($request->tag_new,$company->category_id,$branch);
 
 				//SE VALIDA QUE LA BRANCH SE HALLA GUARDADO
 				if($branch != false){
@@ -399,7 +399,7 @@ class BranchController extends Controller
 	/**
 	* Guarda tags nuevos creados por el user
 	*/
-	private function newTag($array,$category){
+	private function newTag($array,$category,$branch){
 
 		//SE VALIDA QUE EL ARRAY TAG NEW EXISTA EN EL JSON
 		if($array != null){
@@ -417,10 +417,19 @@ class BranchController extends Controller
 					$tag->description = $tag_new->description;
 					$tag->category_id = $category;
 
-					$row = $tag->save();
+					$tag->save();
+					
+					$row = \DB::table('tags_branches')->insert(
+							[
+										'tag_id' => $tag->id,
+										'branch_id' => $branch->id,
+                                        'created_at' => date('Y-m-d h:i:s',time()),
+                                        'updated_at' => date('Y-m-d h:i:s',time())
+							]
+						);
 
 					//SE VALIDA QUE SE HALLA GUARDADO CORRECTAMENTE EL NUEVO TAG
-					if($row != true){
+					if($tag){
 						$response = ['error' => 'It has occurred an error trying to save the tag','code' => 500];
 						return response()->json($response,500);
 					}
