@@ -2,23 +2,19 @@
 
 namespace App;
 
-//use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Extensions\ServissoModel;
-use Phaza\LaravelPostgis\Eloquent\PostgisTrait;
-use Phaza\LaravelPostgis\Geometries\Point;
 
 class Branch extends ServissoModel
 {
 
 	use SoftDeletes;
-    use PostgisTrait;
 
     protected $table = 'branches';
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id');
 
-	protected $hidden = ['deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['geom', 'deleted_at','created_at','updated_at','role_id','role'];
 
 	protected $searchFields = [
         'address',
@@ -44,10 +40,6 @@ class Branch extends ServissoModel
 		'latitude',
 		'longitude',
 		'schedule',
-    ];
-
-    protected $postgisFields = [
-        'geom' => Point::class,
     ];
 
 
@@ -100,6 +92,15 @@ class Branch extends ServissoModel
 
 		return $messages;
 	}
+
+
+    public function setGeomAttribute($value) {
+        $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
+    }
+
+    public function getGeomAttribute(){
+        return null;
+    }
 
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
@@ -168,7 +169,6 @@ class Branch extends ServissoModel
             $bottomLongitude = $bottomLimit[1]; //b
             $topLatitude = $topLimit[0]; //c
             $topLongitude = $topLimit[1]; //d
-"SELECT * FROM branches WHERE  LIMIT 20;";
             $query->whereRaw("ST_Intersects(geom,
                 ST_SETSRID(ST_MakeBox2D(
                     ST_SetSRID(ST_MakePoint(?, ?),4326), ST_SetSRID(ST_MakePoint(?, ?), 4326)
