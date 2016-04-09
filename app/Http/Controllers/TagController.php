@@ -26,7 +26,7 @@ class TagController extends Controller
     {	
 		$tags = Tag::searchBy($request)
 					->betweenBy($request)
-					->orderByCustom($request)
+					->orderByCustom($request)					
                     ->limit($request)
 					->get();
 								
