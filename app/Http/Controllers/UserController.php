@@ -7,6 +7,7 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\UserSocial;
 use App\Company;
 use JWTAuth;
 use Validator;
@@ -37,25 +38,52 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-		$rules = User::getRules();
-		$messages = User::getMessages();		
-	
-		$validator = Validator::make($request->all(),$rules,$messages); 
-		
+		$valuesProvider = false;
+        if($request->input('val', null)){
+            //if we are trying to create a user using a social provider, then validate that
+            //the social information passed is correctly, if not, return an error
+            $valuesProvider = $this->getInfoFromProvider($request);
+            if(array_key_exists('code', $valuesProvider)){
+                return response()->json($valuesProvider['response'], $valuesProvider['code']);
+            }
+            $request['email'] = $valuesProvider['email'];
+        }
+        $rules = User::getRules();
+		$messages = User::getMessages();
+
+		$validator = Validator::make($request->all(),$rules,$messages);
+
 		if($validator->fails()){
 			$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
 			return response()->json($response,400);
 		}
-		
+
         $newUser = User::create($request->all());
 
-        $extraClaims = ['role'=>'USER'];
-        $token = JWTAuth::fromUser($newUser,$extraClaims);
-        $reflector = new \ReflectionClass('JWTAuth');
-        $newUser->access = $token;
-
         if($newUser){
-            $this->mailer->sendVerificationEmail($newUser);
+            if($valuesProvider){
+                //if the creation of the user is based on a social provider, then save a
+                //record on user_socials using loginSocial method
+                $token = $newUser->loginSocial($valuesProvider);
+                if($token){
+                    $newUser->confirmed = true;
+                    $newUser->save();
+                    $newUser->access = $token;
+                }else{
+                    $response = ['error' => 'Un error inesperado sucedio'
+                                ,'code' => 500
+                                ,'data' => []];
+                    return response()->json($response,500);
+                }
+            }else{
+                //if the creation is based on email, then generate the token directly
+                $extraClaims = ['role'=>'USER'];
+                $token = JWTAuth::fromUser($newUser,$extraClaims);
+                $reflector = new \ReflectionClass('JWTAuth');
+                $newUser->access = $token;
+                $this->mailer->sendVerificationEmail($newUser);
+            }
+
             $response = ['data' => $newUser
                         ,'code' => 200
                         ,'message' => 'User was created succefully'];
@@ -64,6 +92,27 @@ class UserController extends Controller
         $response = ['error' => 'It has occurred an error trying to save the user'
                     ,'code' => 404];
         return response()->json($response,500);
+    }
+
+    private function getInfoFromProvider(Request $request){
+        try{
+            $values = \Crypt::decrypt($request->input('val'));
+        }catch(DecryptException $e){
+            $data = ['val' => ["La información no es correcta"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return ['response' => $response, 'code' => 403];
+        }
+
+        $rules = UserSocial::getRules();
+        $messages = UserSocial::getMessages();
+
+        $validator = Validator::make($values,$rules,$messages);
+
+        if($validator->fails()){
+            $response = ['data' => $validator->errors(),'error' => 'Bad request','code' => 400];
+            return ['response' => $response, 'code' => 400];
+        }
+        return $values;
     }
 
     /**
