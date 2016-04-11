@@ -26,7 +26,7 @@ class Country extends ServissoModel
         return $this->belongsTo('App\User');
     }
 
-	public function state()
+	public function states()
     {
         // 1 new is related to one admin who created it
         return $this->hasMany('App\State');

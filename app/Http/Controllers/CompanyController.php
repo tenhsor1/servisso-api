@@ -96,7 +96,7 @@ class CompanyController extends Controller
 					return response()->json($response,200);
 				}else{
 					$response = ['error' => 'It has occurred an error trying to save the company','code' => 404];
-					return response()->json($response,404);
+					return response()->json($response,500);
 				}
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];

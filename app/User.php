@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use JWTAuth;
 
 class User extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
@@ -62,6 +63,10 @@ class User extends Model implements AuthenticatableContract,
         return $this->morphMany('App\Service', 'userable');
     }
 
+    public function socials(){
+        return $this->hasMany('App\UserSocial');
+    }
+
 	public function country()
     {
         // 1 admin can have one country
@@ -90,7 +95,7 @@ class User extends Model implements AuthenticatableContract,
             ->get();
         return $branch;
     }
-	
+
 	public static function getRules(){
 		$rules = array(
 				'email' => ['required','email'],
@@ -98,7 +103,7 @@ class User extends Model implements AuthenticatableContract,
 				'name' => ['required','min:3','max:45'],
 				'lastname' => ['required','min:3','max:45']
 			);
-			
+
 		return $rules;
 	}
 
@@ -126,5 +131,22 @@ class User extends Model implements AuthenticatableContract,
             $query->where('email', '=', $email);
         }
         return $query;
+    }
+
+    public function loginSocial($values){
+        $userSocial = UserSocial::firstOrNew(['user_id' => $this->id, 'platform' => $values['platform']]);
+        $userSocial->user_id = $this->id;
+        $userSocial->platform = $values['platform'];
+        $userSocial->platform_id = $values['platform_id'];
+        $userSocial->email = $values['email'];
+        $userSocial->name = $values['name'];
+        $userSocial->avatar = (array_key_exists('avatar', $values)) ? $values['avatar'] : null;
+        $userSocial->token = $values['token'];
+        if($userSocial->save()){
+            $extraClaims = ['role' => 'USER'];
+            $token =  JWTAuth::fromUser($this, $extraClaims);
+            return $token;
+        }
+        return null;
     }
 }
