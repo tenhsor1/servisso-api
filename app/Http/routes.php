@@ -37,7 +37,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('services', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('calls', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
-
+	
 	Route::get('companies/{companyId}/services', 'ServiceController@indexPerCompany');
     Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
