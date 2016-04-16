@@ -9,7 +9,6 @@ use App\Http\Requests;
 */
 class Utils extends Model{
 	 public static function StorageImage($id, $request, $path='public\image', $path_thumb='public\thumb'){   
-		
 		//Ruta donde queremos guardar las imagenes
 		$path = base_path().'\\'.$path.'\\';
 		$path_thumb = base_path().'\\'.$path_thumb.'\\';
