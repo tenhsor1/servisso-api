@@ -116,6 +116,7 @@ class CompanyController extends Controller
     {
 		$userRequested = \Auth::User();
 		$company = Company::find($id);
+
 		//SE VALIDA QUE EL USUARIO SEA DE TIPO USER O ADMIN
         if($userRequested->roleAuth  == "USER" && $userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 			 if(!is_null($company)){
