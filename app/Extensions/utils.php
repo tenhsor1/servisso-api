@@ -23,8 +23,7 @@ class Utils extends Model{
 		//se obtiene el archivo
 		$file = $request->file('image');
 		//Se obtiene la extension de la imagen
-		//$ext = $file->getClientOriginalExtension();
-		$ext = 'png';
+		$ext = $file->getClientOriginalExtension();
 		//se obtiene la fecha en formato entero
 		$time = strtotime('now');
 		//se crea un nombre para la imagen tamaño normal y la reducida
