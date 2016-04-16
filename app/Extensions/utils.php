@@ -9,13 +9,13 @@ use App\Http\Requests;
 */
 class Utils extends Model{
 	 public static function StorageImage($id, $request, $path='\\public\image\\', $path_thumb='\\public\thumb\\'){   
-		$carpeta = '../../servisso-api/public/image';
-		if (!file_exists($carpeta)) {
-		   mkdir($carpeta, 0777, true);
+		$folder = '../../servisso-api/public/image';
+		if (!file_exists($folder)) {
+		   mkdir($folder, 0777, true);
 		} 
-		$carpeta = '../../servisso-api/public/thumb';
-		if (!file_exists($carpeta)) {
-		   mkdir($carpeta, 0777, true);
+		$folder = '../../servisso-api/public/thumb';
+		if (!file_exists($folder)) {
+		   mkdir($folder, 0777, true);
 		} 
 		//Ruta donde queremos guardar las imagenes
 		$path = base_path().$path;
