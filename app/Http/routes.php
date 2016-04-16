@@ -16,6 +16,7 @@ Route::get('/', function () {
 });
 Route::group(['prefix' => 'v1'], function()
 {
+    Route::post('auth/social', 'Auth\AuthController@socialAuth');
     Route::resource('auth', 'Auth\AuthController', ['only' => ['index']]);
     Route::get('auth/refresh', 'Auth\AuthController@refresh');
     Route::post('auth/{role}', 'Auth\AuthController@authenticate')
@@ -24,6 +25,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('password/email', 'Auth\PassController@postEmail');
     Route::post('password/reset', 'Auth\PassController@postReset');
     Route::get('password/token/{token}', 'Auth\PassController@checkToken');
+
 
 	Route::post('users/predict', 'UserController@predict');
     Route::get('users/confirm/{code}','UserController@confirm');

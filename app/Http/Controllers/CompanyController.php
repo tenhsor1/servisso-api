@@ -96,7 +96,7 @@ class CompanyController extends Controller
 					return response()->json($response,200);
 				}else{
 					$response = ['error' => 'It has occurred an error trying to save the company','code' => 404];
-					return response()->json($response,404);
+					return response()->json($response,500);
 				}
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
@@ -171,6 +171,18 @@ class CompanyController extends Controller
                         ->with('branches.state.country')
                         ->where('id','=',$id)
                         ->first();
+		
+		foreach($company->branches as $branch){
+
+			$tags = \DB::table('tags_branches')
+			->join('tags','tags_branches.tag_id','=','tags.id')
+			->where('tags_branches.branch_id','=',$branch->id)
+			->select('tags.name','tags.description')
+			->get();
+
+			$branch->tags = $tags;
+		}
+		
 
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
