@@ -8,18 +8,17 @@ use App\Http\Requests;
 * Extension for create the new image of de company
 */
 class Utils extends Model{
-	 public static function StorageImage($id, $request, $path='\\public\image\\', $path_thumb='\\public\thumb\\'){   
-		$folder = '../../servisso-api/public/image';
-		if (!file_exists($folder)) {
-		   mkdir($folder, 0777, true);
-		} 
-		$folder = '../../servisso-api/public/thumb';
-		if (!file_exists($folder)) {
-		   mkdir($folder, 0777, true);
-		} 
+	 public static function StorageImage($id, $request, $path='public\image', $path_thumb='public\thumb'){   
+		
 		//Ruta donde queremos guardar las imagenes
-		$path = base_path().$path;
-		$path_thumb = base_path().$path_thumb;
+		$path = base_path().'\\'.$path.'\\';
+		$path_thumb = base_path().'\\'.$path_thumb.'\\';
+		if (!file_exists($path)){
+		   mkdir($path, 0777, true);
+		} 
+		if (!file_exists($path_thumb)){
+		   mkdir($path_thumb, 0777, true);
+		} 
 		//se obtiene el archivo
 		$file = $request->file('image');
 		//Se obtiene la extension de la imagen
