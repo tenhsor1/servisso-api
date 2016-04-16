@@ -9,6 +9,7 @@ use App\Service;
 use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use App\Extensions\Utils;
 use Validator;
 
 class ServiceController extends Controller
@@ -89,17 +90,17 @@ class ServiceController extends Controller
             $user = Guest::find($guestId);
         }
         if($user){
-			
+
 			$rules = Service::getRules();
 			$messages = Service::getMessages();
-			
-			$validator = Validator::make($request->all(),$rules,$messages); 
-		
+
+			$validator = Validator::make($request->all(),$rules,$messages);
+
 			if($validator->fails()){
 				$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
 				return response()->json($response,400);
 			}
-			
+
             $service = new Service;
 
             $service->description = $request->input('description');
@@ -110,6 +111,9 @@ class ServiceController extends Controller
 
             $save = $user->services()->save($service);
             if($save){
+                $tokenImage = \Crypt::encrypt(['service_id' => $service->id
+                                                ,'date' => $service->created_at->format('Y-m-d H:i:s')]);
+                $service->token_image = $tokenImage;
                 return response()->json(['data'=>$service], 200);
             }else{
                 return response()->json([
@@ -126,6 +130,61 @@ class ServiceController extends Controller
                                 ]];
             return response()->json($errorJSON, 422);
         }
+    }
+
+    public function setImages(Request $request, $serviceId){
+        //
+        $resp = $this->validateImageToken($serviceId, $request->header('X-Service-Token'));
+        if($resp['code'] > 200){
+            return response()->json($resp, $resp['code']);
+        }
+
+        $ext = $request->file('image')->getClientOriginalExtension();
+        // Se verifica si es un formato de imagen permitido
+        if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
+            $response = ['ext' => $ext, 'error' => "Sólo imágenes de extensión jpg, jpeg, bmp and png", 'code' =>  422];
+            return resbiponse()->json($response,422);
+        }
+        // StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
+        //SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
+        $img = Utils::StorageImage($id,$request);
+        //SE LE COLOCAN EL NOMBRE DE LA IMAGEN
+        $company->image = $img['image'];
+        $company->thumbnail = $img['thumbnail'];
+        $company->save();
+
+        if($company != false){
+            $response = ['code' => 200,'message' => 'Image was save succefully'];
+            return response()->json($response,200);
+        }else{
+            $response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
+            return response()->json($response,500);
+        }
+
+    }
+
+    private function validateImageToken($serviceId, $headerToken){
+        try{
+            $imageToken = \Crypt::decrypt($headerToken);
+        }catch(DecryptException $e){
+            $data = ['token' => ["El token no es válido"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+
+        $tokenServiceId = $imageToken['service_id'];
+        $tokenDate = $imageToken['date'];
+        if($tokenServiceId != $serviceId){
+            $data = ['token' => ["El token no es válido"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+        if(time() > strtotime($tokenDate. ' + 1 hours')){
+            $data = ['token' => ["El token ha expirado"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+        return ['code' => 200];
     }
 
     /**
