@@ -97,6 +97,8 @@ class AuthController extends Controller
         }
         $token = $user->loginSocial($values);
         if($token){
+            $user->confirmed = true;
+            $user->save();
             $user->access = $token;
             $response = ["message" => 'Se autentificó correctamente', "success" => true, "data" => $user];
             return response()->json($response);

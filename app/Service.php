@@ -71,6 +71,10 @@ class Service extends ServissoModel
 		return $this->hasOne('App\PartnerRate');
 	}
 
+  public function userable(){
+      return $this->morphTo();
+  }
+
   public function images(){
     return $this->hasMany('App\ServiceImage');
   }
