@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
+use App\ServiceImage;
 use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -133,31 +134,35 @@ class ServiceController extends Controller
     }
 
     public function setImages(Request $request, $serviceId){
-        //
+
         $resp = $this->validateImageToken($serviceId, $request->header('X-Service-Token'));
         if($resp['code'] > 200){
             return response()->json($resp, $resp['code']);
+        }
+        $service = Service::find($serviceId);
+        if(!$service){
+            $response = ['ext' => $ext, 'error' => "No existe el servicio", 'code' =>  404];
+            return resbiponse()->json($response,404);
         }
 
         $ext = $request->file('image')->getClientOriginalExtension();
         // Se verifica si es un formato de imagen permitido
         if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
             $response = ['ext' => $ext, 'error' => "Sólo imágenes de extensión jpg, jpeg, bmp and png", 'code' =>  422];
-            return resbiponse()->json($response,422);
+            return response()->json($response,422);
         }
-        // StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
-        //SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-        $img = Utils::StorageImage($id,$request);
-        //SE LE COLOCAN EL NOMBRE DE LA IMAGEN
-        $company->image = $img['image'];
-        $company->thumbnail = $img['thumbnail'];
-        $company->save();
+        $img = Utils::StorageImage($serviceId,$request->file('image'));
+        $serviceImage = new ServiceImage();
+        $serviceImage->image = $img['image'];
+        $serviceImage->thumbnail = $img['thumbnail'];
 
-        if($company != false){
-            $response = ['code' => 200,'message' => 'Image was save succefully'];
+        $saveImage = $service->images()->save($serviceImage);
+
+        if($saveImage != false){
+            $response = ['code' => 200, 'data' => $saveImage, 'message' => 'Image was save succefully'];
             return response()->json($response,200);
         }else{
-            $response = ['error' => 'It has occurred an error trying to update the company','code' => 500];
+            $response = ['error' => 'It has occurred an error trying to update the service image','code' => 500];
             return response()->json($response,500);
         }
 
