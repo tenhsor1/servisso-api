@@ -9,7 +9,7 @@ use App\Company;
 use App\User;
 use Validator;
 use JWTAuth;
-use App\Extensions\utils;
+use App\Extensions\Utils;
 class CompanyController extends Controller
 {
 
@@ -127,7 +127,7 @@ class CompanyController extends Controller
 				}
 				// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-				$img = utils::StorageImage($id,$request);
+				$img = Utils::StorageImage($id,$request->file('image'));
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
 				$company->image = $img['image'];
 				$company->thumbnail = $img['thumbnail'];
@@ -171,7 +171,7 @@ class CompanyController extends Controller
                         ->with('branches.state.country')
                         ->where('id','=',$id)
                         ->first();
-		
+
 		foreach($company->branches as $branch){
 
 			$tags = \DB::table('tags_branches')
@@ -182,7 +182,7 @@ class CompanyController extends Controller
 
 			$branch->tags = $tags;
 		}
-		
+
 
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){

@@ -11,3 +11,4 @@ composer.lock
 /public/image/*
 /public/images/*
 /public/thumb/*
+/public/thumbs/*

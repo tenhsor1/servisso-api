@@ -71,28 +71,27 @@ class Service extends ServissoModel
 		return $this->hasOne('App\PartnerRate');
 	}
 
-    public function userable()
-    {
-      return $this->morphTo();
-    }
-	
+  public function images(){
+    return $this->hasMany('App\ServiceImage');
+  }
+
 	public static function getRules(){
 		$rules = [
 			'description' => ['required','max:250']
 		];
-		
+
 		return $rules;
 	}
-	
+
 	public static function getMessages(){
 		$messages = [
 			'description.required' => 'Descripción es obligatoria',
 			'description.max' => 'Descripción debe tener máximo :max caracteres'
 		];
-		
+
 		return $messages;
 	}
-	
+
 
     public function scopeWhereUser($query, $userId)
     {
