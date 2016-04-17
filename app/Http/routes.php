@@ -32,12 +32,12 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
 
-
+    Route::post('services/{serviceId}/images', 'ServiceController@setImages');
     Route::resource('guests', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('services', 'ServiceController', ['only' => ['update', 'destroy', 'show', 'store', 'index']]);
     Route::resource('calls', 'CallController', ['only' => ['update', 'destroy', 'show', 'store']]);
     Route::resource('sms', 'SmsController', ['only' => ['update', 'destroy', 'show', 'store']]);
-
+	
 	Route::get('companies/{companyId}/services', 'ServiceController@indexPerCompany');
     Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
