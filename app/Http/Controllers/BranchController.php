@@ -203,8 +203,8 @@ class BranchController extends Controller
 			return response()->json($response,200);
 
 		}else{
-			$response = ['error' => 'Branch does no exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Branch does not exist','code' => 404];
+			return response()->json($response,404);
 		}
     }
 
@@ -418,7 +418,7 @@ class BranchController extends Controller
 					$tag->category_id = $category;
 
 					$tag->save();
-					
+
 					$row = \DB::table('tags_branches')->insert(
 							[
 										'tag_id' => $tag->id,
