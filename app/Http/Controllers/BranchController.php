@@ -231,10 +231,12 @@ class BranchController extends Controller
 		$userRequested = \Auth::User();
 
         $messages = Branch::getMessages();
-		$validation = Branch::getValidations();
+		// $validation = Branch::getValidations();
+		$rules = Branch::getRules();
 
-		$v = Validator::make($request->all(),$validation,$messages);
-
+		// $v = Validator::make($request->all(),$validation,$messages);
+		$v = Validator::make($request->all(),$rules,$messages);
+		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
 			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
@@ -269,7 +271,7 @@ class BranchController extends Controller
 				$this->saveTag($request->tag,$branch);
 
 				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
-				$this->newTag($request->tag_new,$company->category_id);
+				$this->newTag($request->tag_new,$company->category_id,$branch);
 
 				//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
 				if($branch != false){
