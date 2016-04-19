@@ -234,7 +234,7 @@ class BranchController extends Controller
 		// $validation = Branch::getValidations();
 		$rules = Branch::getRules();
 
-		// $v = Validator::make($request->all(),$validation,$messages);
+		
 		$v = Validator::make($request->all(),$rules,$messages);
 		
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
