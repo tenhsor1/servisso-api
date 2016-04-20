@@ -260,7 +260,7 @@ class BranchController extends Controller
 				$branch->phone = $request->phone;
 				$branch->latitude = $request->latitude;
 				$branch->longitude = $request->longitude;
-				$branch->state_id = 1;
+				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
 				$branch->role_id = $userRequested->id;
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
