@@ -268,6 +268,8 @@ class BranchController extends Controller
 
 				$branch->save();
 
+				\DB::table('tags_branches')->where('branch_id', '=', $id)->delete();
+				
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
