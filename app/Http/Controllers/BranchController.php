@@ -98,6 +98,7 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
+					
         $messages = Branch::getMessages();
 		$rules = Branch::getRules();
 
@@ -421,18 +422,18 @@ class BranchController extends Controller
 
 					$row = \DB::table('tags_branches')->insert(
 							[
-										'tag_id' => $tag->id,
-										'branch_id' => $branch->id,
-                                        'created_at' => date('Y-m-d h:i:s',time()),
-                                        'updated_at' => date('Y-m-d h:i:s',time())
+								'tag_id' => $tag->id,
+								'branch_id' => $branch->id,
+								'created_at' => date('Y-m-d H:i:s',time()),
+								'updated_at' => date('Y-m-d H:i:s',time())
 							]
 						);
 
 					//SE VALIDA QUE SE HALLA GUARDADO CORRECTAMENTE EL NUEVO TAG
-					if($tag){
+					/*if($tag != null){
 						$response = ['error' => 'It has occurred an error trying to save the tag','code' => 500];
 						return response()->json($response,500);
-					}
+					}*/
 				}
 			}
 		}
