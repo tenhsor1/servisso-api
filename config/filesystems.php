@@ -28,7 +28,7 @@ return [
     |
     */
 
-    'cloud' => 's3',
+    'cloud' => 's3Images',
 
     /*
     |--------------------------------------------------------------------------
@@ -62,12 +62,12 @@ return [
             // 'timeout'  => 30,
         ],
 
-        's3' => [
+        's3Images' => [
             'driver' => 's3',
-            'key'    => 'your-key',
-            'secret' => 'your-secret',
-            'region' => 'your-region',
-            'bucket' => 'your-bucket',
+            'key'    => env('S3_IMAGES_KEY', 'your-key'),
+            'secret' => env('S3_IMAGES_SECRET', 'your-secret'),
+            'region' => env('S3_IMAGES_REGION', 'your-region'),
+            'bucket' => env('S3_IMAGES_BUCKET', 'your-bucket'),
         ],
 
         'rackspace' => [
