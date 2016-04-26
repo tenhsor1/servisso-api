@@ -116,6 +116,7 @@ class CompanyController extends Controller
     {
 		$userRequested = \Auth::User();
 		$company = Company::find($id);
+
 		//SE VALIDA QUE EL USUARIO SEA DE TIPO USER O ADMIN
         if($userRequested->roleAuth  == "USER" && $userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 			 if(!is_null($company)){
@@ -125,9 +126,8 @@ class CompanyController extends Controller
 					$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
 					return response()->json($response,422);
 				}
-				// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-				$img = Utils::StorageImage($id,$request->file('image'));
+				$img = Utils::StorageImage($id,$request->file('image'), 'logos/images/', 'logos/thumbs/', 'public');
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
 				$company->image = $img['image'];
 				$company->thumbnail = $img['thumbnail'];

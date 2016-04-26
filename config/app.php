@@ -147,6 +147,7 @@ return [
         App\Providers\JWTServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         //Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
+        Aws\Laravel\AwsServiceProvider::class,
 		'Intervention\Image\ImageServiceProvider',
     ],
 
@@ -200,6 +201,7 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
 		'Form'		=> Illuminate\Html\FormFacade::class,
 		'Html'		=> Illuminate\Html\HtmlFacade::class,
+        'AWS'       => Aws\Laravel\AwsFacade::class,
 
     ],
 
