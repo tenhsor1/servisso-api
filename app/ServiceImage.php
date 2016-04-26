@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use AWS;
 
 class ServiceImage extends Model
 {
@@ -54,5 +55,31 @@ class ServiceImage extends Model
             );
 
         return $rules;
+    }
+
+    public function getImageAttribute($value){
+        $s3Client = AWS::createClient('s3');
+        $cmd = $s3Client->getCommand('GetObject', [
+            'Bucket' => env('S3_IMAGES_BUCKET'),
+            'Key'    => $value
+        ]);
+
+        $request = $s3Client->createPresignedRequest($cmd, '+1 minutes');
+        $presignedUrl = (string) $request->getUri();
+
+        return $presignedUrl;
+    }
+
+    public function getThumbnailAttribute($value){
+        $s3Client = AWS::createClient('s3');
+        $cmd = $s3Client->getCommand('GetObject', [
+            'Bucket' => env('S3_IMAGES_BUCKET'),
+            'Key'    => $value
+        ]);
+
+        $request = $s3Client->createPresignedRequest($cmd, '+1 minutes');
+        $presignedUrl = (string) $request->getUri();
+
+        return $presignedUrl;
     }
 }

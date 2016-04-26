@@ -153,7 +153,7 @@ class ServiceController extends Controller
             $response = ['ext' => $ext, 'error' => "Sólo imágenes de extensión jpg, jpeg, bmp and png", 'code' =>  422];
             return response()->json($response,422);
         }
-        $img = Utils::StorageImage($serviceId,$request->file('image'), '/services/images/', '/services/thumbs/');
+        $img = Utils::StorageImage($serviceId,$request->file('image'), 'services/images/', 'services/thumbs/');
         $serviceImage = new ServiceImage();
         $serviceImage->image = $img['image'];
         $serviceImage->thumbnail = $img['thumbnail'];
@@ -217,7 +217,7 @@ class ServiceController extends Controller
         $conditions = [ 'id' => $id
                         , 'userable_id' => $userId
                         , 'userable_type' => $this->userTypes['user']];
-        $service = Service::where($conditions)->first();
+        $service = Service::where($conditions)->with('images')->first();
         if($service){
             return response()->json(['data'=>$service], 200);
 

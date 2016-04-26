@@ -76,7 +76,7 @@ class Service extends ServissoModel
   }
 
   public function images(){
-    return $this->hasMany('App\ServiceImage');
+    return  $this->hasMany('App\ServiceImage');
   }
 
 	public static function getRules(){
