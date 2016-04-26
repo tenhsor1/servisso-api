@@ -127,7 +127,7 @@ class CompanyController extends Controller
 					return response()->json($response,422);
 				}
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-				$img = Utils::StorageImage($id,$request->file('image'), '/logos/images/', '/logos/thumbs/', 'public');
+				$img = Utils::StorageImage($id,$request->file('image'), 'logos/images/', 'logos/thumbs/', 'public');
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
 				$company->image = $img['image'];
 				$company->thumbnail = $img['thumbnail'];
