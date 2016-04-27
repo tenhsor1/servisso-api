@@ -30,6 +30,7 @@ Route::group(['prefix' => 'v1'], function()
 	Route::post('users/predict', 'UserController@predict');
     Route::get('users/confirm/{code}','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
+    Route::put('users/{user_id}/password', 'UserController@updatePassword');
     Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
 
     Route::post('services/{serviceId}/images', 'ServiceController@setImages');

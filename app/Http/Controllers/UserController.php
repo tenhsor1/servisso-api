@@ -15,7 +15,7 @@ use Validator;
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict','updatePassword']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -189,6 +189,59 @@ class UserController extends Controller
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
             return response()->json($errorJSON, 403);
+        }
+    }
+	
+	  public function updatePassword(Request $request, $id)
+    {
+       
+        $user = User::find($id);  
+		
+		 if($user->id == $id && $user->password == $request->password){
+
+            $userRequested = \Auth::User();//quien hizo la peticion
+            if($userRequested->id == $user->id || $userRequested->role_id == $this->AdminRole['SUPER']){
+                $messages = User::getMessages();
+                $validation = User::getValidationsPassword();
+                $v = Validator::make($request->all(),$validation,$messages);
+                //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
+                if($v->fails()){
+                    $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
+                    return response()->json($response,422);
+                }
+				
+				if($request->passwordNew != $request->passwordConfirm){
+                    $response = ['error' => 'Bad Request', 'data' => 'Las contraseñas no coinciden','code' => 422];
+                    return response()->json($response,422);
+                }
+				
+                $user->password = $request->passwordNew;
+				$user->update_id = $userRequested->id;//quien modifico
+			
+                $row = $user->save();
+
+                if ($row != false) {
+                    $response = ['code' => 200, 'message' => 'Password was modify succefully'];
+                    return response()->json($response, 200);
+                } else {
+                    $response = ['error' => 'It has occurred an error trying to upate the password', 'code' => 500];
+                    return response()->json($response, 500);
+                }
+
+            }else{
+               $response = ['error' => 'Unauthorized','code' => '404'];
+                return response()->json($response,404);
+            }
+
+        }else{
+			$error = "";
+			if($user->password != $request->password){
+				$error = 'The password is not correct';
+			}else{
+				$error = 'The user does not exist';
+			}
+            $response = ['error' => $error,'code' => '404'];
+            return response()->json($response,404);
         }
     }
 
