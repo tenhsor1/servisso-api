@@ -42,6 +42,7 @@ Route::group(['prefix' => 'v1'], function()
 	Route::get('companies/{companyId}/services', 'ServiceController@indexPerCompany');
     Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
+    Route::get('branches/services/{serviceId}','ServiceController@showFromBranch');//to get a service from company perspective
     Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
     Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
 

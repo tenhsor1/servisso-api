@@ -18,7 +18,7 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromPartner']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
 
         $this->middleware('default.headers');
@@ -231,16 +231,15 @@ class ServiceController extends Controller
         }
     }
 
-    public function showFromPartner($id)
+    public function showFromBranch($id)
     {
         $userRequested = \Auth::User();
 
-        if($user){
-            $userId = $user->id;
-        }
         $service = Service::whereUser($userRequested->id)
-                            ->where(['id' => $id])
+                            ->where(['services.id' => $id])
                             ->with('images')
+                            ->with('userable')
+                            ->with('branch')
                             ->first();
         if($service){
             return response()->json(['data'=>$service], 200);
