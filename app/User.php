@@ -45,7 +45,20 @@ class User extends Model implements AuthenticatableContract,
      *
      * @var array
      */
-    protected $hidden = ['state_id','password', 'deleted_at', 'created_at', 'updated_at','token'];
+    protected $hidden = ['password', 'deleted_at', 'created_at', 'updated_at','token'];
+	
+	
+	
+	
+	 public static function getValidationsPassword(){
+        $validation = [
+           'password' => 'required|max:99|min:7',
+           'passwordNew' => 'required|max:99|min:7',
+           'passwordConfirm' => 'required|max:99|min:7',
+        ];
+
+        return $validation;
+    }
 
     public static function boot()
     {
