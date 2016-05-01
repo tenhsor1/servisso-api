@@ -64,7 +64,7 @@ class ServiceImage extends Model
             'Key'    => $value
         ]);
 
-        $request = $s3Client->createPresignedRequest($cmd, '+1 minutes');
+        $request = $s3Client->createPresignedRequest($cmd, '+5 minutes');
         $presignedUrl = (string) $request->getUri();
 
         return $presignedUrl;
@@ -77,7 +77,7 @@ class ServiceImage extends Model
             'Key'    => $value
         ]);
 
-        $request = $s3Client->createPresignedRequest($cmd, '+1 minutes');
+        $request = $s3Client->createPresignedRequest($cmd, '+5 minutes');
         $presignedUrl = (string) $request->getUri();
 
         return $presignedUrl;

@@ -33,10 +33,8 @@ class Service extends ServissoModel
      *
      * @var array
      */
-    protected $hidden = [   'branch_id'
-                            , 'userable_type'
+    protected $hidden = [   'userable_type'
                             , 'deleted_at'
-                            , 'created_at'
                             , 'updated_at'
                         ];
 
@@ -112,17 +110,17 @@ class Service extends ServissoModel
               ->leftJoin('companies','companies.id','=','branches.company_id')
               ->where('companies.id', $companyId)
               ->select('services.*',
-                      'branches.id AS branch_id',
                       'branches.address AS branch_address',
-                      'branches.phone AS branch_phone',
-                      'branches.name AS branch_name');
+                      'branches.phone AS branch_phone');
     }
 
     public function scopeWhereBranch($query, $branchId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
               ->where('branches.id', $branchId)
-              ->select('services.*');
+              ->select('services.*',
+                      'branches.address AS branch_address',
+                      'branches.phone AS branch_phone');
     }
 
     /**
