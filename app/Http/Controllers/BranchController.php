@@ -132,7 +132,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
-                $branch->geom = [$request->latitude, $request->longitude];
+                $branch->geom = [$request->longitude, $request->latitude];
 
 				$branch->save();
 
@@ -235,9 +235,9 @@ class BranchController extends Controller
 		// $validation = Branch::getValidations();
 		$rules = Branch::getRules();
 
-		
+
 		$v = Validator::make($request->all(),$rules,$messages);
-		
+
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
 			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];

@@ -60,7 +60,7 @@ class Branch extends ServissoModel
         // 1 branch can have multiple services
         return $this->belongsTo('App\State');
     }
-	
+
 	public static function getRules(){
 		$rules = [
 			'address' => ['required','min:2','max:120'],
@@ -68,7 +68,7 @@ class Branch extends ServissoModel
 			'latitude' => ['required','min:2'],
 			'state_id' => ['required','exists:states,id']
 		];
-		
+
 		return $rules;
 	}
 
@@ -95,6 +95,7 @@ class Branch extends ServissoModel
 
 
     public function setGeomAttribute($value) {
+        //position 0 = longitude, 1 = latitude
         $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
     }
 
