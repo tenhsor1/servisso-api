@@ -18,7 +18,7 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:user', ['only' => ['update']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromPartner']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
 
         $this->middleware('default.headers');
@@ -218,6 +218,30 @@ class ServiceController extends Controller
                         , 'userable_id' => $userId
                         , 'userable_type' => $this->userTypes['user']];
         $service = Service::where($conditions)->with('images')->first();
+        if($service){
+            return response()->json(['data'=>$service], 200);
+
+        }else{
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
+                            , 'data' => [
+                                'user_id'=> ['The user doesn\'t have this service']
+                                ]];
+            return response()->json($errorJSON, 404);
+        }
+    }
+
+    public function showFromPartner($id)
+    {
+        $userRequested = \Auth::User();
+
+        if($user){
+            $userId = $user->id;
+        }
+        $service = Service::whereUser($userRequested->id)
+                            ->where(['id' => $id])
+                            ->with('images')
+                            ->first();
         if($service){
             return response()->json(['data'=>$service], 200);
 
