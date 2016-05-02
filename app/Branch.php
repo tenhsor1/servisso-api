@@ -37,6 +37,8 @@ class Branch extends ServissoModel
 		'deleted',
 		'address',
 		'phone',
+        'email',
+        'inegi',
 		'latitude',
 		'longitude',
 		'schedule',
@@ -250,7 +252,13 @@ class Branch extends ServissoModel
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
-					case 'address':
+					case 'inegi':
+                        $query->orderBy('branches.inegi', $orderType);
+                        break;
+                    case 'email':
+                        $query->orderBy('branches.email', $orderType);
+                        break;
+                    case 'address':
                         $query->orderBy('branches.address', $orderType);
                         break;
 					case 'phone':

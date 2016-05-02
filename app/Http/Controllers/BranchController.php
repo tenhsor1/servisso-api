@@ -42,6 +42,8 @@ class BranchController extends Controller
 							->orderByCustom($request)
 							->limit($request)
 							->select('branches.id',
+                                'branches.inegi',
+                                'branches.email',
                                 'branches.company_id',
                                 'branches.phone',
                                 'branches.address',
