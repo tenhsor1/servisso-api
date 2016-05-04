@@ -31,7 +31,8 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('users/confirm/{code}','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::put('users/{user_id}/password', 'UserController@updatePassword');
-    Route::resource('users', 'UserController', ['only' => ['update', 'destroy', 'show', 'store']]);
+    Route::put('users/{user_id}/preferences', 'UserController@update');
+    Route::resource('users', 'UserController', ['only' => ['destroy', 'show', 'store']]);
 
     Route::post('services/{serviceId}/images', 'ServiceController@setImages');
     Route::resource('guests', 'GuestController', ['only' => ['update', 'destroy', 'show', 'store']]);
