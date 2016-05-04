@@ -42,6 +42,8 @@ class BranchController extends Controller
 							->orderByCustom($request)
 							->limit($request)
 							->select('branches.id',
+                                'branches.inegi',
+                                'branches.email',
                                 'branches.company_id',
                                 'branches.phone',
                                 'branches.address',
@@ -98,7 +100,7 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-					
+
         $messages = Branch::getMessages();
 		$rules = Branch::getRules();
 
@@ -132,7 +134,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
-                $branch->geom = [$request->latitude, $request->longitude];
+                $branch->geom = [$request->longitude, $request->latitude];
 
 				$branch->save();
 
@@ -235,9 +237,9 @@ class BranchController extends Controller
 		// $validation = Branch::getValidations();
 		$rules = Branch::getRules();
 
-		
+
 		$v = Validator::make($request->all(),$rules,$messages);
-		
+
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
 			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
@@ -269,7 +271,7 @@ class BranchController extends Controller
 				$branch->save();
 
 				\DB::table('tags_branches')->where('branch_id', '=', $id)->delete();
-				
+
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
@@ -456,7 +458,6 @@ class BranchController extends Controller
 			}
 		}
 		$services = Service::whereBranch($id)
-                                ->with('branch')
                                 ->with('userable')
                                 ->with('userRate')
                                 ->with('partnerRate')

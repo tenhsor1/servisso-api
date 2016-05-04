@@ -116,15 +116,6 @@ class ServissoModel extends Model
                 abort(422, "The fields trying to be ordered are not correct");
                 return null;
             }
-
-			$orderFields = ($request->input('orderType')) ? $request->input('orderType') : 'desc';
-            $orderTypesString = strtoupper($orderFields);
-            $orderTypes = explode(',', $orderTypesString);
-            if(count(array_intersect($this->orderTypes, $orderTypes)) != count($orderTypes)){
-				abort(422, "The order types are not correct");
-                return null;
-            }
-
          return $fields;
     }
 

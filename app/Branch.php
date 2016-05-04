@@ -37,6 +37,8 @@ class Branch extends ServissoModel
 		'deleted',
 		'address',
 		'phone',
+        'email',
+        'inegi',
 		'latitude',
 		'longitude',
 		'schedule',
@@ -60,7 +62,7 @@ class Branch extends ServissoModel
         // 1 branch can have multiple services
         return $this->belongsTo('App\State');
     }
-	
+
 	public static function getRules(){
 		$rules = [
 			'address' => ['required','min:2','max:120'],
@@ -68,7 +70,7 @@ class Branch extends ServissoModel
 			'latitude' => ['required','min:2'],
 			'state_id' => ['required','exists:states,id']
 		];
-		
+
 		return $rules;
 	}
 
@@ -95,6 +97,7 @@ class Branch extends ServissoModel
 
 
     public function setGeomAttribute($value) {
+        //position 0 = longitude, 1 = latitude
         $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
     }
 
@@ -249,7 +252,13 @@ class Branch extends ServissoModel
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
-					case 'address':
+					case 'inegi':
+                        $query->orderBy('branches.inegi', $orderType);
+                        break;
+                    case 'email':
+                        $query->orderBy('branches.email', $orderType);
+                        break;
+                    case 'address':
                         $query->orderBy('branches.address', $orderType);
                         break;
 					case 'phone':
