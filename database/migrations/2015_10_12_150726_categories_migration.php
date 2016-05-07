@@ -16,8 +16,8 @@ class CategoriesMigration extends Migration
             $table->increments('id');
             $table->string('name',100);
             $table->text('description')->nullable();
-			$table->integer('role_id')->unsigned();
-			$table->integer('role')->unsigned(); 
+			$table->integer('role_id')->unsigned()->nullable();
+            $table->integer('role')->unsigned()->nullable();
 			$table->softDeletes();
             $table->timestamps();
         });
@@ -30,6 +30,6 @@ class CategoriesMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('categories');
+		Schema::drop('categories');
     }
 }

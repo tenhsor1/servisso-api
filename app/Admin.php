@@ -30,13 +30,13 @@ class Admin extends ServissoModel implements AuthenticatableContract,
         // 1 admin can have multiple news
         return $this->hasMany('App\News');
     }
-	
+
 	public function country()
     {
         // 1 admin can have one country
         return $this->hasOne('App\Country');
     }
-	
+
 	public function state()
     {
         // 1 admin can have one state
@@ -66,7 +66,7 @@ class Admin extends ServissoModel implements AuthenticatableContract,
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo Admin
      */
     public static function getValidations(){
         $validation = [
@@ -122,7 +122,7 @@ class Admin extends ServissoModel implements AuthenticatableContract,
     {
       return $this->morphTo();
     }
-  
+
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: admin?search=test&fields=description,company,address)
@@ -131,11 +131,11 @@ class Admin extends ServissoModel implements AuthenticatableContract,
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('name')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
@@ -199,7 +199,7 @@ class Admin extends ServissoModel implements AuthenticatableContract,
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
@@ -226,30 +226,30 @@ class Admin extends ServissoModel implements AuthenticatableContract,
                         break;
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
-                        break; 
+                        break;
 					case 'name':
-                        $query->orderBy('name', $orderType);  
+                        $query->orderBy('name', $orderType);
                         break;
 					case 'last_name':
-                        $query->orderBy('last_name', $orderType);  
-                        break;    
+                        $query->orderBy('last_name', $orderType);
+                        break;
 					case 'address':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
 					case 'phone':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
 					case 'zipcode':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
 					case 'state_id':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
 					case 'country_id':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
 					case 'role_id':
-                        $query->orderBy('address', $orderType);  
+                        $query->orderBy('address', $orderType);
                         break;
                 }
                 $cont++;

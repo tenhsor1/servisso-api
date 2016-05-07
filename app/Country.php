@@ -8,36 +8,30 @@ class Country extends ServissoModel
 {
     use SoftDeletes;
 	protected $table="countries";
-	
-	protected $fillable = array('country');
-	
 
-    protected $hidden = ['id','created_at','role_id','role','updated_at','deleted_at'];
+	protected $fillable = array('name');
+
+
+    protected $hidden = ['created_at','role_id','role','updated_at','deleted_at'];
 
     public function admin()
     {
         // 1 new is related to one admin who created it
         return $this->belongsTo('App\Admin');
     }
-	
-	public function partner()
-    {
-        // 1 new is related to one admin who created it
-        return $this->belongsTo('App\Partner');
-    }
-	
+
 	public function user()
     {
         // 1 new is related to one admin who created it
         return $this->belongsTo('App\User');
     }
-	
-	public function state()
+
+	public function states()
     {
         // 1 new is related to one admin who created it
         return $this->hasMany('App\State');
     }
-	
+
 	 /**
      * Se obtienen los mensajes de errores
      */
@@ -56,18 +50,18 @@ class Country extends ServissoModel
     }
 
     /**
-     * Se obtienen las validaciones del modelo Partner
+     * Se obtienen las validaciones del modelo Country
      */
     public static function getValidations(){
         $validation = [
-            'country' => 'required|max:150|min:3'
+            'name' => 'required|max:150|min:3'
         ];
 
         return $validation;
     }
 
 	 protected $searchFields = [
-        'country'
+        'name'
     ];
 
     protected $betweenFields = [
@@ -80,16 +74,10 @@ class Country extends ServissoModel
         'created',
         'updated',
         'deleted',
-		'country'
+		'name'
     ];
 
 
-
-    public function userable()
-    {
-      return $this->morphTo();
-    }
-  
     /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: admin?search=test&fields=description,company,address)
@@ -98,17 +86,17 @@ class Country extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('country')){      
+    public function scopeSearchBy($query, $request, $defaultFields=array('name')){
 	   $fields = $this->searchParametersAreValid($request);
-        if($fields){   
+        if($fields){
             $search = $request->input('search');
-			$where="where"; 
+			$where="where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'country':
+                    case 'name':
                         //search by the description of the country
-                        $query->$where('country', 'LIKE', '%'.$search.'%');
+                        $query->$where('name', 'LIKE', '%'.$search.'%');
                         break;
                 }
 				$where="OrWhere";
@@ -158,7 +146,7 @@ class Country extends ServissoModel
                 }
 				$where = "orWhere";
             }
-        } 
+        }
         return $query;
     }
 
@@ -185,9 +173,9 @@ class Country extends ServissoModel
                         break;
 					case 'deleted':
                         $query->orderBy('deleted_at', $orderType);
-                        break; 
-					case 'country':
-                        $query->orderBy('country', $orderType);  
+                        break;
+					case 'name':
+                        $query->orderBy('name', $orderType);
                         break;
                 }
                 $cont++;
@@ -195,6 +183,6 @@ class Country extends ServissoModel
         }
         return $query;
     }
-	
-	
+
+
 }

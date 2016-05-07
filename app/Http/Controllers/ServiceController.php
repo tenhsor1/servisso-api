@@ -6,21 +6,25 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
+use App\ServiceImage;
 use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use App\Extensions\Utils;
+use Validator;
+
 
 class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:partner', ['only' => ['update']]);
-        $this->middleware('jwt.auth:partner|user|admin', ['only' => ['index']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
 
         $this->middleware('default.headers');
-        $this->apiUrl = \Config::get('app.api_url');
         $this->userTypes = \Config::get('app.user_types');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -40,8 +44,8 @@ class ServiceController extends Controller
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->get();
-        }else if($user->roleAuth == 'PARTNER'){
-            $services = Service::wherePartner($user->id)
+        }else if($user->roleAuth == 'USER'){
+            $services = Service::whereUser($user->id)
                                 ->with('branch')
                                 ->with('userable')
                                 ->with('userRate')
@@ -55,13 +59,31 @@ class ServiceController extends Controller
         return response()->json(['data'=>$services], 200);
     }
 
+    public function indexPerCompany(Request $request, $companyId)
+    {
+
+        $services = Service::whereCompany($companyId)
+                                ->with('userable')
+                                ->with('userRate')
+                                ->with('partnerRate')
+                                ->searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->get();
+
+        $count = $services->count();
+        $response = ['count' => $count,'code' => 200,'data' => $services];
+        return response()->json($response,200);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Requests\ServiceStoreRequest $request)
+    public function store(Request $request)
     {
         $user = $this->checkAuthUser('user');
         if($user && !is_array($user)){
@@ -71,17 +93,34 @@ class ServiceController extends Controller
             $user = Guest::find($guestId);
         }
         if($user){
+
+			$rules = Service::getRules();
+			$messages = Service::getMessages();
+
+			$validator = Validator::make($request->all(),$rules,$messages);
+
+			if($validator->fails()){
+				$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
+				return response()->json($response,400);
+			}
+
             $service = new Service;
 
             $service->description = $request->input('description');
             $service->branch_id = $request->input('branch_id');
+            $service->address = $request->input('address');
+            $service->phone = $request->input('phone');
+            $service->zipcode = $request->input('zipcode');
 
             $save = $user->services()->save($service);
             if($save){
+                $tokenImage = \Crypt::encrypt(['service_id' => $service->id
+                                                ,'date' => $service->created_at->format('Y-m-d H:i:s')]);
+                $service->token_image = $tokenImage;
                 return response()->json(['data'=>$service], 200);
             }else{
                 return response()->json([
-                    'error' => 'It has occurred an error trying to save the guest'
+                    'error' => 'It has occurred an error trying to save the server'
                     ,'code' => 500], 500);
             }
 
@@ -90,10 +129,69 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'Bad request'
                             , 'code' => 422
                             , 'data' => [
-                                'guest_id'=> 'Missing the id of the user/guest requesting the service'
+                                'guest_id'=> ['Missing the id of the user/guest requesting the service']
                                 ]];
             return response()->json($errorJSON, 422);
         }
+    }
+
+    public function setImages(Request $request, $serviceId){
+
+        $resp = $this->validateImageToken($serviceId, $request->header('X-Service-Token'));
+        if($resp['code'] > 200){
+            return response()->json($resp, $resp['code']);
+        }
+        $service = Service::find($serviceId);
+        if(!$service){
+            $response = ['ext' => $ext, 'error' => "No existe el servicio", 'code' =>  404];
+            return resbiponse()->json($response,404);
+        }
+
+        $ext = $request->file('image')->getClientOriginalExtension();
+        // Se verifica si es un formato de imagen permitido
+        if($ext !='jpg' && $ext !='jpeg' && $ext !='bmp' && $ext !='png'){
+            $response = ['ext' => $ext, 'error' => "Sólo imágenes de extensión jpg, jpeg, bmp and png", 'code' =>  422];
+            return response()->json($response,422);
+        }
+        $img = Utils::StorageImage($serviceId,$request->file('image'), 'services/images/', 'services/thumbs/');
+        $serviceImage = new ServiceImage();
+        $serviceImage->image = $img['image'];
+        $serviceImage->thumbnail = $img['thumbnail'];
+
+        $saveImage = $service->images()->save($serviceImage);
+
+        if($saveImage != false){
+            $response = ['code' => 200, 'data' => $saveImage, 'message' => 'Image was save succefully'];
+            return response()->json($response,200);
+        }else{
+            $response = ['error' => 'It has occurred an error trying to update the service image','code' => 500];
+            return response()->json($response,500);
+        }
+
+    }
+
+    private function validateImageToken($serviceId, $headerToken){
+        try{
+            $imageToken = \Crypt::decrypt($headerToken);
+        }catch(DecryptException $e){
+            $data = ['token' => ["El token no es válido"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+
+        $tokenServiceId = $imageToken['service_id'];
+        $tokenDate = $imageToken['date'];
+        if($tokenServiceId != $serviceId){
+            $data = ['token' => ["El token no es válido"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+        if(time() > strtotime($tokenDate. ' + 1 hours')){
+            $data = ['token' => ["El token ha expirado"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return $response;
+        }
+        return ['code' => 200];
     }
 
     /**
@@ -119,7 +217,7 @@ class ServiceController extends Controller
         $conditions = [ 'id' => $id
                         , 'userable_id' => $userId
                         , 'userable_type' => $this->userTypes['user']];
-        $service = Service::where($conditions)->first();
+        $service = Service::where($conditions)->with('images')->first();
         if($service){
             return response()->json(['data'=>$service], 200);
 
@@ -127,7 +225,30 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 404
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
+                                ]];
+            return response()->json($errorJSON, 404);
+        }
+    }
+
+    public function showFromBranch($id)
+    {
+        $userRequested = \Auth::User();
+
+        $service = Service::whereUser($userRequested->id)
+                            ->where(['services.id' => $id])
+                            ->with('images')
+                            ->with('userable')
+                            ->with('branch')
+                            ->first();
+        if($service){
+            return response()->json(['data'=>$service], 200);
+
+        }else{
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
+                            , 'data' => [
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 404);
         }
@@ -160,7 +281,7 @@ class ServiceController extends Controller
             $errorJSON = ['error'   => 'The resource doesn\'t exist'
                             , 'code' => 422
                             , 'data' => [
-                                'user_id'=> 'The user doesn\'t have this service'
+                                'user_id'=> ['The user doesn\'t have this service']
                                 ]];
             return response()->json($errorJSON, 422);
         }

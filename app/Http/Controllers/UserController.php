@@ -7,12 +7,15 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\UserSocial;
+use App\Company;
 use JWTAuth;
+use Validator;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store','predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -33,24 +36,83 @@ class UserController extends Controller
      * @param  \Illuminate\Http\UserStoreRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Requests\UserStoreRequest $request)
+    public function store(Request $request)
     {
+		$valuesProvider = false;
+        if($request->input('val', null)){
+            //if we are trying to create a user using a social provider, then validate that
+            //the social information passed is correctly, if not, return an error
+            $valuesProvider = $this->getInfoFromProvider($request);
+            if(array_key_exists('code', $valuesProvider)){
+                return response()->json($valuesProvider['response'], $valuesProvider['code']);
+            }
+            $request['email'] = $valuesProvider['email'];
+        }
+        $rules = User::getRules();
+		$messages = User::getMessages();
+
+		$validator = Validator::make($request->all(),$rules,$messages);
+
+		if($validator->fails()){
+			$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
+			return response()->json($response,400);
+		}
+
         $newUser = User::create($request->all());
 
-        $extraClaims = ['role'=>'USER'];
-        $token = JWTAuth::fromUser($newUser,$extraClaims);
-        $reflector = new \ReflectionClass('JWTAuth');
-        $newUser->access = $token;
         if($newUser){
-            $this->mailer->sendVerificationEmail($newUser);
+            if($valuesProvider){
+                //if the creation of the user is based on a social provider, then save a
+                //record on user_socials using loginSocial method
+                $token = $newUser->loginSocial($valuesProvider);
+                if($token){
+                    $newUser->confirmed = true;
+                    $newUser->save();
+                    $newUser->access = $token;
+                }else{
+                    $response = ['error' => 'Un error inesperado sucedio'
+                                ,'code' => 500
+                                ,'data' => []];
+                    return response()->json($response,500);
+                }
+            }else{
+                //if the creation is based on email, then generate the token directly
+                $extraClaims = ['role'=>'USER'];
+                $token = JWTAuth::fromUser($newUser,$extraClaims);
+                $reflector = new \ReflectionClass('JWTAuth');
+                $newUser->access = $token;
+                $this->mailer->sendVerificationEmail($newUser);
+            }
+
             $response = ['data' => $newUser
                         ,'code' => 200
-                        ,'message' => 'Partner was created succefully'];
+                        ,'message' => 'User was created succefully'];
             return response()->json($response,200);
         }
         $response = ['error' => 'It has occurred an error trying to save the user'
                     ,'code' => 404];
-        return response()->json($response,404);
+        return response()->json($response,500);
+    }
+
+    private function getInfoFromProvider(Request $request){
+        try{
+            $values = \Crypt::decrypt($request->input('val'));
+        }catch(DecryptException $e){
+            $data = ['val' => ["La información no es correcta"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return ['response' => $response, 'code' => 403];
+        }
+
+        $rules = UserSocial::getRules();
+        $messages = UserSocial::getMessages();
+
+        $validator = Validator::make($values,$rules,$messages);
+
+        if($validator->fails()){
+            $response = ['data' => $validator->errors(),'error' => 'Bad request','code' => 400];
+            return ['response' => $response, 'code' => 400];
+        }
+        return $values;
     }
 
     /**
@@ -73,6 +135,31 @@ class UserController extends Controller
         }
     }
 
+
+    public function companies(Request $request, $userId)
+    {
+        $userRequested = \Auth::User();
+        if($userRequested->roleAuth == 'USER'){
+            if($userRequested->id != $userId){
+                $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+                return response()->json($errorJSON, 403);
+            }
+        }
+
+        $companies = Company::with('branches')
+                            ->where('user_id', $userId)
+                            ->searchBy($request)
+                            ->betweenBy($request)
+                            ->orderByCustom($request)
+                            ->limit($request)
+                            ->get();
+        $count = $companies->count();
+        $response = ['count' => $count,'code' => 200,'data' => $companies];
+
+        return response()->json($response,200);
+    }
+
     /**
      * Update the specified resource in storage.
      *
@@ -87,10 +174,12 @@ class UserController extends Controller
             $attributes = ['name'
                             , 'email'
                             , 'password'
-                            , 'last_name'
+                            , 'lastname'
                             , 'phone'
                             , 'address'
                             , 'zipcode'
+                            , 'state_id'
+                            , 'country_id'
                         ];
             $this->updateModel($request, $userRequested, $attributes);
             unset($userRequested->roleAuth);
@@ -100,6 +189,58 @@ class UserController extends Controller
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
             return response()->json($errorJSON, 403);
+        }
+    }
+	
+	  public function updatePassword(Request $request, $id)
+    {
+       // $password = \Auth::attempt(['email' => $request->email, 'password' =>$request->password]);
+	   // $response = ['pass' => $password];
+                    // return response()->json($response,422);
+        $user = User::find($id);  
+		 if($user){
+            $userRequested = \Auth::User();
+            if($userRequested->id == $user->id){
+                $messages = User::getMessages();
+                $validation = User::getValidationsPassword();
+                $v = Validator::make($request->all(),$validation,$messages);
+                //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
+                if($v->fails()){
+                    $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
+                    return response()->json($response,422);
+                }
+				$pass = \Auth::attempt(['email' => $request->email, 'password' =>$request->password]);
+				if(!$pass){
+					$response = ['error' => 'Bad Request', 'data' => 'La contraseña proporcionada no es correcta','code' => 422];
+                    return response()->json($response,422);
+				}
+				if($request->passwordNew != $request->passwordConfirm){
+                    $response = ['error' => 'Bad Request', 'data' => 'Las contraseñas no coinciden','code' => 422];
+                    return response()->json($response,422);
+                }
+				
+                $user->password = $request->passwordNew;
+				// $user->update_id = $userRequested->id;//quien modifico
+			
+                $row = $user->save();
+
+                if ($row != false) {
+                    $response = ['code' => 200, 'message' => 'La contraseña fue modificada exitosamente!'];
+                    return response()->json($response, 200);
+                } else {
+                    $response = ['error' => 'Un error ha ocurrio cuando se trato de actualizar la contraseña, contacte al equipo de soporte', 'code' => 500];
+                    return response()->json($response, 500);
+                }
+
+            }else{
+               $response = ['error' => 'Unauthorized','code' => '404'];
+                return response()->json($response,403);
+            }
+
+        }else{
+			$error = 'The user does not exist';
+            $response = ['error' => $error,'code' => '404'];
+            return response()->json($response,404);
         }
     }
 
@@ -118,6 +259,28 @@ class UserController extends Controller
             $userRequested->delete();
             $respDelete = ['message'=> 'User deleted correctly'];
             return response()->json(['data'=>$respDelete], 200);
+        }else if ($userRequested->roleAuth == 'ADMIN'){
+            $user = User::find($id);
+            if(!is_null($user)){
+
+                $user->role_id = $userRequested->id;
+                $user->role = $this->user_roles[$userRequested->roleAuth];
+                $user->save();
+                $row = $user->delete();
+
+                if($row != false){
+                    $response = ['code' => 200,'message' => "User was deleted succefully"];
+                    return response()->json($response,200);
+                }else{
+                    $response = ['error' => 'It has occurred an error trying to delete the user','code' => 404];
+                    return response()->json($response,500);
+                }
+            }else{
+                //EN DADO CASO QUE EL ID DEL USER NO SE HALLA ENCONTRADO
+                $response = ['error' => 'User does not exist','code' => '404'];
+                return response()->json($response,404);
+            }
+
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
@@ -125,15 +288,8 @@ class UserController extends Controller
         }
     }
 
-	public function confirm(Request $request){
-        $validation = ['code' => 'string|required|min:30'];
-        $messages = User::getMessages();
-        $v = Validator::make($request->all(),$validation,$messages);
-        if($v->fails()){
-            $response = ['error' => $v->messages(),'code' => 404];
-            return response()->json($response,404);
-        }
-        $user = User::where('token', '=', $request->code)->first();
+	public function confirm(Request $request,$code){
+        $user = User::where('token', '=', $code)->first();
         if($user){
             $user->confirmed = true;
             $user->token = null;
@@ -145,12 +301,12 @@ class UserController extends Controller
                             return response()->json($response,200);
             }else{
                 $response = ['code' => 500
-                        ,'error' => "Something happened when trying to confirm the email"];
+                        ,'error' => "Algun error ha ocurrido cuando se trato de confirmar tu correo, contacta al equipo de soporte"];
                         return response()->json($response,500);
             }
         }else{
             $response = ['code' => 403
-                        ,'error' => "User with code validation not found"];
+                        ,'error' => "El usuario con el codigo de verificacion no fue encontrado"];
                         return response()->json($response,403);
         }
     }
@@ -158,20 +314,20 @@ class UserController extends Controller
 	public function predict(Request $request){
 		//SE VALIDA QUE SE HALLA ENVIADO LA FRASE
 		if($request->phrase){
-		
+
 			//SE BUSCA EL TOKEN Y SE VALIDA QUE NO HALLA EXPIRADO, SI YA EXPIRO ENTONCES SE BUSCA OTRO NUEVO
 			$time = time();
 			$token = \DB::table('token_prediction')->where('expired','>',$time)->orderBy('id','desc')->take(1)->get();
 			$phrase = $request->phrase;
-			
+
 			if($token != null){
-				$token = $token[0]->token;			
+				$token = $token[0]->token;
 			}else{
-				$token = $this::getPredictionToken();			
+				$token = $this::getPredictionToken();
 			}
-			
+
 			$detectedCategory = $this::predictAPI($token,$phrase);
-					
+
 			$response = ['code' => 200,'data' => $detectedCategory];
 			return response()->json($response,200);
 		}else{
@@ -187,17 +343,16 @@ class UserController extends Controller
 		$header = '{"alg":"RS256","typ":"JWT"}';
 		$headerBase64 = base64_encode($header);
 		$headerBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$headerBase64);//A esto se llema safeBase64
-		
+
 		$issued = time();
 		$expire = $issued + 3600; //los token maximo duran una hora
-		
+
 		$payload = '{"iss":"servsl@testwebdev-962.iam.gserviceaccount.com","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
 
 		$payloadBase64 = base64_encode($payload);
 		$payloadBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$payloadBase64);//A esto se llema safeBase64
-		
-		$secret = "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCHHOn151C+YgQhn2w0/PJhgmq/O0WRHxZMZcN0K4WaryQsUvTbFI8+BJe/jioRIO7lypYD4P3lxG2QGvMK5PF/pJrgTR+tE9Mj8t+NKU31oMw6Q0fqNzb5TnHbhkd6ZN3xtT6Khguwkb82cZRVus1RxGRpq5PL/xDxpiXGAUjb56XQXe6kwMVI+Ag9C7XRxrntptCTpTPSUlccWR7DafiXh+ETABeuKGpW7PpUdnUOrut11Ydj7UgD8eDyhznd3FKCxoTaPih0VEiJjyxZXvvChRdr7NOpN15MLDJZ1aI6vkF4xNYiR7qPZOQYwZOYVUNduQFXarerHR/jH6fINPTRAgMBAAECggEAI6/RY+/q9b4x1SekjwJYisTFqSjgoQoS+67NRzvPmCG2bjajEdKGWx0fb6r/FXMbZnpx0Sh2J2AQiEV1+GSsHMi/V4tHWJGp7Q7TWReVzdDg4Gqw7f4TeRntHMyEyKEnthXnJPNu1v5IAPtS8KncXUKAOyDkcrc2JH178KaaNeq8tZMwxrW4OHL36K6zBviciPXrkkUZtoS7jKbDpnojHJ71s4yNGIMb+61W2GGJGNtVfbbuhmZiShrxUSSX4Mr0PlY7uJftV/GPnUgS1DQ40gr5R/xX+H4WakMZk7jikGUm0Ws7vW4RjliyhIxryH29sOhMGKn9iVkOkcxia2HOGQKBgQD7YgRjbDf+YqfpiPFr1Xftcqc+4VRmhSxX6AHNw+QjpMBXQeaFFoSzlRhWlvMr2TZIuQuh3ByZDGP/zm9+IJz7bwUljNwM18sA5sXLma31XAXfz+ISqL5Uraq5Bw6WOUWLWzS38DY2TAf4pTm2KvXWnTyZX0jsumM3/kT+mXTNGwKBgQCJmDRb1oEpXP42Xw5fjZJzmqPtgTSsW1bjhz6ODxWHeL0Ihco0Xqswm6ez1cLqpC0lk4VNEHuivnMtxuwmQnw5+42jlheDKrw4XGytjzoLx5sAUEScE2bsGEllWInYX2qVqOA6dm05bIg9N4CkmAgbZuxQxAOH/CJ3XZQdC1AAgwKBgF/qoF4HNr47inITLHrGssHJE4NsmrWbbrYD8lw+uFfZTwJ8RKbXVr7mzqiLZDGA6bOJ16Rkxgynq6g5blUjwII3dDFFs9i6pdysMSBkfPm3qQ4i1dHkzOqmcRO0W556L8ziehUM9MJ29DutX33gmnjO+gZTUxHwdFczD8RNbUGtAoGAb8795Q7mwDzv2jDeFimNs2EbCllu+wvyDEwPOhLp1L75JR7K1EmFZKdn3Eu86zzj7t/0d04ImZOXNsCpjuGB3wAZ9a92hcDJWCdKrLJxYbcerl+LkSR3Ay0tHyyWPvwyOVEUfI1Vbk9SWiRq5dUg6Vt2dp8Bm5P4UfT58awKo48CgYBi9UL5bNIQYwjOR0XBzOZ6NvNGAFEuTKr1gQf8gpZN+8yf/OSl8TGKc7jQeb5Oh8U0Qir7kzV/GMgOFsUdt7pND6yFrUkFeQ0iItFkcccWVVapcW5IP967GlWep5Cq88IgobXyic4eg7aq0lu64ltBJYLrQi+wjpONgWuGe1AfeA";
-		
+
+		$secret = env('PREDICT_SECRET');
 		$s = $headerBase64.".".$payloadBase64;
 
 		$rsa = new \Crypt_RSA();
@@ -205,26 +360,26 @@ class UserController extends Controller
 		$rsa->setHash("sha256");
 		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PKCS1);
 		$signature = $rsa->sign($s);
-		
+
 		$signatureBase64 = base64_encode($signature);
 		//$signatureBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$signatureBase64);
-		
-		$jwt = urlencode($s.".".$signatureBase64);	
-		
+
+		$jwt = urlencode($s.".".$signatureBase64);
+
 		//------------- ESTE CODIGO ES PARA OBTENER UN TOKEN Y PODER HACER CONSULTAS A LA API DE GOOGLE PREDICTION --------------
-		$postvars = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=".$jwt;
-		
+		$postvars = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=".$jwt;
+
 		$temp = curl_init("https://www.googleapis.com/oauth2/v4/token");
 		curl_setopt($temp, CURLOPT_POST, true);
 		curl_setopt($temp, CURLOPT_POSTFIELDS, $postvars);
 		curl_setopt($temp, CURLOPT_SSL_VERIFYPEER , false );
 		curl_setopt($temp, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt($temp, CURLOPT_RETURNTRANSFER, true);
-		if (!$data = curl_exec($temp)) { 
+		if (!$data = curl_exec($temp)) {
 			return "UNKNOWN ERROR";
 		} else {
 			curl_close($temp);
-			
+
 			if(strpos($data,'error')){
 				$result = json_decode($data, true);
 				$error = $result['error'];
@@ -233,19 +388,21 @@ class UserController extends Controller
 			}else{
 				$result = json_decode($data, true);
 				$token = $result['access_token'];
-				
+
 				\DB::table('token_prediction')->truncate();
-				
+
 				//SE GUARDA EL TOKEN
 				\DB::table('token_prediction')->insert([
 					'token' => $token,
 					'expired' => $expire,
-					'issued' => $issued					
+					'issued' => $issued,
+					'created_at' => date('Y-m-d h:i:s',time()),
+					'updated_at' => date('Y-m-d h:i:s',time())
 				]);
-				
+
 				return $token;
-			}			
-		}		
+			}
+		}
 	}
 
 	/**
@@ -258,8 +415,8 @@ class UserController extends Controller
 		//--------------ESTE CODIGO ES PARA MANDAR UNA FRASE Y QUE GOOGLE PREDICTION NOS REGRESE A QUE CATEGORIA PERTENECE---------------
 		$data = '{"input":{"csvInstance":["'.$phrase.'"]}}';
 		$data_string = $data;
-
-		$temp = curl_init("https://www.googleapis.com//prediction/v1.6/projects/870494030602/trainedmodels/TrainingModelServ/predict");
+		$model_url = env('PREDICT_MODEL');
+		$temp = curl_init($model_url);
 		curl_setopt($temp, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($temp, CURLOPT_POSTFIELDS, $data_string);
 		curl_setopt($temp, CURLOPT_SSL_VERIFYPEER , false );

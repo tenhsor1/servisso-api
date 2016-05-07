@@ -33,10 +33,8 @@ class Service extends ServissoModel
      *
      * @var array
      */
-    protected $hidden = [   'branch_id'
-                            , 'userable_type'
+    protected $hidden = [   'userable_type'
                             , 'deleted_at'
-                            , 'created_at'
                             , 'updated_at'
                         ];
 
@@ -71,25 +69,58 @@ class Service extends ServissoModel
 		return $this->hasOne('App\PartnerRate');
 	}
 
-    public function userable()
-    {
+  public function userable(){
       return $this->morphTo();
-    }
+  }
 
-    public function scopeWherePartner($query, $partnerId)
+  public function images(){
+    return  $this->hasMany('App\ServiceImage');
+  }
+
+	public static function getRules(){
+		$rules = [
+			'description' => ['required','max:250']
+		];
+
+		return $rules;
+	}
+
+	public static function getMessages(){
+		$messages = [
+			'description.required' => 'Descripción es obligatoria',
+			'description.max' => 'Descripción debe tener máximo :max caracteres'
+		];
+
+		return $messages;
+	}
+
+
+    public function scopeWhereUser($query, $userId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
               ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->leftJoin('partners','partners.id','=','companies.partner_id')
-              ->where('partners.id', $partnerId)
+              ->leftJoin('users','users.id','=','companies.user_id')
+              ->where('users.id', $userId)
               ->select('services.*');
+    }
+
+    public function scopeWhereCompany($query, $companyId)
+    {
+        return $query->leftJoin('branches','branches.id','=','services.branch_id')
+              ->leftJoin('companies','companies.id','=','branches.company_id')
+              ->where('companies.id', $companyId)
+              ->select('services.*',
+                      'branches.address AS branch_address',
+                      'branches.phone AS branch_phone');
     }
 
     public function scopeWhereBranch($query, $branchId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
               ->where('branches.id', $branchId)
-              ->select('services.*');
+              ->select('services.*',
+                      'branches.address AS branch_address',
+                      'branches.phone AS branch_phone');
     }
 
     /**

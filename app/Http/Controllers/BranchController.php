@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Branch;
-use App\Partner;
+use App\User;
 use App\Company;
 use App\Service;
 use App\Tag;
@@ -18,7 +18,7 @@ class BranchController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['store','update','destroy','services']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['store','update','destroy','services']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -32,12 +32,34 @@ class BranchController extends Controller
     {
 
 		//SE OBTINEN LAS BRANCHES
-		$branches = Branch::searchBy($request)
+		$branches = Branch::join('companies', 'branches.company_id', '=', 'companies.id')
+                            ->join('categories', 'companies.category_id', '=', 'categories.id')
+                            ->join('states', 'branches.state_id', '=', 'states.id')
+                            ->category($request)
+                            ->searchBy($request)
                             ->within($request)
 							->betweenBy($request)
 							->orderByCustom($request)
 							->limit($request)
-							->get();
+							->select('branches.id',
+                                'branches.inegi',
+                                'branches.email',
+                                'branches.company_id',
+                                'branches.phone',
+                                'branches.address',
+                                'branches.latitude',
+                                'branches.longitude',
+                                'branches.state_id',
+                                'branches.schedule',
+                                'branches.name',
+                                'companies.user_id',
+                                'companies.name AS company_name',
+                                'companies.description',
+                                'companies.category_id',
+                                'categories.name AS category_name',
+                                'companies.image',
+                                'companies.thumbnail')
+                            ->get();
 
 		$count = $branches->count();
 
@@ -78,15 +100,16 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = Branch::getMessages();
-		$validation = Branch::getValidations();
 
-		$v = Validator::make($request->all(),$validation,$messages);
+        $messages = Branch::getMessages();
+		$rules = Branch::getRules();
+
+		$v = Validator::make($request->all(),$rules,$messages);
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
-			return response()->json($response,422);
+			$response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+			return response()->json($response,400);
 		}
 
 		//SE OBTIENE EL ID DE LA COMPANY QUE LE PERTENCE LA BRANCH
@@ -95,12 +118,12 @@ class BranchController extends Controller
 
 		if(!is_null($company)){
 
-			$partnerRequested = \Auth::User();
-			$role = $partnerRequested->authRole;
+			$userRequested = \Auth::User();
+			$role = $userRequested->authRole;
 
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
-			if(($partnerRequested->id == $company->partner_id) || $role == 'ADMIN'){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
+			if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
 
 				//SE UNA INSTANCIA DE BRANCH
 				$branch = new Branch;
@@ -109,16 +132,17 @@ class BranchController extends Controller
 				$branch->phone = $request->phone;
 				$branch->latitude = $request->latitude;
 				$branch->longitude = $request->longitude;
-				$branch->state_id = 1;
+				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
+                $branch->geom = [$request->longitude, $request->latitude];
 
 				$branch->save();
 
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
-				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL PARTNER
-				$this->newTag($request->tag_new,$company->category_id);
+				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
+				$this->newTag($request->tag_new,$company->category_id,$branch);
 
 				//SE VALIDA QUE LA BRANCH SE HALLA GUARDADO
 				if($branch != false){
@@ -160,7 +184,11 @@ class BranchController extends Controller
     public function show($id)
     {
 		//SE OBTIENE LA BRANCH SOLICITIDA JUNTO CON LA COMPANY QUE LE PERTENECE
-        $branch = Branch::with('company')->where('id','=',$id)->first();
+        $branch = Branch::with('company')
+                        ->with('state')
+                        ->with('state.country')
+                        ->where('id','=',$id)
+                        ->first();
 
 		//SE VALIDA QUE EXISTA LA BRANCH
 		if(!is_null($branch)){
@@ -178,8 +206,8 @@ class BranchController extends Controller
 			return response()->json($response,200);
 
 		}else{
-			$response = ['error' => 'Branch does no exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Branch does not exist','code' => 404];
+			return response()->json($response,404);
 		}
     }
 
@@ -206,13 +234,15 @@ class BranchController extends Controller
 		$userRequested = \Auth::User();
 
         $messages = Branch::getMessages();
-		$validation = Branch::getValidations();
+		// $validation = Branch::getValidations();
+		$rules = Branch::getRules();
 
-		$v = Validator::make($request->all(),$validation,$messages);
+
+		$v = Validator::make($request->all(),$rules,$messages);
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => $v->messages(), 'code' =>  422];
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
 
@@ -225,26 +255,28 @@ class BranchController extends Controller
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS BRANCHES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS BRANCHES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				//SE LE COLOCAN LOS NUEVOS VALORES
 				$branch->address = $request->address;
 				$branch->phone = $request->phone;
 				$branch->latitude = $request->latitude;
 				$branch->longitude = $request->longitude;
-				$branch->state_id = 1;
+				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
 				$branch->role_id = $userRequested->id;
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
 
 				$branch->save();
 
+				\DB::table('tags_branches')->where('branch_id', '=', $id)->delete();
+
 				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
 				$this->saveTag($request->tag,$branch);
 
-				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL PARTNER
-				$this->newTag($request->tag_new,$company->category_id);
+				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
+				$this->newTag($request->tag_new,$company->category_id,$branch);
 
 				//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
 				if($branch != false){
@@ -297,8 +329,8 @@ class BranchController extends Controller
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth == "ADMIN"){
 
 				$branch->role_id = $userRequested->id;
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
@@ -353,7 +385,9 @@ class BranchController extends Controller
 					$row = \DB::table('tags_branches')->insert(
 							[
 										'tag_id' => $tag->tag_id,
-										'branch_id' => $branch->id
+										'branch_id' => $branch->id,
+                                        'created_at' => date('Y-m-d h:i:s',time()),
+                                        'updated_at' => date('Y-m-d h:i:s',time())
 							]
 						);
 
@@ -368,9 +402,9 @@ class BranchController extends Controller
 	}
 
 	/**
-	* Guarda tags nuevos creados por el partner
+	* Guarda tags nuevos creados por el user
 	*/
-	private function newTag($array,$category){
+	private function newTag($array,$category,$branch){
 
 		//SE VALIDA QUE EL ARRAY TAG NEW EXISTA EN EL JSON
 		if($array != null){
@@ -379,7 +413,7 @@ class BranchController extends Controller
 			$tags_new = array_filter($array);
 
 			if(!empty($tags_new)){
-					//SE GUARDAN NUEVOS TAGS CREADOS POR EL PARTNER
+					//SE GUARDAN NUEVOS TAGS CREADOS POR EL USER
 				for($i = 0;$i < count($tags_new);$i++){
 					$tag_new = (object) $tags_new[$i];
 
@@ -388,13 +422,22 @@ class BranchController extends Controller
 					$tag->description = $tag_new->description;
 					$tag->category_id = $category;
 
-					$row = $tag->save();
+					$tag->save();
+
+					$row = \DB::table('tags_branches')->insert(
+							[
+								'tag_id' => $tag->id,
+								'branch_id' => $branch->id,
+								'created_at' => date('Y-m-d H:i:s',time()),
+								'updated_at' => date('Y-m-d H:i:s',time())
+							]
+						);
 
 					//SE VALIDA QUE SE HALLA GUARDADO CORRECTAMENTE EL NUEVO TAG
-					if($row != true){
+					/*if($tag != null){
 						$response = ['error' => 'It has occurred an error trying to save the tag','code' => 500];
 						return response()->json($response,500);
-					}
+					}*/
 				}
 			}
 		}
@@ -406,16 +449,15 @@ class BranchController extends Controller
 			$response = ['error' => 'Branch not found ','code' => 403];
 			return response()->json($response, 403);
 		}
-		if($user->roleAuth == 'PARTNER'){
+		if($user->roleAuth == 'USER'){
 			$branch = $user->getBranch($id);
-			//if the partner is not the owner of the branch, then send a 403
+			//if the user is not the owner of the branch, then send a 403
 			if(!$branch){
 				$response = ['error' => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
 			}
 		}
 		$services = Service::whereBranch($id)
-                                ->with('branch')
                                 ->with('userable')
                                 ->with('userRate')
                                 ->with('partnerRate')

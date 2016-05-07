@@ -2,33 +2,33 @@
 
 namespace App;
 
-//use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Extensions\ServissoModel;
-
 
 class Branch extends ServissoModel
 {
 
 	use SoftDeletes;
+
     protected $table = 'branches';
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id');
 
-	protected $hidden = ['deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['geom', 'deleted_at','created_at','updated_at','role_id','role'];
 
 	protected $searchFields = [
         'address',
         'phone',
         'latitude',
 		'longitude',
-		'schedule'
+		'schedule',
+        'category',
     ];
 
     protected $betweenFields = [
         'created',
         'updated',
-		'deleted'
+		'deleted',
     ];
 
     protected $orderByFields = [
@@ -37,10 +37,13 @@ class Branch extends ServissoModel
 		'deleted',
 		'address',
 		'phone',
+        'email',
+        'inegi',
 		'latitude',
 		'longitude',
-		'schedule'
+		'schedule',
     ];
+
 
 	public function company()
     {
@@ -54,36 +57,53 @@ class Branch extends ServissoModel
         return $this->hasMany('App\Service');
     }
 
+    public function state()
+    {
+        // 1 branch can have multiple services
+        return $this->belongsTo('App\State');
+    }
+
+	public static function getRules(){
+		$rules = [
+			'address' => ['required','min:2','max:120'],
+			'phone' => ['required','min:8','max:20'],
+			'latitude' => ['required','min:2'],
+			'state_id' => ['required','exists:states,id']
+		];
+
+		return $rules;
+	}
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
 	public static function getMessages(){
 		$messages =
 		[
-			'required' => ':attribute is required',
-			'max' => ':attribute length too long',
-			'min' => ':attribute length too short',
-			'numeric' => ':attribute should be a number'
+			'address.required' => 'Dirección es obligatoria',
+			'address.min' => 'Dirección debe tener minimo :min caracteres',
+			'address.max' => 'Dirección debe tener máximo :max caracteres',
+			'phone.required' => 'Teléfono es obligatorio',
+			'phone.min' => 'Teléfono debe tener minimo :min caracteres',
+			'phone.max' => 'Teléfono debe tener máximo :max caracteres',
+			'latitude.required' => 'Latitude es obligatoria',
+			'latitude.min' => 'Ubicación no encontrada',
+			'state_id.required' => 'Estado es obligatorio',
+			'state_id.exists' => 'Estado es obligatorio'
 		];
 
 		return $messages;
 	}
 
-	/**
-	* Se obtienen las validaciones del modelo Branch
-	*/
-	public static function getValidations(){
-		$validation =
-			[
-				'address' => 'required|max:59|min:4',
-				'phone' => 'required|max:70|min:10',
-				'latitude' => 'required|numeric',
-				'longitude' => 'required|numeric',
-				'schedule' => 'required|max:99|min:4'
-			];
 
-		return $validation;
-	}
+    public function setGeomAttribute($value) {
+        //position 0 = longitude, 1 = latitude
+        $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
+    }
+
+    public function getGeomAttribute(){
+        return null;
+    }
 
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
@@ -121,9 +141,23 @@ class Branch extends ServissoModel
 						//search by the schedule of the service
                         $query->$where('schedule', 'LIKE', '%'.$search.'%');
 						break;
+                    case 'category':
+                        //search by the schedule of the service
+                        $query->$where('categories.id', '=', $search);
+                        break;
                 }
 				$where = "orWhere";
             }
+        }
+        return $query;
+    }
+
+    public function scopeCategory($query, $request, $defaultFields = array('address')){
+        $category = $request->input('category-id');
+        if(isset($category)){
+            $categoryId = (int) $request->input('category-id');
+            $search = $request->input('search');
+            $query->where('categories.id', '=', $categoryId);
         }
         return $query;
     }
@@ -138,7 +172,12 @@ class Branch extends ServissoModel
             $bottomLongitude = $bottomLimit[1]; //b
             $topLatitude = $topLimit[0]; //c
             $topLongitude = $topLimit[1]; //d
-
+            $query->whereRaw("ST_Intersects(geom,
+                ST_SETSRID(ST_MakeBox2D(
+                    ST_SetSRID(ST_MakePoint(?, ?),4326), ST_SetSRID(ST_MakePoint(?, ?), 4326)
+                ), 4326)
+                )", [$bottomLongitude, $bottomLatitude, $topLongitude, $topLatitude]);
+            /*
             $query->whereRaw("
                 (? < ? AND latitude BETWEEN ? AND ?)
                     OR (? < ? AND latitude BETWEEN ? AND ?)
@@ -148,7 +187,7 @@ class Branch extends ServissoModel
                 [$bottomLatitude, $topLatitude, $bottomLatitude, $topLatitude,
                 $topLatitude, $bottomLatitude, $topLatitude, $bottomLatitude,
                 $bottomLongitude, $topLongitude, $bottomLongitude, $topLongitude,
-                $topLongitude, $bottomLongitude, $topLongitude, $bottomLongitude]);
+                $topLongitude, $bottomLongitude, $topLongitude, $bottomLongitude]);*/
         }
         return $query;
     }
@@ -213,29 +252,35 @@ class Branch extends ServissoModel
             foreach ($orderFields as $orderField) {
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
-					case 'address':
-                        $query->orderBy('address', $orderType);
+					case 'inegi':
+                        $query->orderBy('branches.inegi', $orderType);
+                        break;
+                    case 'email':
+                        $query->orderBy('branches.email', $orderType);
+                        break;
+                    case 'address':
+                        $query->orderBy('branches.address', $orderType);
                         break;
 					case 'phone':
-                        $query->orderBy('phone', $orderType);
+                        $query->orderBy('branches.phone', $orderType);
                         break;
 					case 'latitude':
-                        $query->orderBy('latitude', $orderType);
+                        $query->orderBy('branches.latitude', $orderType);
                         break;
 					case 'longitude':
-                        $query->orderBy('longitude', $orderType);
+                        $query->orderBy('branches.longitude', $orderType);
                         break;
 					case 'schedule':
-                        $query->orderBy('schedule', $orderType);
+                        $query->orderBy('branches.schedule', $orderType);
                         break;
                     case 'created':
-                        $query->orderBy('created_at', $orderType);
+                        $query->orderBy('branches.created_at', $orderType);
                         break;
                     case 'updated':
-                        $query->orderBy('updated_at', $orderType);
+                        $query->orderBy('branches.updated_at', $orderType);
                         break;
 					case 'deleted':
-						$query->orderBy('deleted_at', $orderType);
+						$query->orderBy('branches.deleted_at', $orderType);
 						break;
                 }
                 $cont++;

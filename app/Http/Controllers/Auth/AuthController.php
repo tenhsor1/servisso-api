@@ -7,6 +7,10 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Contracts\Encryption\DecryptException;
+use App\User;
+use App\UserSocial;
+use Validator;
 
 class AuthController extends Controller
 {
@@ -30,8 +34,6 @@ class AuthController extends Controller
         $role = strtoupper($role);
         if($role == 'USER'){
             $model = 'App\User';
-        }else if($role == 'PARTNER'){
-            $model = 'App\Partner';
         }else if($role == 'ADMIN'){
             $model = 'App\Admin';
         }else{
@@ -65,6 +67,43 @@ class AuthController extends Controller
         $data = ["success"=> true, "Message"=> "El token se generó correctamente"];
         $response = ['data'=> $data];
         return response()->json($response);
+    }
+
+    public function socialAuth(Request $request)
+    {
+        try{
+            $values = \Crypt::decrypt($request->input('val'));
+        }catch(DecryptException $e){
+            $data = ['val' => ["La información no es correcta"]];
+            $response = ['data' => $data, 'error' => 'Bad request', 'code' => 403];
+            return response()->json($response, 403);
+        }
+
+        $rules = UserSocial::getRules();
+        $messages = UserSocial::getMessages();
+
+        $validator = Validator::make($values,$rules,$messages);
+
+        if($validator->fails()){
+            $response = ['data' => $validator->errors(),'error' => 'Bad request','code' => 400];
+            return response()->json($response, 400);
+        }
+
+        $user = User::where('email', '=', $values['email'])->first();
+        //first check if the user already exist in servisso
+        if(!$user){
+            $response = ["success"=> false, "message"=> "El usuario no tiene cuenta en Servisso", "data" => $request->all()];
+            return response()->json($response);
+        }
+        $token = $user->loginSocial($values);
+        if($token){
+            $user->confirmed = true;
+            $user->save();
+            $user->access = $token;
+            $response = ["message" => 'Se autentificó correctamente', "success" => true, "data" => $user];
+            return response()->json($response);
+        }
+        return response()->json(['error' => 'Sucedió un error inesperado', 'code'=> 500], 500);
     }
 
     /**

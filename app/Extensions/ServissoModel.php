@@ -26,7 +26,7 @@ class ServissoModel extends Model
          * then return them as an array
          */
         if($request->input('search')){
-            if($this->isValidSearch($request->input('search'))){
+            if(!$this->isValidSearch($request->input('search'))){
                 abort(400, "The value for search can only have alphanumeric values, and spaces");
                 return null;
             }
@@ -116,15 +116,6 @@ class ServissoModel extends Model
                 abort(422, "The fields trying to be ordered are not correct");
                 return null;
             }
-
-			$orderFields = ($request->input('orderType')) ? $request->input('orderType') : 'desc';
-            $orderTypesString = strtoupper($orderFields);
-            $orderTypes = explode(',', $orderTypesString);
-            if(count(array_intersect($this->orderTypes, $orderTypes)) != count($orderTypes)){
-				abort(422, "The order types are not correct");
-                return null;
-            }
-
          return $fields;
     }
 
@@ -134,13 +125,7 @@ class ServissoModel extends Model
 			 false: if value has an incorrect format
 	*/
 	protected function isValidSearch($value){
-		//permite numeros '0' hasta '9', minusculas de 'a' hasta 'z' y signo '+' entre palabras. 'mecanico' o 'mecanico+elec+etc...'
-		$pattern = "/^([a-z0-9](\+[a-z0-9])?)+$/";
-
-		if(preg_match($pattern,$value))
-			return true;
-
-		return false;
+		return count($value) > 0;
 	}
 
 	protected function isValidDate($value){

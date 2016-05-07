@@ -32,8 +32,6 @@ class JWTAuth extends BaseJWTMiddleware
 
             if($role == 'USER'){
                 $model = 'App\User';
-            }else if($role == 'PARTNER'){
-                $model = 'App\Partner';
             }else if($role == 'ADMIN'){
                 $model = 'App\Admin';
             }else{

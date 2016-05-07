@@ -54,7 +54,8 @@ return [
     |
     */
 
-    'from' => ['address' => null, 'name' => null],
+    'from' => ['address' => env('DEFAULT_FROM', 'no-reply@servisso.com.mx')
+                , 'name' => env('DEFAULT_FROM_NAME', 'Servisso')],
 
     /*
     |--------------------------------------------------------------------------

@@ -11,11 +11,12 @@ use Validator;
 
 class GuestController extends Controller
 {
+	var $description;
+	
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['index', 'update', 'destroy']]);
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('default.headers');
-        //$this->api_url = \Config::get('app.api_url');
     }
     /**
      * Display a listing of the resource.
@@ -26,6 +27,10 @@ class GuestController extends Controller
     {
         return "index";
     }
+	
+	public function isValidDescription(){
+		return strlen($this->description) <= 0;
+	}
 
     /**
      * Store a newly created resource in storage.
@@ -35,16 +40,25 @@ class GuestController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = Guest::getMessages();
-        $validation = Guest::getStoreValidations();
+        $rules = Guest::getRules();
+		$messages = Guest::getMessages();
+		$this->description = $request->description;
 
-        $v = Validator::make($request->all(),$validation,$messages);
+        $v = Validator::make($request->all(),$rules,$messages);
+		
+		//Se hace este hook ya que la descripcion es un requerimiento para crear un user guest 
+		//y un servicio al mismo tiempo
+		$v->after(function($v) {
+			if ($this->isValidDescription()) {
+				$v->errors()->add('description', 'Descripción es obligatoria');
+			}
+		});			
 
-        $response = ['error' => $v->messages(), 'code' =>  422];
+        $response = ['error' => $v->errors(), 'data' => $v->messages(), 'code' =>  400];
 
         //Validate if something failed with the fields passed
         if($v->fails()){
-            return response()->json($response,422);
+            return response()->json($response,400);
         }
 
         $guest = Guest::create($request->all());
@@ -92,7 +106,7 @@ class GuestController extends Controller
 
             $v = Validator::make($request->all(),$validation,$messages);
 
-            $response = ['error' => $v->messages(), 'code' =>  422];
+            $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 
             //Validate if something failed with the fields passed
             if($v->fails()){

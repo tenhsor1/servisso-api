@@ -23,16 +23,27 @@ class UserSeeder extends Seeder {
 		$stateIds = 32;//default;
         $countryIds = 1;//default
         // Creamos un bucle para cubrir 5 fabricantes:
+        User::create([
+            'id' => 0,
+            'email' => 'notaccount@servisso.com.mx',
+            'password' => 'Jisk3sl20sll32pñ0',
+            'name' => 'NOT',
+            'lastname' => 'ACCOUNT',
+            'phone' => '0000000000',
+            'address' => 'NONE',
+            'zipcode' => '00000',
+            'state_id' => 1
+        ]);
+
         User::create(
             [
                 'email'=>'ricardo.romo.ramirez@gmail.com',
                 'password'=>'Testing123',
                 'name'=>'Ricardo',
-                'last_name'=>'Romo',
+                'lastname'=>'Romo',
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -42,11 +53,10 @@ class UserSeeder extends Seeder {
                 'email'=>'makoasoft@gmail.com',
                 'password'=>'Makoa123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
-                'last_name'=>$faker->lastName,
+                'lastname'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -56,11 +66,10 @@ class UserSeeder extends Seeder {
                 'email'=>'ernesto.soft45@gmail.com',
                 'password'=>'Ernesto123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
-                'last_name'=>$faker->lastName,
+                'lastname'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -70,11 +79,10 @@ class UserSeeder extends Seeder {
                 'email'=>'radames.ramirez.perez@gmail.com',
                 'password'=>'Radames123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
-                'last_name'=>$faker->lastName,
+                'lastname'=>$faker->lastName,
                 'phone'=>$faker->phoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'country_id'=>1,
                 'zipcode'=>$faker->optional()->postcode
             ]
         );

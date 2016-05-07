@@ -14,10 +14,10 @@ class NewController extends Controller
 {
 
     public function __construct(){
-        $this->middleware('jwt.auth:admin|partner', ['only' => ['update','store','destroy']]);
+        $this->middleware('jwt.auth:admin', ['only' => ['update','store','destroy']]);
 		$this->UserRoles = \Config::get('app.user_roles');
 	}
-    /**  
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -33,7 +33,7 @@ class NewController extends Controller
 						->orderByCustom($request)
 						->limit($request)
 						->get();
-		$count = $news->count();  
+		$count = $news->count();
 		if(!is_null($news)){
             $response = ['code' => 200,'Count' => $count,'data' => $news];
             return response()->json($response,200);
@@ -53,7 +53,7 @@ class NewController extends Controller
         //
     }
 
-    /**  
+    /**
      * Store a newly created resource in storage.
      *
      * @param Request|Requests\NewStoreRequest $request
@@ -69,8 +69,8 @@ class NewController extends Controller
         $v = Validator::make($request->all(),$validation,$messages);
         //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
         if($v->fails()){
-            $response = ['error' => $v->messages(), 'code' =>  460];
-            return response()->json($response,460);
+            $response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
+            return response()->json($response,422);
         }
 
             $new = new News;
@@ -151,11 +151,11 @@ class NewController extends Controller
                 $v = Validator::make($request->all(),$validation,$messages);
                 //SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
                 if($v->fails()){
-                    $response = ['error' => $v->messages(),'code' => 422];
+                    $response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
                     return response()->json($response,404);
                 }
 
-                  
+
                 $new->title = $request->title;
                 $new->content = $request->content;
                 $new->image = $request->image;
@@ -201,15 +201,15 @@ class NewController extends Controller
 			 if($adminRequested->roleAuth  == "ADMIN"){
 				$news->role_id = $adminRequested->id;//id de quien modifico
                 $news->role = $this->UserRoles[$adminRequested->roleAuth];//rol de quien modifico
-                $news->save(); 
-                $rows = $news->delete();  
+                $news->save();
+                $rows = $news->delete();
 				if($rows > 0){
                     $response = ['code' => 200,'message' => "News was deleted succefully"];
                     return response()->json($response,200);
                 }else{
                     $response = ['error' => 'It has occurred an error trying to delete the news','code' => 404];
                     return response()->json($response,404);
-                }  
+                }
             }else{
                 //EN DADO CASO QUE EL ID DE NEWS NO LE PERTENEZCA
                 $response = ['error' => 'Unauthorized','code' => 403];

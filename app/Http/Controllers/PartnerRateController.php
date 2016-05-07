@@ -14,12 +14,12 @@ use App\Partner;
 
 class PartnerRateController extends Controller
 {
-	
+
 	public function __construct(){
-        $this->middleware('jwt.auth:partner', ['only' => ['store','show','update','destroy']]);
+        $this->middleware('jwt.auth:user', ['only' => ['store','show','update','destroy']]);
         $this->middleware('default.headers');
     }
-	
+
     /**
      * Display a listing of the resource.
      *
@@ -50,37 +50,37 @@ class PartnerRateController extends Controller
      */
     public function store(Request $request)
     {
-		$partnerRequested = \Auth::User();
-		
+		$userRequested = \Auth::User();
+
 		$messages = PartnerRate::getMessages();
 		$validation = PartnerRate::getValidations();
-		
-		$v = Validator::make($request->all(),$validation,$messages);					
-		
+
+		$v = Validator::make($request->all(),$validation,$messages);
+
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
-		if($v->fails()){	
-			$response = ['error' => $v->messages(), 'code' =>  422];
+		if($v->fails()){
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
-		
+
 		$service_id = $request->service_id;
 		$service = Service::with('branch.company')->where('id','=',$service_id)->first();
-		
+
 		//SE VALIDA QUE EL SERVICE EXISTA
 		if(!is_null($service)){
-			
+
 			$company = $service->branch->company;
-			
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
-			if($partnerRequested->id == $company->partner_id){
-				
+
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
+			if($userRequested->id == $company->user_id){
+
 				$rate = new PartnerRate;
 				$rate->service_id = $request->service_id;
 				$rate->rate = $request->rate;
 				$rate->comment = $request->comment;
-				
+
 				$rate = $rate->save();
-				
+
 				//SE VALIDA QUE EL REGISTRO SE HALLA GUARDADO
 				if(!is_null($rate)){
 					$response = ['data' => $rate,'code' => 200,'message' => 'Rate was registered succefully'];
@@ -92,8 +92,8 @@ class PartnerRateController extends Controller
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
-			}					
-			
+			}
+
 		}else{
 			//EN DADO CASO QUE EL ID DEL SERVICE NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Service does not exist','code' => 422];
@@ -109,15 +109,15 @@ class PartnerRateController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();
-		
+		$userRequested = \Auth::User();
+
         $rate = PartnerRate::find($id);
-		
+
 		if(!is_null($rate)){
-			
+
 			$response = ['data' => $rate,'code' => 200];
 			return response()->json($response,200);
-			
+
 		}else{
 			$response = ['error' => 'Rate does no exist','code' => 422];
 			return response()->json($response,422);
@@ -146,25 +146,25 @@ class PartnerRateController extends Controller
     {
         $messages = PartnerRate::getMessages();
 		$validation = PartnerRate::getValidations();
-		
-		$v = Validator::make($request->all(),$validation,$messages);					
-		
+
+		$v = Validator::make($request->all(),$validation,$messages);
+
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
-		if($v->fails()){	
-			$response = ['error' => $v->messages(), 'code' =>  422];
+		if($v->fails()){
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
 			return response()->json($response,422);
 		}
-		
+
 		$rate = PartnerRate::find($id);
-		
+
 		//SE VALIDA QUE EL RATE EXISTA
 		if(!is_null($rate)){
-			
-			//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION		
+
+			//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION
 			$fields = ['rate' => $request->rate,'comment' => $request->comment];
-			
+
 			$row = PartnerRate::where('id','=',$id)->update($fields);
-			
+
 			//SE VALIDA QUE SE HALLA ACTUALIZADO EL REGISTRO
 			if($row != false){
 				$response = ['data' => $rate,'code' => 200,'message' => 'Rate was updated succefully'];
@@ -173,11 +173,11 @@ class PartnerRateController extends Controller
 				$response = ['error' => 'It has occurred an error trying to update the rate','code' => 404];
 				return response()->json($response,404);
 			}
-			
+
 		}else{
-			
-		}		
-		
+
+		}
+
     }
 
     /**
@@ -191,18 +191,18 @@ class PartnerRateController extends Controller
         $rate = PartnerRate::find($id);
 
 		if(!is_null($rate)){
-			
+
 			//SE BORRA EL RATE
 			$row = $rate->delete();
-			
+
 			if($row != false){
 				$response = ['code' => 200,'message' => "Rate was deleted succefully"];
 				return response()->json($response,200);
 			}else{
 				$response = ['error' => 'It has occurred an error trying to delete the rate','code' => 404];
 				return response()->json($response,404);
-			}			
-			
+			}
+
 		}else{
 			//EN DADO CASO QUE EL ID DEL RATE NO SE HALLA ENCONTRADO
 			$response = ['error' => 'Rate does not exist','code' => 422];

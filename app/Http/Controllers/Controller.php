@@ -34,8 +34,6 @@ abstract class Controller extends BaseController
             //based on the role passed, try to get the kind of model for the user
             if($role == 'USER'){
                 $model = 'App\User';
-            }else if($role == 'PARTNER'){
-                $model = 'App\Partner';
             }else if($role == 'ADMIN'){
                 $model = 'App\Admin';
             }else{

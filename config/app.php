@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'es',
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ return [
     |
     */
 
-    'key' => env('APP_KEY', 'SomeRandomString'),
+    'key' => env('APP_KEY', 'scGyJfEqQcCIreujwYMvbT5FOFtcIvdS'),
 
     'cipher' => 'AES-256-CBC',
 
@@ -147,8 +147,8 @@ return [
         App\Providers\JWTServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         //Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
+        Aws\Laravel\AwsServiceProvider::class,
 		'Intervention\Image\ImageServiceProvider',
-
     ],
 
     /*
@@ -201,15 +201,18 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
 		'Form'		=> Illuminate\Html\FormFacade::class,
 		'Html'		=> Illuminate\Html\HtmlFacade::class,
+        'AWS'       => Aws\Laravel\AwsFacade::class,
 
     ],
 
-    'api_url' => 'http://localhost/v1/',
-    'user_types' => ['user' => 'App\User', 'guest' => 'App\Guest'],
-    'admin_roles' => ['SUPER' => 0, 'NORMAL' => 1],
-	'user_roles' => ['ADMIN' => 1, 'PARTNER' => 2, 'USER' => 3],
-    'emails' => ['NOREPLY' => 'no-reply@servisso.com.mx'
-                ,'CONTACT' => 'contacto@servisso.com.mx'],
-    'email_names' => ['NOREPLY' => 'Servisso'
-                    ,'CONTACT' => 'Servisso Contact']
+    'api_url'       => env('API_URL', 'http://localhost/v1'),
+    'front_url'     => env('FRONT_URL', 'http://localhost'),
+    'user_types'    => ['user' => 'App\User', 'guest' => 'App\Guest'],
+    'admin_roles'   => ['SUPER' => 0, 'NORMAL' => 1],
+	'user_roles'    => ['ADMIN' => 1, 'USER' => 2],
+    'emails'        => ['NOREPLY' => 'no-reply@servisso.com.mx'
+                        ,'CONTACT' => 'contacto@servisso.com.mx'],
+    'email_names'   => ['NOREPLY' => 'Servisso'
+                        ,'CONTACT' => 'Servisso Contact'],
+
 ];

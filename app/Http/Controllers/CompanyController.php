@@ -6,15 +6,15 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Company;
-use App\Partner;
+use App\User;
 use Validator;
 use JWTAuth;
-use App\Extensions\utils;
+use App\Extensions\Utils;
 class CompanyController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware('jwt.auth:partner|admin', ['only' => ['show','destroy','update','store','image']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['destroy','update','store','image']]);
         $this->middleware('default.headers');
 		$this->user_roles = \Config::get('app.user_roles');
     }
@@ -57,14 +57,14 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
 		$messages = Company::getMessages();
 		$validation = Company::getValidations();
 
         $v = Validator::make($request->all(),$validation,$messages);
 
-		$response = ['error' => $v->messages(), 'code' =>  406];
+		$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  406];
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
@@ -72,21 +72,22 @@ class CompanyController extends Controller
 		}
 
 		//ID DEL ASOCIADO QUE LE PERTENECE LA COMPANY
-		$partner_id = $request->partner_id;
-		$partner = Partner::find($partner_id);
+		$user_id = $request->user_id;
+		$user = User::find($user_id);
 
-		//SE VALIDA QUE EL PARTNER EXISTA
-		if(!is_null($partner)){
+		//SE VALIDA QUE EL USER EXISTA
+		if(!is_null($user)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
-			if($partnerRequested->id == $partner->id){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
+			if($userRequested->id == $user->id){
 
 				//SE HACE UNA INSTANCIA DE COMPANY
 				$company = new Company;
-				$company->partner_id = $partner_id;
+				$company->user_id = $user_id;
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
+                $company->web = $request->web;
 
 				$row = $company->save();
 
@@ -95,7 +96,7 @@ class CompanyController extends Controller
 					return response()->json($response,200);
 				}else{
 					$response = ['error' => 'It has occurred an error trying to save the company','code' => 404];
-					return response()->json($response,404);
+					return response()->json($response,500);
 				}
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
@@ -103,8 +104,8 @@ class CompanyController extends Controller
 			}
 
 		}else{
-			//EN DADO CASO QUE EL ID DE PARTNER NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Partner does not exist','code' => 422];
+			//EN DADO CASO QUE EL ID DE USER NO SE HALLA ENCONTRADO
+			$response = ['error' => 'User does not exist','code' => 422];
 			return response()->json($response,422);
 		}
 
@@ -113,10 +114,11 @@ class CompanyController extends Controller
 
 	 public function image(Request $request, $id)
     {
-		$adminRequested = \Auth::User();
+		$userRequested = \Auth::User();
 		$company = Company::find($id);
-		//SE VALIDA QUE EL USUARIO SEA DE TIPO PARTNER O ADMIN
-        if($adminRequested->roleAuth  == "PARTNER" && $adminRequested->id == $company->partner_id || $adminRequested->roleAuth  == "ADMIN"){
+
+		//SE VALIDA QUE EL USUARIO SEA DE TIPO USER O ADMIN
+        if($userRequested->roleAuth  == "USER" && $userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 			 if(!is_null($company)){
 				$ext = $request->file('image')->getClientOriginalExtension();
 				// Se verifica si es un formato de imagen permitido
@@ -124,9 +126,8 @@ class CompanyController extends Controller
 					$response = ['ext' => $ext, 'error' => "Only upload images with format jpg, jpeg, bmp and png", 'code' =>  406];
 					return response()->json($response,422);
 				}
-				// StorageImage($ImageName,$reques "file", "RuteImage" '/public/',"RuteImageThumb" '/public/')
 				//SE ENVIA EL ID DE LAIMAGEN PARA MODIFICAR EL NOMBRE Y EL ARCHIVO PARA MOVERLO (RETORNA LAS RUTAS DE LA IMAGENES)
-				$img = utils::StorageImage($id,$request);
+				$img = Utils::StorageImage($id,$request->file('image'), 'logos/images/', 'logos/thumbs/', 'public');
 				//SE LE COLOCAN EL NOMBRE DE LA IMAGEN
 				$company->image = $img['image'];
 				$company->thumbnail = $img['thumbnail'];
@@ -161,28 +162,37 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-		$partnerRequested = \Auth::User();
+		$userRequested = \Auth::User();
 
-		$company = Company::find($id);
+        $company = Company::with('category')
+                        ->with('user')
+                        ->with('branches')
+                        ->with('branches.state')
+                        ->with('branches.state.country')
+                        ->where('id','=',$id)
+                        ->first();
+
+		foreach($company->branches as $branch){
+
+			$tags = \DB::table('tags_branches')
+			->join('tags','tags_branches.tag_id','=','tags.id')
+			->where('tags_branches.branch_id','=',$branch->id)
+			->select('tags.name','tags.description')
+			->get();
+
+			$branch->tags = $tags;
+		}
+
 
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA OBTENER INFO DE SUS COMPANIES
-			if($partnerRequested->id == $company->partner_id){
-
-				$response = ['code' => 200,'data' => $company];
-				return response()->json($response,200);
-
-			}else{
-
-				$response = ['error'   => 'Unauthorized','code' => 403];
-				return response()->json($response, 403);
-			}
+			$response = ['code' => 200,'data' => $company];
+			return response()->json($response,200);
 
 		}else{
-			$response = ['error' => 'Company does no exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Company does no exist','code' => 404];
+			return response()->json($response,404);
 		}
 
 
@@ -215,8 +225,8 @@ class CompanyController extends Controller
 		//SE VERIFICA QUE COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ACTUALIZAR SUS COMPANIES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				$messages = Company::getMessages();
 				$validation = Company::getValidations();
@@ -225,7 +235,7 @@ class CompanyController extends Controller
 
 				//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 				if($v->fails()){
-					$response = ['error' => $v->messages(),'code' => 422];
+					$response = ['error' => 'Bad Request', 'data' => $v->messages(),'code' => 422];
 					return response()->json($response,422);
 				}
 
@@ -233,6 +243,7 @@ class CompanyController extends Controller
 				$company->name = $request->name;
 				$company->description = $request->description;
 				$company->category_id = $request->category_id;
+                $company->web = $request->web;
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];
 
@@ -273,8 +284,8 @@ class CompanyController extends Controller
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
 
-			//SE VERIFICA QUE EL PARTNER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
-			if($userRequested->id == $company->partner_id || $userRequested->roleAuth  == "ADMIN"){
+			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS COMPANIES
+			if($userRequested->id == $company->user_id || $userRequested->roleAuth  == "ADMIN"){
 
 				$company->role_id = $userRequested->id;
 				$company->role = $this->user_roles[$userRequested->roleAuth];

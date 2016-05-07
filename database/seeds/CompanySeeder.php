@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use App\Partner;
+use App\User;
 use App\Category;
 use App\Company;
 use Faker\Factory as Faker;
@@ -18,46 +18,46 @@ class CompanySeeder extends Seeder
 		// Create a faker instance
 		$faker = Faker::create();
 
-		$partnerIds = 5;//default;
+		$userIds = 5;//default;
 		$categoryIds = 5;//default
 
 		//Verify if the tables exists in the database to retrieve the data
-		if(Schema::hasTable('companies'))
-			$partnerIds = Partner::all()->count();
+		if(Schema::hasTable('users'))
+			$userIds = User::all()->count() - 1;
 
 		if(Schema::hasTable('categories'))
 			$categoryIds = Category::all()->count();
 
 		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
 		]);
 
 		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
 		]);
 
 		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
 		]);
 
 		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
 		]);
 
 		Company::create([
-			'partner_id' => $faker->numberBetween(1,$partnerIds),
+			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),
 			'category_id' => $faker->numberBetween(1,$categoryIds),
