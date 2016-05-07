@@ -7,7 +7,6 @@ Homestead.json
 .env.php
 .env
 /.idea
-composer.lock
 /public/image/*
 /public/images/*
 /public/thumb/*
