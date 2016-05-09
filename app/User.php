@@ -46,10 +46,10 @@ class User extends Model implements AuthenticatableContract,
      * @var array
      */
     protected $hidden = ['password', 'deleted_at', 'created_at', 'updated_at','token'];
-	
-	
-	
-	
+
+
+
+
 	 public static function getValidationsPassword(){
         $validation = [
            'password' => 'required|max:99|min:7',
@@ -69,6 +69,7 @@ class User extends Model implements AuthenticatableContract,
                             , 'role' => $userRoles['USER']];
             $encrypted = \Crypt::encrypt($tokenArray);
             $user->token = $encrypted;
+            $user->password = \Hash::make($user->password);
         });
     }
 
@@ -92,11 +93,6 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasOne('App\State');
     }
 
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = \Hash::make($value);
-    }
-
     public function getBranch($id){
         $branch = Branch::find($id)
             ->with('company')
@@ -111,7 +107,7 @@ class User extends Model implements AuthenticatableContract,
 
 	public static function getRules(){
 		$rules = array(
-				'email' => ['required','email'],
+				'email' => ['required','email','unique:users'],
 				'password' => ['required','min:8'],
 				'name' => ['required','min:3','max:45'],
 				'lastname' => ['required','min:3','max:45']
@@ -125,6 +121,7 @@ class User extends Model implements AuthenticatableContract,
         [
             'email.required' => 'Email es obligatorio',
             'email.email' => 'Email no válido',
+            'email.unique' => 'La cuenta de correo ya fue utilizada',
 			'password.required' => 'Contraseña es obligatoria',
             'password.min' => 'Contraseña debe tener minimo :min caracteres',
 			'name.required' => 'Nombre es obligatorio',
