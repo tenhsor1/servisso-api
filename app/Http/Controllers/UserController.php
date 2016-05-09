@@ -173,7 +173,6 @@ class UserController extends Controller
         if($userRequested->id == $id){
             $attributes = ['name'
                             , 'email'
-                            , 'password'
                             , 'lastname'
                             , 'phone'
                             , 'address'
@@ -191,13 +190,13 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
-	
+
 	  public function updatePassword(Request $request, $id)
     {
        // $password = \Auth::attempt(['email' => $request->email, 'password' =>$request->password]);
 	   // $response = ['pass' => $password];
                     // return response()->json($response,422);
-        $user = User::find($id);  
+        $user = User::find($id);
 		 if($user){
             $userRequested = \Auth::User();
             if($userRequested->id == $user->id){
@@ -218,10 +217,10 @@ class UserController extends Controller
                     $response = ['error' => 'Bad Request', 'data' => 'Las contraseñas no coinciden','code' => 422];
                     return response()->json($response,422);
                 }
-				
-                $user->password = $request->passwordNew;
+
+                $user->password = \Hash::make($request->passwordNew);
 				// $user->update_id = $userRequested->id;//quien modifico
-			
+
                 $row = $user->save();
 
                 if ($row != false) {
