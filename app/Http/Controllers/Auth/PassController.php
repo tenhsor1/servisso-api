@@ -40,7 +40,6 @@ class PassController extends Controller{
         }
 
         $response = Password::sendResetLink($request->only('email'), function (Message $message) {
-            //$message->from($this->emails['NOREPLY'], $this->email_names['NOREPLY']);
             $message->subject($this->getEmailSubject());
         });
 

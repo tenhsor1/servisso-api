@@ -57,6 +57,11 @@ return [
     'from' => ['address' => env('DEFAULT_FROM', 'no-reply@servisso.com.mx')
                 , 'name' => env('DEFAULT_FROM_NAME', 'Servisso')],
 
+    'from_no_reply' => ['address' => env('NOREPLY_FROM', 'no-reply@servisso.com')
+                        ,'name' => env('NOREPLY_NAME', 'Servisso')],
+
+    'from_contact' => ['address' => env('CONTACT_FROM', 'contact@servisso.com')
+                        ,'name' => env('CONTACT_NAME', 'Servisso')],
     /*
     |--------------------------------------------------------------------------
     | E-Mail Encryption Protocol
