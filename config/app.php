@@ -214,5 +214,6 @@ return [
                         ,'CONTACT' => 'contacto@servisso.com.mx'],
     'email_names'   => ['NOREPLY' => 'Servisso'
                         ,'CONTACT' => 'Servisso Contact'],
+    'recaptcha_secret' => env('RECAPTCHA_SECRET', 'my_recaptcha_secret'),
 
 ];

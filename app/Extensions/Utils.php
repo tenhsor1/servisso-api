@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use Illuminate\Contracts\Filesystem\Filesystem;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception;
+
 /**
 * Extension for create the new image of de company
 */
@@ -49,5 +52,80 @@ class Utils extends Model{
 		return $img = array("image" => $imgPath,"thumbnail" => $imgPathThumb);
     }
 
+    public static function requestJSON($url, $method='GET', $data = array(), $bodyJSON=true){
+        try{
+            $client = new Client();
+            $body_data = array();
+            if(count($data) > 0 ){
+            	if($bodyJSON){
+            		$body_data['json'] = $data;
+            	}else{
+            		$body_data['form_params'] = $data;
+            	}
+            }
+            $res = $client->request($method, $url, $body_data);
+            $status = $res->getStatusCode();
+            $body = json_decode($res->getBody(), true);
+            return ['status' => $status, 'body' => $body];
+        }catch (Exception\ClientException $e) {
+            $response = $e->getResponse();
+            \Log::error('Error when requesting: '. $url . ' with method: ' . $method .
+                        ' Status:' . $response->getStatusCode() . ' Response: '. $response->getBody());
+            return ['status' => $response->getStatusCode(),
+                    'body' => ['data' => json_decode($response->getBody())]];
+        }
+        catch (Exception\BadResponseException $e) {
+            $response = $e->getResponse();
+            \Log::error('Error when requesting: '. $url . ' with method: ' . $method .
+                        ' Status:' . $response->getStatusCode() . ' Response: '. $response->getBody());
+            return ['status' => $response->getStatusCode(),
+                    'body' => ['data' => json_decode($response->getBody())]];
+        }
+        catch (Exception\ServerException $e) {
+            $response = $e->getResponse();
+            \Log::error('Error when requesting: '. $url . ' with method: ' . $method .
+                        ' Status:' . $response->getStatusCode() . ' Response: '. $response->getBody());
+            return ['status' => 500,
+                    'body' => ['data' => 'Internal Server Error']];
+        }catch (Exception\ServerException $e) {
+            $response = $e->getResponse();
+            \Log::error('Error when requesting: '. $url . ' with method: ' . $method .
+                        ' Status:' . $response->getStatusCode() . ' Response: '. $response->getBody());
+            return ['status' => 500,
+                    'body' => ['data' => 'Internal Server Error']];
+        }catch (Exception $e) {
+            $response = $e->getResponse();
+            \Log::error('Error when requesting: '. $url . ' with method: ' . $method .
+                        '. Unexpected Error');
+            return ['status' => 500,
+                    'body' => ['data' => 'Internal Server Error']];
+        }
+    }
 
+    public static function validateCaptcha($captcha, $ip){
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = ['secret' => \Config::get('app.recaptcha_secret'),
+                'response' => $captcha,
+                'remoteip' => $ip];
+
+        $response = Utils::requestJSON($url, 'POST', $data, false);
+        if($response['status'] >= 400){
+            //if an error happened, then return a null and log the message from the google API
+            \Log::error("Error getting the captcha status: ".$ip.
+                        "failed.\nStatus: ".$response['status'].
+                        "\nBody: ".json_encode($response['body']));
+            return false;
+        }
+        try{
+            $values = $response['body'];
+            return $values['success'];
+
+        }catch(\Exception $e){
+            \Log::error("ErrorException getting the captcha status: ".$ip.
+                        "failed.\nStatus: ".$response['status'].
+                        "\nerror message: ".$e->getMessage().
+                        "\nBody: ".json_encode($response['body']));
+            return false;
+        }
+    }
 }
