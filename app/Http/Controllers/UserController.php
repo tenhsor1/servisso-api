@@ -11,6 +11,7 @@ use App\UserSocial;
 use App\Company;
 use JWTAuth;
 use Validator;
+use App\Extensions\Utils;
 
 class UserController extends Controller
 {
@@ -57,6 +58,13 @@ class UserController extends Controller
 			$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
 			return response()->json($response,400);
 		}
+
+        $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
+        if(!$validCaptcha){
+            $response = ['error' => ['captcha' => ['El captcha no es válido']],
+                        'message' => 'Bad request','code' => 400];
+            return response()->json($response,400);
+        }
 
         $newUser = User::create($request->all());
 

@@ -110,7 +110,8 @@ class User extends Model implements AuthenticatableContract,
 				'email' => ['required','email','unique:users'],
 				'password' => ['required','min:8'],
 				'name' => ['required','min:3','max:45'],
-				'lastname' => ['required','min:3','max:45']
+				'lastname' => ['required','min:3','max:45'],
+                'captcha' => ['required', 'string'],
 			);
 
 		return $rules;
@@ -119,6 +120,7 @@ class User extends Model implements AuthenticatableContract,
     public static function getMessages(){
         $messages =
         [
+            'captcha.required' => 'Por favor, completa el captcha',
             'email.required' => 'Email es obligatorio',
             'email.email' => 'Email no válido',
             'email.unique' => 'La cuenta de correo ya fue utilizada',
