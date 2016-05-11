@@ -10,14 +10,13 @@ class AppMailer
 
     function __construct()
     {
-        $this->emails = \Config::get('app.emails');
-        $this->email_names = \Config::get('app.email_names');
+        $this->no_reply = \Config::get('mail.from_no_reply');
         $this->baseUrl = \Config::get('app.front_url');
     }
 
     public function sendVerificationEmail($user){
         Mail::send('emails.verify', ['code' => $user->token, 'baseUrl' => $this->baseUrl], function ($m) use ($user){
-            $m->from($this->emails['NOREPLY'], $this->email_names['NOREPLY'])
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
                 ->to($user->email, $user->name)
                 ->subject('Verifica tu e-mail para continuar');
         });
