@@ -210,10 +210,6 @@ return [
     'user_types'    => ['user' => 'App\User', 'guest' => 'App\Guest'],
     'admin_roles'   => ['SUPER' => 0, 'NORMAL' => 1],
 	'user_roles'    => ['ADMIN' => 1, 'USER' => 2],
-    'emails'        => ['NOREPLY' => 'no-reply@servisso.com.mx'
-                        ,'CONTACT' => 'contacto@servisso.com.mx'],
-    'email_names'   => ['NOREPLY' => 'Servisso'
-                        ,'CONTACT' => 'Servisso Contact'],
     'recaptcha_secret' => env('RECAPTCHA_SECRET', 'my_recaptcha_secret'),
 
 ];
