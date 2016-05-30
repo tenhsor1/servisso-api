@@ -28,6 +28,8 @@ Route::group(['prefix' => 'v1'], function()
 
 
 	Route::post('users/predict', 'UserController@predict');
+	Route::post('users/storeSearched', 'UserController@storeSearched');
+	Route::put('users/updateSearched/{id}', 'UserController@updateSearched');
     Route::get('users/confirm/{code}','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::put('users/{user_id}/password', 'UserController@updatePassword');
