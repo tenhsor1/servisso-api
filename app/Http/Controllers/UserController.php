@@ -16,7 +16,7 @@ use App\Extensions\Utils;
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict','storeSearched','updateSearched']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -459,5 +459,34 @@ class UserController extends Controller
 
 			}
 		}
+	}
+	
+	public function storeSearched(Request $request){
+		$id = \DB::table('search_log')->insertGetId([
+			"ip" => $request->ip,
+			"search_term" => $request->search_term,
+			"detected_category" => $request->detected_category,
+			'created_at' => date('Y-m-d h:i:s',time()),
+			'updated_at' => date('Y-m-d h:i:s',time())
+		]);
+		
+		$log = new \stdClass;
+		$log->id = $id;
+		
+		$response = ['code' => 200,'data' => $log];
+		return response()->json($response,200);
+	}
+	
+	public function updateSearched(Request $request, $id){
+		
+		$inputs = $request->all();
+		
+		if($request->correct_date != null)
+			$inputs['correct_date'] = date('Y-m-d h:i:s',time());
+		
+		\DB::table('search_log')->where('id',$id)->update($inputs);
+		
+		$response = ['code' => 200];
+		return response()->json($response,200);
 	}
 }
