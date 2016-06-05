@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 Use App\Category;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Redis;
+
 class CategoryController extends Controller
 {
 	public function __construct(){
@@ -31,6 +33,7 @@ class CategoryController extends Controller
 		//$query = \DB::getQueryLog();
 
 		$response = ['code' => 200,'Count' => $count,'data' => $categories];
+        Redis::publish(1, 'test');
 		return response()->json($response,200);
 
     }
