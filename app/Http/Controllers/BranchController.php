@@ -134,6 +134,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
+				$branch->name = $request->name;
                 $branch->geom = [$request->longitude, $request->latitude];
 
 				$branch->save();
@@ -265,6 +266,7 @@ class BranchController extends Controller
 				$branch->longitude = $request->longitude;
 				$branch->state_id = $request->state_id;
 				$branch->schedule = $request->schedule;
+				$branch->name = $request->name;
 				$branch->role_id = $userRequested->id;
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
 
