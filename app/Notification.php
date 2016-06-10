@@ -6,16 +6,19 @@ namespace App;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
-use App\Notification;
 
-class Service extends ServissoModel
+class Notification extends ServissoModel
 {
+    const SERVICE_RELATION = 'App\Service';
+    const USER_RELATION = 'App\User';
+    const GUEST_RELATION = 'App\Guest';
+
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'services';
+    protected $table = 'notifications';
     use SoftDeletes;
 
     /**
@@ -23,10 +26,9 @@ class Service extends ServissoModel
      *
      * @var array
      */
-    protected $guarded = ['service_id'
-                            , 'branch_id'
-                            , 'userable_id'
-                            , 'userable_type'
+    protected $guarded = [  'branch_id'
+                            , 'sender_id'
+                            , 'sender_type'
                         ];
 
     /**
@@ -34,16 +36,15 @@ class Service extends ServissoModel
      *
      * @var array
      */
-    protected $hidden = [
-                            'userable_type'
+    protected $hidden = [   'object_type'
+                            , 'sender_type'
                             , 'deleted_at'
                             , 'updated_at'
                         ];
 
     protected $searchFields = [
-        'address',
-        'company',
-        'description'
+        'sender',
+        'type',
     ];
 
     protected $betweenFields = [
@@ -56,111 +57,63 @@ class Service extends ServissoModel
         'updated'
     ];
 
-  public static function boot()
-  {
-      Service::created(function ($service) {
-        $service->addNotification();
-      });
-  }
-
-  public function addNotification(){
-    /*$this->id;
-    Notification::SERVICE_RELATION;*/
-    $receivers = $this->getOwnerBranch();
-    foreach ($receivers as $key => $receiver) {
-      $notification = new Notification;
-      $notification->receiver_id = $receiver->id;
-      $notification->object_id = $this->id;
-      $notification->object_type = Notification::SERVICE_RELATION;
-      $notification->sender_id = $this->userable_id;
-      $notification->sender_type = $this->userable_type;
-      $notification->verb = 'NEW';
-      $notification->save();
+    public function receiver(){
+        //1 service is related to one branch
+        return $this->belongsTo('App\User');
     }
-  }
 
-  public function branch(){
-      //1 service is related to one branch
-      return $this->belongsTo('App\Branch');
-  }
-
-	public function userRate(){
-		//1 sevice is related to one user rate
-		return $this->hasOne('App\UserRate');
-	}
-
-	public function partnerRate(){
-		//1 service rate is related to one partner rate
-		return $this->hasOne('App\PartnerRate');
-	}
-
-  public function userable(){
+    public function sender(){
       return $this->morphTo();
-  }
-
-  public function notifications(){
-    return $this->morphMany('App\Service', 'object');
-  }
-
-  public function images(){
-    return  $this->hasMany('App\ServiceImage');
-  }
-
-	public static function getRules(){
-		$rules = [
-			'description' => ['required','max:250'],
-      'branch_id' => ['required','exists:branches,id']
-		];
-
-		return $rules;
-	}
-
-	public static function getMessages(){
-		$messages = [
-			'description.required' => 'Descripción es obligatoria',
-			'description.max' => 'Descripción debe tener máximo :max caracteres',
-      'branch_id.required' => 'La sucursal es obligatoria',
-      'branch_id.exists' => 'La sucursal no existe'
-		];
-
-		return $messages;
-	}
-
-    public function getOwnerBranch(){
-      return $this->select('users.id')
-            ->join('branches','branches.id','=','services.branch_id')
-            ->join('companies','companies.id','=','branches.company_id')
-            ->join('users','users.id','=','companies.user_id')
-            ->where('services.id', $this->id)
-            ->get();
     }
 
-    public function scopeWhereUser($query, $userId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->leftJoin('users','users.id','=','companies.user_id')
-              ->where('users.id', $userId)
-              ->select('services.*');
+    public function object(){
+      return $this->morphTo();
     }
 
-    public function scopeWhereCompany($query, $companyId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->where('companies.id', $companyId)
-              ->select('services.*',
-                      'branches.address AS branch_address',
-                      'branches.phone AS branch_phone');
+
+    public static function getRules(){
+        $rules = [
+            'receiver_id' => ['required']
+            , 'object_id' => ['required']
+            , 'object_type' => ['required']
+            , 'sender_id' => ['required']
+            , 'sender_type' => ['required']
+            , 'type' => ['required']
+        ];
+
+        return $rules;
     }
 
-    public function scopeWhereBranch($query, $branchId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->where('branches.id', $branchId)
-              ->select('services.*',
-                      'branches.address AS branch_address',
-                      'branches.phone AS branch_phone');
+    public static function getMessages(){
+        $messages = [
+            'receiver_id.required' => 'El receptor es obligatorio'
+            , 'object_id.required' => 'El id del objeto de la notificación es obligatoria'
+            , 'object_type.required' => 'El tipo del objeto de la notificación es obligatoria'
+            , 'sender_id.required' => 'El id del emisor de la notificación es obligatoria'
+            , 'sender_type.required' => 'El tipo del emisor de la notificación es obligatoria'
+            , 'type.required' => 'El tipo de la notificación es obligatoria'
+        ];
+
+        return $messages;
+    }
+
+    public static function getMultipleRules(){
+        $rules = [
+            'type' => ['required', 'in:is_open,is_read']
+            , 'ids' => ['required', 'array']
+        ];
+
+        return $rules;
+    }
+
+    public static function getMultipleMessages(){
+        $messages = [
+            'type.required' => 'El tipo de actualización es obligatorio'
+            , 'type.in' => 'El tipo debe de ser: [:values]'
+            , 'ids.required' => 'La lista de identificadores es obligatoria'
+            , 'ids.array' => 'La lista de identificadores debe de ser un arreglo'
+        ];
+        return $messages;
     }
 
     /**
@@ -180,23 +133,13 @@ class Service extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'description':
-                        //search by the description of the service
-                        $query->$where('services.description', 'LIKE', '%'.$search.'%');
+                    case 'sender':
+                        //search by the sender id
+                        $query->$where('notifications.sender_id', '=', $search);
                         break;
-                    case 'address':
-                        //search for the address of the branch related to the service
-                        $query->$whereHas('branch', function($query) use ($search){
-                            $query->where('address', 'LIKE', '%'.$search.'%');
-                        });
-                        break;
-                    case 'company':
-                        //search for the company name related to the service
-                        $query->$whereHas('branch', function($query) use ($search){
-                            $query->whereHas('company', function($query) use ($search){
-                                $query->where('name', 'LIKE', '%'.$search.'%');
-                            });
-                        });
+                    case 'type':
+                        //search by the address
+                        $query->$where('notifications.type', '=', $search);
                         break;
                 }
                 $where = "orWhere";
@@ -274,6 +217,23 @@ class Service extends ServissoModel
                 }
                 $cont++;
             }
+        }
+        return $query;
+    }
+
+    public function scopeLimit($query, $request){
+        if($this->limitParametersAreValid($request)){
+            $limit = $request->input('limit');
+            if($page = $request->input('page')){
+                $page = $page - 1;
+                $page = $page * $limit;
+                $query->skip($page)->take($limit);
+            }else{
+                $query->take($limit);
+            }
+        }else{
+            //if not limit passed, then just show 2000 results as max
+            $query->take(100);
         }
         return $query;
     }

@@ -33,7 +33,6 @@ class CategoryController extends Controller
 		//$query = \DB::getQueryLog();
 
 		$response = ['code' => 200,'Count' => $count,'data' => $categories];
-        Redis::publish(1, 'test');
 		return response()->json($response,200);
 
     }

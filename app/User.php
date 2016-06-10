@@ -77,6 +77,10 @@ class User extends Model implements AuthenticatableContract,
         return $this->morphMany('App\Service', 'userable');
     }
 
+    public function notifications(){
+        return $this->morphMany('App\Notifications', 'sender');
+    }
+
     public function socials(){
         return $this->hasMany('App\UserSocial');
     }

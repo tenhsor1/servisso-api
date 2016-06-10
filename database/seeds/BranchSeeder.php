@@ -34,7 +34,7 @@ class BranchSeeder extends Seeder
 			DB::table('branches')->insert([
 				'company_id' => $randomNumber,
 				'address' => $faker->address,
-				'phone' => $faker->phoneNumber,
+				'phone' => $faker->e164PhoneNumber,
 				'latitude' => $faker->latitude,
 				'longitude' => $faker->longitude,
 				'state_id' => 14,
