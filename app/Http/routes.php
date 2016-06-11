@@ -66,6 +66,9 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('emails', 'EmailController', ['only' => ['store']]);
 	Route::post('images/{id}', 'CompanyController@image');
 
+    Route::get('notifications', 'NotificationController@index');
+    Route::put('notifications', 'NotificationController@updateMultiple');
+
 });
 
 
