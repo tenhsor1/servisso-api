@@ -21,4 +21,12 @@ class AppMailer
                 ->subject('Verifica tu e-mail para continuar');
         });
     }
+	
+	public function sendNonRegisteredBranchEmail($user){
+        Mail::send('emails.non-registered-branch', ['code' => 'code', 'baseUrl' => '#'], function ($m) use ($user){
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
+                ->to('ernesto.soft45@gmail.com', 'Ernesto Hdez Noriega')
+                ->subject('Alguien require de tus servicios!');
+        });
+    }
 }
