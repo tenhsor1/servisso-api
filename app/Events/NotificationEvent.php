@@ -9,6 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 class NotificationEvent extends Event implements ShouldBroadcast
 {
     use SerializesModels;
+    public $channels, $content;
 
     /**
      * Create a new event instance.
@@ -17,9 +18,9 @@ class NotificationEvent extends Event implements ShouldBroadcast
      */
     public function __construct($notification)
     {
-        $this->notification = $notification;
-        $this->data = $notification;
-        $this->channels = [$notification->receiver->id];
+        $this->content = $notification->toArray();
+        $this->channels = [$notification->receiver_id];
+        \Log::debug($this->channels);
     }
 
     /**
