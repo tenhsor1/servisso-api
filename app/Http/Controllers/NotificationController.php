@@ -23,13 +23,23 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $userRequested = \Auth::User();
-        $notifications = Notification::searchBy($request)
+        if(!$request->input('count')){
+            $notifications = Notification::searchBy($request)
                                 ->betweenBy($request)
                                 ->orderByCustom($request)
                                 ->limit($request)
                                 ->with('object')
                                 ->where('receiver_id', '=', $userRequested->id)
                                 ->get();
+        }else{
+            $notifications = Notification::searchBy($request)
+                                ->betweenBy($request)
+                                ->orderByCustom($request)
+                                ->limit($request)
+                                ->where('receiver_id', '=', $userRequested->id)
+                                ->get();
+        }
+
         $count = $notifications->count();
 
         $response = ['code' => 200,'Count' => $count,'data' => $notifications];

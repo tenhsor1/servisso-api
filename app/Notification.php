@@ -45,6 +45,8 @@ class Notification extends ServissoModel
     protected $searchFields = [
         'sender',
         'type',
+        'open',
+        'read',
     ];
 
     protected $betweenFields = [
@@ -86,6 +88,7 @@ class Notification extends ServissoModel
             'sender'    => $this->sender->toArray(),
             'verb'      => $this->verb,
             'extra'     => $this->extra,
+            'created'   => $this->created_at,
             'is_open'   => $this->is_open ? true : false,
             'is_read'   => $this->is_read ? true : false,
         ];
@@ -160,6 +163,10 @@ class Notification extends ServissoModel
                     case 'type':
                         //search by the address
                         $query->$where('notifications.type', '=', $search);
+                        break;
+                    case 'open':
+                        //search by the address
+                        $query->$where('notifications.is_open', '=', $search);
                         break;
                 }
                 $where = "orWhere";
