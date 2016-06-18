@@ -41,9 +41,22 @@ class UserSeeder extends Seeder {
                 'password'=>'Testing123',
                 'name'=>'Ricardo',
                 'lastname'=>'Romo',
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->e164PhoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
+                'zipcode'=>$faker->optional()->postcode
+            ]
+        );
+
+        User::create(
+            [
+                'email'=>'ricardo.romo.ramirez+100@gmail.com',
+                'password'=>'Testing123',
+                'name'=>'Ricardo',
+                'lastname'=>'Romo',
+                'phone'=>$faker->e164PhoneNumber,
+                'address'=>$faker->optional()->address,
+                'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode
             ]
         );
@@ -54,7 +67,7 @@ class UserSeeder extends Seeder {
                 'password'=>'Makoa123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'lastname'=>$faker->lastName,
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->e164PhoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode
@@ -67,7 +80,7 @@ class UserSeeder extends Seeder {
                 'password'=>'Ernesto123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'lastname'=>$faker->lastName,
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->e164PhoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode
@@ -80,7 +93,7 @@ class UserSeeder extends Seeder {
                 'password'=>'Radames123',
                 'name'=>$faker->firstName('male'), // de 9 dígitos como máximo.
                 'lastname'=>$faker->lastName,
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->e164PhoneNumber,
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode

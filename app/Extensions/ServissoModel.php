@@ -220,8 +220,8 @@ class ServissoModel extends Model
 				$query->take($limit);
 			}
         }else{
-            //if not limit passed, then just show 2000 results as max
-            $query->take(2000);
+            //if not limit passed, then just show 1000 results as max
+            $query->take(1000);
         }
         return $query;
     }

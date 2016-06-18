@@ -35,8 +35,8 @@ class CallSeeder extends Seeder {
                 'length'=>$faker->randomNumber(3),
                 'url'=>$faker->unique()->word,
                 'status'=>$faker->randomElement($status),
-                'to'=>$faker->phoneNumber,
-                'from'=>$faker->phoneNumber,
+                'to'=>$faker->e164PhoneNumber,
+                'from'=>$faker->e164PhoneNumber,
                 'answered'=>$faker->randomElement($answered),
                 'service_id'=>$faker->numberBetween(1,$numServices)
             ]

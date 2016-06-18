@@ -27,7 +27,7 @@ class GuestSeeder extends Seeder {
                 [
                     'email'=>$faker->email,
                     'name'=>$faker->firstName,
-                    'phone'=>$faker->phoneNumber,
+                    'phone'=>$faker->e164PhoneNumber,
                     'address'=>$faker->optional()->address,
                     'zipcode'=>$faker->optional()->postcode
                 ]
