@@ -16,7 +16,7 @@ use App\Extensions\Utils;
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict','storeSearched','updateSearched']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm','predict','storeSearched','updateSearched']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -28,7 +28,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return "index";
+        return 'index';
     }
 
     /**
@@ -39,6 +39,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+
 		$valuesProvider = false;
         if($request->input('val', null)){
             //if we are trying to create a user using a social provider, then validate that
@@ -65,8 +66,10 @@ class UserController extends Controller
                         'message' => 'Bad request','code' => 400];
             return response()->json($response,400);
         }
+		
+		$fields = \Input::except('code');
 
-        $newUser = User::create($request->all());
+        $newUser = User::create($fields);
 
         if($newUser){
             if($valuesProvider){
@@ -91,6 +94,21 @@ class UserController extends Controller
                 $newUser->access = $token;
                 $this->mailer->sendVerificationEmail($newUser);
             }
+			
+			//Si el request tiene el input code significa que el usuario esta registrando una compañia que es de la inegi.
+			if($request->code){
+				$company_id = \Crypt::decrypt($request->code);
+				$company = Company::find($company_id);
+				$branch = $company->branches[0];
+				
+				//Siempre y cuando la branch de la compañia(inegi) sea true, significa que no ha sido tomada
+				if($branch->inegi){
+					$company->user_id = $newUser->id;
+					$branch->inegi = false;					
+					$branch->save();
+					$company->save();
+				}
+			}
 
             $response = ['data' => $newUser
                         ,'code' => 200
