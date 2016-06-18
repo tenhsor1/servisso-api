@@ -65,9 +65,7 @@ class GuestController extends Controller
 
         $guest = Guest::create($request->all());
 
-        if($guest){
-			
-			$this->mailer->sendNonRegisteredBranchEmail($guest);
+        if($guest){		
 			
             $response = ['data' => $guest,'code' => 200,'message' => 'Guest was created succefully'];
             return response()->json($response,200);
