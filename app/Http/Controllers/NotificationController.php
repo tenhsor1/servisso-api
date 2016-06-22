@@ -42,8 +42,7 @@ class NotificationController extends Controller
 
         $count = $notifications->count();
 
-        $response = ['code' => 200,'Count' => $count,'data' => $notifications];
-        //Redis::publish(1, 'test');
+        $response = ['code' => 200,'count' => $count,'data' => $notifications];
         return response()->json($response,200);
     }
 
@@ -59,10 +58,12 @@ class NotificationController extends Controller
             $response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
             return response()->json($response,400);
         }
-        \Log::debug($request->input('type'));
-        $result = Notification::whereIn('id', $request->input('ids'))
-                                    ->where('receiver_id', $userRequested->id)
-                                    ->update(array($request->input('type') => true));
+        $result = Notification::where('receiver_id', $userRequested->id);
+        if($request->input('ids')){
+            $result->whereIn('id', $request->input('ids'));
+        }
+
+        $result->update(array($request->input('type') => true));
         $response = ['data' => ['count' => $result]
                     ,'code' => 200
                     ,'message' => 'Records updated succesfully'];

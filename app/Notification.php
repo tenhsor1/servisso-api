@@ -83,12 +83,13 @@ class Notification extends ServissoModel
 
     public function toArray(){
         return [
+            'id'        => $this->id,
             'object'    => $this->object->toArray(),
             'object_type'    => $this->object_type,
             'sender'    => $this->sender->toArray(),
             'verb'      => $this->verb,
             'extra'     => $this->extra,
-            'created'   => $this->created_at,
+            'created'   => $this->created_at->format('Y-m-d\TH:i:s\Z'),
             'is_open'   => $this->is_open ? true : false,
             'is_read'   => $this->is_read ? true : false,
         ];
@@ -123,7 +124,7 @@ class Notification extends ServissoModel
     public static function getMultipleRules(){
         $rules = [
             'type' => ['required', 'in:is_open,is_read']
-            , 'ids' => ['required', 'array']
+            , 'ids' => ['array']
         ];
 
         return $rules;
@@ -133,7 +134,6 @@ class Notification extends ServissoModel
         $messages = [
             'type.required' => 'El tipo de actualización es obligatorio'
             , 'type.in' => 'El tipo debe de ser: [:values]'
-            , 'ids.required' => 'La lista de identificadores es obligatoria'
             , 'ids.array' => 'La lista de identificadores debe de ser un arreglo'
         ];
         return $messages;
