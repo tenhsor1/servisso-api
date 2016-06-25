@@ -20,7 +20,7 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany','services']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany','taskUser','task']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
