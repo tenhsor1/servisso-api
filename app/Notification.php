@@ -5,7 +5,7 @@ namespace App;
 //use Illuminate\Database\Eloquent\Model;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Log;
+use App\Events\NotificationEvent;
 
 class Notification extends ServissoModel
 {
@@ -45,6 +45,8 @@ class Notification extends ServissoModel
     protected $searchFields = [
         'sender',
         'type',
+        'open',
+        'read',
     ];
 
     protected $betweenFields = [
@@ -70,6 +72,27 @@ class Notification extends ServissoModel
       return $this->morphTo();
     }
 
+    public static function boot()
+    {
+        //publish to redis to the receiver id the information needed by the notification
+        Notification::created(function ($notification) {
+            $eventNotification = new NotificationEvent($notification);
+            \Event::fire($eventNotification);
+        });
+    }
+
+    public function toArray(){
+        return [
+            'object'    => $this->object->toArray(),
+            'object_type'    => $this->object_type,
+            'sender'    => $this->sender->toArray(),
+            'verb'      => $this->verb,
+            'extra'     => $this->extra,
+            'created'   => $this->created_at,
+            'is_open'   => $this->is_open ? true : false,
+            'is_read'   => $this->is_read ? true : false,
+        ];
+    }
 
     public static function getRules(){
         $rules = [
@@ -140,6 +163,10 @@ class Notification extends ServissoModel
                     case 'type':
                         //search by the address
                         $query->$where('notifications.type', '=', $search);
+                        break;
+                    case 'open':
+                        //search by the address
+                        $query->$where('notifications.is_open', '=', $search);
                         break;
                 }
                 $where = "orWhere";

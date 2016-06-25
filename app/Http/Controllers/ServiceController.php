@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service;
+use App\Branch;
 use App\ServiceImage;
 use App\Guest;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use App\Extensions\Utils;
 use Validator;
+use App\Mailers\AppMailer;
 
 
 class ServiceController extends Controller
@@ -20,9 +22,9 @@ class ServiceController extends Controller
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
         $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany','services']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
-
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
+		$this->mailer = new AppMailer();
     }
 
     /**
@@ -84,7 +86,7 @@ class ServiceController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {			
         $user = $this->checkAuthUser('user');
         if($user && !is_array($user)){
 
@@ -92,8 +94,8 @@ class ServiceController extends Controller
             $guestId = $request->input('guest_id');
             $user = Guest::find($guestId);
         }
-        if($user){
-
+        if($user){				
+			
 			$rules = Service::getRules();
 			$messages = Service::getMessages();
 
@@ -112,18 +114,55 @@ class ServiceController extends Controller
             $service->phone = $request->input('phone');
             $service->zipcode = $request->input('zipcode');
 
-            $save = $user->services()->save($service);
+            $save = $user->services()->save($service);			
+			
+			$branch = Branch::find($service->branch_id);
+			
             if($save){
+				
+				$baseUrl = \Config::get('app.front_url');
+			 
+				//Si es una branch no registrada(inegi) y tiene email, se envia un email para
+				//que el asociado se registre
+				if($branch->inegi && $branch->email){
+					
+					$company_code = \Crypt::encrypt($branch->company_id);
+					
+					$data = [
+						'btn_url' => $baseUrl.'/auth/sucursal/'.$company_code,
+						'client_name' => $user->name,
+						'created_date' => $service->created_at->format('M d, Y g:i a'),
+						'problem_description' => $service->description,
+						'branch_email' => $branch->email,
+						'branch_name' => $branch->name
+					];				
+					$this->mailer->sendNonRegisteredBranchEmail($data);
+				
+				//Si es una branch registrada
+				}else{
+					
+					$data = [
+						'service_url' => $baseUrl.'/panel/servicios/'.$branch->id.'/'.$service->id,
+						'client_name' => $user->name,
+						'created_date' => $service->created_at->format('M d, Y g:i a'),
+						'problem_description' => $service->description,
+						'user_email' => $branch->company->user->email,
+						'branch_name' => $branch->name
+					];				
+					$this->mailer->sendRegisteredBranchEmail($data);
+				}
+				
                 $tokenImage = \Crypt::encrypt(['service_id' => $service->id
                                                 ,'date' => $service->created_at->format('Y-m-d H:i:s')]);
+												
                 $service->token_image = $tokenImage;
                 return response()->json(['data'=>$service], 200);
+				
             }else{
                 return response()->json([
                     'error' => 'It has occurred an error trying to save the server'
                     ,'code' => 500], 500);
             }
-
 
         }else{
             $errorJSON = ['error'   => 'Bad request'
