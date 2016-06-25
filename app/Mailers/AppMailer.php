@@ -30,7 +30,7 @@ class AppMailer
         Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
             $m->from($this->no_reply['address'], $this->no_reply['name'])
                 ->to($data['branch_email'], $data['branch_name'])
-                ->subject('Alguien require de tus servicios!');
+                ->subject('Alguien requiere de tus servicios!');
         });
     }
 	
@@ -41,8 +41,8 @@ class AppMailer
 	public function sendRegisteredBranchEmail($data){
         Mail::send('emails.registered-branch', $data, function ($m) use ($data){
             $m->from($this->no_reply['address'], $this->no_reply['name'])
-                ->to($data['branch_email'], $data['branch_name'])
-                ->subject('Alguien require de tus servicios!');
+                ->to($data['user_email'], $data['branch_name'])
+                ->subject('Alguien requiere de tus servicios!');
         });
     }
 }
