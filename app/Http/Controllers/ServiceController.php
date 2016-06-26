@@ -20,7 +20,7 @@ class ServiceController extends Controller
 {
     public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['destroy']]);
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'showFromBranch', 'indexPerCompany','taskUser','task']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['index']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
@@ -347,4 +347,49 @@ class ServiceController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
+	
+	
+	public function taskUser($id)
+    {
+		$userRequested = \Auth::User();
+
+        $service = Service::where(['services.userable_id' => $id])
+                            ->with('branch')
+                            ->with('branch.company')
+                            ->get();
+        if($service){
+            return response()->json(['data'=>$service], 200);
+
+        }else{
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
+                            , 'data' => [
+                                'user_id'=> ['The user doesn\'t have this service']
+                                ]];
+            return response()->json($errorJSON, 404);
+        }
+    }
+	
+	public function task($id)
+    {
+		$userRequested = \Auth::User();
+
+        $service = Service::where(['services.id' => $id])
+                            ->with('branch')
+                            ->with('branch.company')
+							->with('images')
+                            ->first();
+        if($service){
+            return response()->json(['data'=>$service], 200);
+
+        }else{
+            $errorJSON = ['error'   => 'The resource doesn\'t exist'
+                            , 'code' => 404
+                            , 'data' => [
+                                'user_id'=> ['The user doesn\'t have this service']
+                                ]];
+            return response()->json($errorJSON, 404);
+        }
+    }
+	
 }
