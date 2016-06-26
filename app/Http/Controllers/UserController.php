@@ -66,7 +66,7 @@ class UserController extends Controller
                         'message' => 'Bad request','code' => 400];
             return response()->json($response,400);
         }
-		
+
 		$fields = \Input::except('code');
 
         $newUser = User::create($fields);
@@ -94,17 +94,17 @@ class UserController extends Controller
                 $newUser->access = $token;
                 $this->mailer->sendVerificationEmail($newUser);
             }
-			
+
 			//Si el request tiene el input code significa que el usuario esta registrando una compañia que es de la inegi.
 			if($request->code){
 				$company_id = \Crypt::decrypt($request->code);
 				$company = Company::find($company_id);
 				$branch = $company->branches[0];
-				
+
 				//Siempre y cuando la branch de la compañia(inegi) sea true, significa que no ha sido tomada
 				if($branch->inegi){
 					$company->user_id = $newUser->id;
-					$branch->inegi = false;					
+					$branch->inegi = false;
 					$branch->save();
 					$company->save();
 				}
@@ -478,7 +478,7 @@ class UserController extends Controller
 			}
 		}
 	}
-	
+
 	public function storeSearched(Request $request){
 		$id = \DB::table('search_log')->insertGetId([
 			"ip" => $request->ip,
@@ -487,23 +487,23 @@ class UserController extends Controller
 			'created_at' => date('Y-m-d h:i:s',time()),
 			'updated_at' => date('Y-m-d h:i:s',time())
 		]);
-		
+
 		$log = new \stdClass;
 		$log->id = $id;
-		
+
 		$response = ['code' => 200,'data' => $log];
 		return response()->json($response,200);
 	}
-	
+
 	public function updateSearched(Request $request, $id){
-		
+
 		$inputs = $request->all();
-		
+
 		if($request->correct_date != null)
 			$inputs['correct_date'] = date('Y-m-d h:i:s',time());
-		
+
 		\DB::table('search_log')->where('id',$id)->update($inputs);
-		
+
 		$response = ['code' => 200];
 		return response()->json($response,200);
 	}
