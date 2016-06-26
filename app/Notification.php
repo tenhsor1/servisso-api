@@ -13,6 +13,10 @@ class Notification extends ServissoModel
     const USER_RELATION = 'App\User';
     const GUEST_RELATION = 'App\Guest';
 
+    const NOTIFICATION_OBJECTS = ['App\Service'];
+    const NOTIFICATION_OBJECTS_ALIAS = ['Service'];
+    const NOTIFICATION_OBJECTS_MAP = ['Service' => 'App\Service'];
+
     /**
      * The database table used by the model.
      *
@@ -123,7 +127,7 @@ class Notification extends ServissoModel
 
     public static function getMultipleRules(){
         $rules = [
-            'type' => ['required', 'in:is_open,is_read']
+            'type' => ['required', 'in:is_open,is_read,Service']
             , 'ids' => ['array']
         ];
 
