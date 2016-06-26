@@ -37,7 +37,7 @@
 				<tbody>
 					<tr>
 						<td style="padding-left:18px; padding-right:18px;font-family:Helvetica, arial, sans-serif; text-align:center;  color:#ffffff; font-weight: 300;" width="auto" align="center" valign="middle" height="36">
-							<a style="color: #ffffff; text-align:center;text-decoration: none;" href="{{ $btn_url }}" st-content="download" tabindex="-1">
+							<a style="color: #ffffff; text-align:center;text-decoration: none;" href="{{ $btn_url }}?email={{$branch_email}}" st-content="download" tabindex="-1">
 								<span style="color: #ffffff; font-weight: 300;">
 									Registrarme
 								</span>
