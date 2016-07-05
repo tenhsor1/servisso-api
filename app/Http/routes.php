@@ -28,6 +28,8 @@ Route::group(['prefix' => 'v1'], function()
 
 
 	Route::post('users/predict', 'UserController@predict');
+	Route::post('users/storeSearched', 'UserController@storeSearched');
+	Route::put('users/updateSearched/{id}', 'UserController@updateSearched');
     Route::get('users/confirm/{code}','UserController@confirm');
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::put('users/{user_id}/password', 'UserController@updatePassword');
@@ -44,6 +46,8 @@ Route::group(['prefix' => 'v1'], function()
     Route::resource('companies','CompanyController',['only' => ['index','update','destroy','show','store']]);
 
     Route::get('branches/services/{serviceId}','ServiceController@showFromBranch');//to get a service from company perspective
+	Route::get('services/{usereableId}/tasks','ServiceController@taskUser');//to get all request services
+	Route::get('task/{usereableId}','ServiceController@task');//to get a request services
     Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
     Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
 
@@ -63,6 +67,9 @@ Route::group(['prefix' => 'v1'], function()
 	Route::resource('states', 'StateController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('emails', 'EmailController', ['only' => ['store']]);
 	Route::post('images/{id}', 'CompanyController@image');
+
+    Route::get('notifications', 'NotificationController@index');
+    Route::put('notifications', 'NotificationController@updateMultiple');
 
 });
 
