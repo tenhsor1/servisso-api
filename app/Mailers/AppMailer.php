@@ -1,12 +1,16 @@
 <?php
 namespace App\Mailers;
 use Mail;
+use App\Jobs\SendEmailJob;
+
 /**
 * Wrapper of distinct functions for sending emails
 *
 */
 class AppMailer
 {
+
+	use \Illuminate\Foundation\Bus\DispatchesJobs;
 
     function __construct()
     {
@@ -15,34 +19,53 @@ class AppMailer
     }
 
     public function sendVerificationEmail($user){
-        Mail::send('emails.verify', ['code' => $user->token, 'baseUrl' => $this->baseUrl], function ($m) use ($user){
-            $m->from($this->no_reply['address'], $this->no_reply['name'])
-                ->to($user->email, $user->name)
-                ->subject('Verifica tu e-mail para continuar');
-        });
+		
+		$function = function() use ($user){
+			Mail::send('emails.verify', ['code' => $user->token, 'baseUrl' => $this->baseUrl], function ($m) use ($user){
+				$m->from($this->no_reply['address'], $this->no_reply['name'])
+					->to($user->email, $user->name)
+					->subject('Verifica tu e-mail para continuar');
+			});
+		};
+		
+		$job = (new SendEmailJob($function,'user-verification-email'))->onQueue('emails');
+		$this->dispatch($job);
+		
     }
 	
 	/**
-	* Método para mandar un email para cuando una branch no registrada(inegi) recibe
+	* Método para mandar un email cuando una branch no registrada(inegi) recibe
 	* una solicitud de cotización
 	*/
 	public function sendNonRegisteredBranchEmail($data){
-        Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
-            $m->from($this->no_reply['address'], $this->no_reply['name'])
-                ->to($data['branch_email'], $data['branch_name'])
-                ->subject('Alguien requiere de tus servicios!');
-        });
+		
+		$function = function() use ($data){
+			Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
+				$m->from($this->no_reply['address'], $this->no_reply['name'])
+					->to($data['branch_email'], $data['branch_name'])
+					->subject('Alguien requiere de tus servicios!');
+			});
+		};
+		
+		$job = (new SendEmailJob($function,'service-requested-email-inegi'))->onQueue('emails');
+		$this->dispatch($job);
     }
 	
 	/**
-	* Método para mandar un email para cuando una branch registrada(no inegi) recibe
+	* Método para mandar un email cuando una branch registrada(no inegi) recibe
 	* una solicitud de cotización
 	*/
 	public function sendRegisteredBranchEmail($data){
-        Mail::send('emails.registered-branch', $data, function ($m) use ($data){
-            $m->from($this->no_reply['address'], $this->no_reply['name'])
-                ->to($data['user_email'], $data['branch_name'])
-                ->subject('Alguien requiere de tus servicios!');
-        });
+		
+		$function = function() use ($data){		
+			Mail::send('emails.registered-branch', $data, function ($m) use ($data){
+				$m->from($this->no_reply['address'], $this->no_reply['name'])
+					->to($data['user_email'], $data['branch_name'])
+					->subject('Alguien requiere de tus servicios!');
+			});
+		};
+
+		$job = (new SendEmailJob($function,'service-requested-email'))->onQueue('emails');
+		$this->dispatch($job);
     }
 }
