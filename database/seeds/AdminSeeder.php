@@ -31,7 +31,7 @@ class AdminSeeder extends Seeder {
                 'password'=> 'rada.123',
                 'name'=>'Radames',
                 'last_name'=>'Ramirez',
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->address,
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
@@ -40,21 +40,21 @@ class AdminSeeder extends Seeder {
                 'update_id'=>0
             ]
         );
-  
+
         Admin::create(
             [
                 'email'=>'ernesto.noriega@gmail.com',
                 'password'=>'neto.123',
                 'name'=>'Ernesto',
                 'last_name'=>'Noriega',
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->address,
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
                 'role_id'=>1,
                 'update_id'=>0
-				
+
             ]
         );
 
@@ -64,13 +64,13 @@ class AdminSeeder extends Seeder {
                 'password'=>'rongo.123',
                 'name'=>'Rodrigo',
                 'last_name'=>'Gutierrez',
-                'phone'=>$faker->phoneNumber,
+                'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->address,
                 'zipcode'=>$faker->postcode,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'country_id'=>$faker->numberBetween(1,$countryIds),
                 'role_id'=>1,
-                'update_id'=>0  
+                'update_id'=>0
             ]
         );
     }

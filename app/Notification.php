@@ -88,9 +88,9 @@ class Notification extends ServissoModel
     public function toArray(){
         return [
             'id'        => $this->id,
-            'object'    => $this->object->toArray(),
+            'object'    => $this->object ? $this->object->toArray() : null,
             'object_type'    => $this->object_type,
-            'sender'    => $this->sender->toArray(),
+            'sender'    => $this->sender ? $this->sender->toArray() : null,
             'verb'      => $this->verb,
             'extra'     => $this->extra,
             'created'   => $this->created_at->format('Y-m-d\TH:i:s\Z'),

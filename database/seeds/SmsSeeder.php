@@ -29,7 +29,7 @@ class SmsSeeder extends Seeder {
             Sms::create(
                 [
                     'message'=>$faker->text(200),
-                    'to'=>$faker->e164PhoneNumber,
+                    'to'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                     'service_id'=>$faker->unique()->numberBetween(1,$numServices)
                 ]
             );
