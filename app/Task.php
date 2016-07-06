@@ -140,11 +140,14 @@ class Task extends ServissoModel
         return null;
     }
 
-    public function getNeareastTask(){
+    public function getNeareastBranches($numberBranches=20){
       return $this->select('branches.*')
             ->join('branches','branches.id','>',\DB::raw('0'))
+            ->join('companies', 'branches.company_id', '=', 'companies.id')
             ->where('tasks.id', $this->id)
+            ->where('companies.category_id', $this->category_id)
             ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
+            ->take($numberBranches)
             ->get();
     }
 
