@@ -140,6 +140,14 @@ class Task extends ServissoModel
         return null;
     }
 
+    public function getNeareastTask(){
+      return $this->select('branches.*')
+            ->join('branches','branches.id','>',\DB::raw('0'))
+            ->where('tasks.id', $this->id)
+            ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
+            ->get();
+    }
+
     public function scopeWhereUser($query, $userId)
     {
         return $query->leftJoin('branches','branches.id','=','services.branch_id')
