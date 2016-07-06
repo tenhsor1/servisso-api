@@ -52,7 +52,6 @@ class JWTAuth extends BaseJWTMiddleware
 
             if (! $user) {
                 if($numRolesRemaining == 0){
-                    \Log::debug('wooooooooooooooooooooot');
                     return $this->respond('tymon.jwt.user_not_found', 'Unauthorized', 403);
                 }
             }else{
