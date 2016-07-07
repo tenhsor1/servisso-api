@@ -4,10 +4,16 @@ namespace App\Jobs;
 
 use App\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\SerializesModels;
+use SuperClosure\Serializer;
 use Mail;
 
-class SendEmailJob extends Job implements SelfHandling
+class SendEmailJob extends Job implements SelfHandling, ShouldQueue
 {
+	use InteractsWithQueue,SerializesModels;
+	
 	protected $email_function;
 	protected $type;
 	
@@ -29,6 +35,8 @@ class SendEmailJob extends Job implements SelfHandling
      */
     public function handle()
     {
-		call_user_func($this->email_function);
+		$serializer = new Serializer();
+		$unserialized = $serializer->unserialize($this->email_function);
+		call_user_func($unserialized);*/
     }
 }

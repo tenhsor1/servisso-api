@@ -2,6 +2,7 @@
 namespace App\Mailers;
 use Mail;
 use App\Jobs\SendEmailJob;
+use SuperClosure\Serializer;
 
 /**
 * Wrapper of distinct functions for sending emails
@@ -47,7 +48,9 @@ class AppMailer
 			});
 		};
 		
-		$job = (new SendEmailJob($function,'service-requested-email-inegi'))->onQueue('emails');
+		$serializer = new Serializer();	
+		$serialized = $serializer->serialize($function);		
+		$job = (new SendEmailJob($serialized,'service-requested-email-inegi'))->onQueue('emails')->delay(15);
 		$this->dispatch($job);
     }
 	

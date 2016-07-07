@@ -15,7 +15,8 @@
         "phpseclib/phpseclib": "~0.3.10",
         "league/flysystem-aws-s3-v3": "^1.0",
 	"predis/predis": "~1.0",
-        "pda/pheanstalk": "~3.0"
+        "pda/pheanstalk": "~3.0",
+        "jeremeamia/superclosure": "^2.2"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.5",
