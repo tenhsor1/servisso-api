@@ -5,24 +5,17 @@ namespace App;
 //use Illuminate\Database\Eloquent\Model;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Events\NotificationEvent;
+use Log;
+use App\Notification;
 
-class Notification extends ServissoModel
+class Task extends ServissoModel
 {
-    const SERVICE_RELATION = 'App\Service';
-    const USER_RELATION = 'App\User';
-    const GUEST_RELATION = 'App\Guest';
-
-    const NOTIFICATION_OBJECTS = ['App\Service'];
-    const NOTIFICATION_OBJECTS_ALIAS = ['Service'];
-    const NOTIFICATION_OBJECTS_MAP = ['Service' => 'App\Service'];
-
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'notifications';
+    protected $table = 'tasks';
     use SoftDeletes;
 
     /**
@@ -30,9 +23,8 @@ class Notification extends ServissoModel
      *
      * @var array
      */
-    protected $guarded = [  'branch_id'
-                            , 'sender_id'
-                            , 'sender_type'
+    protected $guarded = ['user_id'
+                            , 'category_id'
                         ];
 
     /**
@@ -40,17 +32,14 @@ class Notification extends ServissoModel
      *
      * @var array
      */
-    protected $hidden = [   'object_type'
-                            , 'sender_type'
-                            , 'deleted_at'
-                            , 'updated_at'
+    protected $hidden = [
+                            'deleted_at'
                         ];
 
     protected $searchFields = [
-        'sender',
-        'type',
-        'open',
-        'read',
+        'id',
+        'status',
+        'description',
     ];
 
     protected $betweenFields = [
@@ -63,50 +52,64 @@ class Notification extends ServissoModel
         'updated'
     ];
 
-    public function receiver(){
-        //1 service is related to one branch
-        return $this->belongsTo('App\User');
+  public static function boot()
+  {
+      /*Task::created(function ($task) {
+        $task->addNotification();
+      });*/
+  }
+
+  public function addNotification(){
+    /*$this->id;
+    Notification::SERVICE_RELATION;*/
+    $receivers = $this->getOwnerBranch();
+    foreach ($receivers as $key => $receiver) {
+      $notification = new Notification;
+      $notification->receiver_id = $receiver->id;
+      $notification->object_id = $this->id;
+      $notification->object_type = Notification::SERVICE_RELATION;
+      $notification->sender_id = $this->userable_id;
+      $notification->sender_type = $this->userable_type;
+      $notification->verb = 'NEW';
+      $notification->save();
+    }
+  }
+
+  public function user(){
+      //1 task is made by 1 user
+      return $this->belongsTo('App\User');
+  }
+
+    public function category(){
+        //a task has 1 category
+        return $this->hasOne('App\Category');
     }
 
-    public function sender(){
+  public function userable(){
       return $this->morphTo();
-    }
+  }
 
-    public function object(){
-      return $this->morphTo();
-    }
-
-    public static function boot()
+  public function branches()
     {
-        //publish to redis to the receiver id the information needed by the notification
-        Notification::created(function ($notification) {
-            $eventNotification = new NotificationEvent($notification);
-            \Event::fire($eventNotification);
-        });
+        return $this->hasMany('App\TaskBranch');
     }
 
-    public function toArray(){
-        return [
-            'id'        => $this->id,
-            'object'    => $this->object ? $this->object->toArray() : null,
-            'object_type'    => $this->object_type,
-            'sender'    => $this->sender ? $this->sender->toArray() : null,
-            'verb'      => $this->verb,
-            'extra'     => $this->extra,
-            'created'   => $this->created_at->format('Y-m-d\TH:i:s\Z'),
-            'is_open'   => $this->is_open ? true : false,
-            'is_read'   => $this->is_read ? true : false,
-        ];
-    }
+  public function notifications(){
+    return $this->morphMany('App\Task', 'object');
+  }
+
+  public function images(){
+    return  $this->hasMany('App\TaskImage');
+  }
 
     public static function getRules(){
         $rules = [
-            'receiver_id' => ['required']
-            , 'object_id' => ['required']
-            , 'object_type' => ['required']
-            , 'sender_id' => ['required']
-            , 'sender_type' => ['required']
-            , 'type' => ['required']
+            'description' => ['required','max:500', 'min:30'],
+            'category_id' => ['required','exists:categories,id'],
+            'date' => ['required','date_format:Y-m-d H:i:s', 'after:yesterday'],
+            'delivery_service' => ['required', 'boolean'],
+            'latitude' => ['required', 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
+            'longitude' => ['required', 'regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/'],
         ];
 
         return $rules;
@@ -114,33 +117,43 @@ class Notification extends ServissoModel
 
     public static function getMessages(){
         $messages = [
-            'receiver_id.required' => 'El receptor es obligatorio'
-            , 'object_id.required' => 'El id del objeto de la notificación es obligatoria'
-            , 'object_type.required' => 'El tipo del objeto de la notificación es obligatoria'
-            , 'sender_id.required' => 'El id del emisor de la notificación es obligatoria'
-            , 'sender_type.required' => 'El tipo del emisor de la notificación es obligatoria'
-            , 'type.required' => 'El tipo de la notificación es obligatoria'
+            'description.required' => 'Descripción es obligatoria',
+            'description.max' => 'Descripción debe tener máximo :max caracteres',
+            'description.min' => 'Descripción debe tener minimo :min caracteres',
+            'category_id.required' => 'La categoria es obligatoria',
+            'category.exists' => 'La categoria no existe',
+            'date.required' => 'la fecha es obligatoria',
+            'date.date_format' => 'la fecha debe de ser en formato Y-m-d H:i:s',
+            'date.after' => 'la fecha no puede ser anterior a hoy',
+            'delivery_service.required' => 'delivery_service es obligatorio',
+            'delivery_service.boolean' => 'delivery_service debe de ser booleano',
+            'latitude.required' => 'La latitud es requerida',
+            'longitude.required' => 'La longitud es requerida',
+            'latitude.regex' => 'La latitud no es valida',
+            'longitude.regex' => 'La longitud no es valida',
         ];
 
         return $messages;
     }
 
-    public static function getMultipleRules(){
-        $rules = [
-            'type' => ['required', 'in:is_open,is_read,Service']
-            , 'ids' => ['array']
-        ];
-
-        return $rules;
+    public function setGeomAttribute($value) {
+        //position 0 = longitude, 1 = latitude
+        $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
     }
 
-    public static function getMultipleMessages(){
-        $messages = [
-            'type.required' => 'El tipo de actualización es obligatorio'
-            , 'type.in' => 'El tipo debe de ser: [:values]'
-            , 'ids.array' => 'La lista de identificadores debe de ser un arreglo'
-        ];
-        return $messages;
+    public function getGeomAttribute(){
+        return null;
+    }
+
+    public function getNeareastBranches($numberBranches=20){
+      return $this->select('branches.*')
+            ->join('branches','branches.id','>',\DB::raw('0'))
+            ->join('companies', 'branches.company_id', '=', 'companies.id')
+            ->where('tasks.id', $this->id)
+            ->where('companies.category_id', $this->category_id)
+            ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
+            ->take($numberBranches)
+            ->get();
     }
 
     /**
@@ -160,17 +173,16 @@ class Notification extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'sender':
-                        //search by the sender id
-                        $query->$where('notifications.sender_id', '=', $search);
+                    case 'description':
+                        //search by the description of the task
+                        $query->$where('tasks.description', 'LIKE', '%'.$search.'%');
                         break;
-                    case 'type':
-                        //search by the address
-                        $query->$where('notifications.type', '=', $search);
+                    case 'id':
+                        //search for the address of the branch related to the service
+                        $query->$where('tasks.id', '=', $search);
                         break;
-                    case 'open':
-                        //search by the address
-                        $query->$where('notifications.is_open', '=', $search);
+                    case 'status':
+                        $query->$where('tasks.status', '=', $search);
                         break;
                 }
                 $where = "orWhere";
@@ -206,16 +218,16 @@ class Notification extends ServissoModel
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->$where('services.created_at', '>=', $start);
+                            $query->$where('tasks.created_at', '>=', $start);
                         if($end)
-                            $query->$where('services.created_at', '<=', $end);
+                            $query->$where('tasks.created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->$where('services.updated_at', '>=', $start);
+                            $query->$where('tasks.updated_at', '>=', $start);
                         if($end)
-                            $query->$where('services.updated_at', '<=', $end);
+                            $query->$where('tasks.updated_at', '<=', $end);
                         break;
                 }
             }
@@ -239,32 +251,15 @@ class Notification extends ServissoModel
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
                     case 'created':
-                        $query->orderBy('created_at', $orderType);
+                        $query->orderBy('tasks.created_at', $orderType);
                         break;
 
                     case 'updated':
-                        $query->orderBy('updated_at', $orderType);
+                        $query->orderBy('tasks.updated_at', $orderType);
                         break;
                 }
                 $cont++;
             }
-        }
-        return $query;
-    }
-
-    public function scopeLimit($query, $request){
-        if($this->limitParametersAreValid($request)){
-            $limit = $request->input('limit');
-            if($page = $request->input('page')){
-                $page = $page - 1;
-                $page = $page * $limit;
-                $query->skip($page)->take($limit);
-            }else{
-                $query->take($limit);
-            }
-        }else{
-            //if not limit passed, then just show 2000 results as max
-            $query->take(100);
         }
         return $query;
     }

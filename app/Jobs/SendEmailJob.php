@@ -1,33 +1,28 @@
 <?php
-
 namespace App\Jobs;
-
 use App\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\SerializesModels;
-use SuperClosure\Serializer;
 use Mail;
-
 class SendEmailJob extends Job implements SelfHandling, ShouldQueue
 {
-	use InteractsWithQueue,SerializesModels;
-	
-	protected $email_function;
-	protected $type;
-	
+	protected $functionName;
+	protected $data;
+    protected $noReply;
+    protected $baseUrl;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($function,$type)
+    public function __construct($functionName, $data)
     {
-        $this->email_function = $function;
-		$this->type = $type;
+        \Log::debug('cooooooons');
+        $this->functionName = $functionName;
+        $this->data = $data;
+        $this->noReply = \Config::get('mail.from_no_reply');
+        $this->baseUrl = \Config::get('app.front_url');
     }
-
     /**
      * Execute the job.
      *
@@ -35,8 +30,31 @@ class SendEmailJob extends Job implements SelfHandling, ShouldQueue
      */
     public function handle()
     {
-		$serializer = new Serializer();
-		$unserialized = $serializer->unserialize($this->email_function);
-		call_user_func($unserialized);*/
+        $functionName = $this->functionName;
+		$this->$functionName();
+    }
+    public function sendVerificationEmail(){
+        $data = $this->data;
+        Mail::send('emails.verify', ['code' => $this->data['token'], 'baseUrl' => $this->baseUrl], function ($m) use ($data){
+            $m->from($this->noReply['address'], $this->noReply['name'])
+                ->to($data['email'], $data['name'])
+                ->subject('Verifica tu e-mail para continuar');
+        });
+    }
+    public function sendNonRegisteredBranchEmail(){
+        $data = $this->data;
+        Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
+                ->to($data['branch_email'], $data['branch_name'])
+                ->subject('Alguien requiere de tus servicios!');
+        });
+    }
+    public function sendRegisteredBranchEmail(){
+        $data = $this->data;
+        Mail::send('emails.registered-branch', $data, function ($m) use ($data){
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
+                ->to($data['user_email'], $data['branch_name'])
+                ->subject('Alguien requiere de tus servicios!');
+        });
     }
 }

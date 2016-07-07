@@ -66,7 +66,7 @@ class Service extends ServissoModel
   public function addNotification(){
     /*$this->id;
     Notification::SERVICE_RELATION;*/
-    /*$receivers = $this->getOwnerBranch();
+    $receivers = $this->getOwnerBranch();
     foreach ($receivers as $key => $receiver) {
       $notification = new Notification;
       $notification->receiver_id = $receiver->id;
@@ -76,7 +76,7 @@ class Service extends ServissoModel
       $notification->sender_type = $this->userable_type;
       $notification->verb = 'NEW';
       $notification->save();
-    }*/
+    }
   }
 
   public function branch(){
