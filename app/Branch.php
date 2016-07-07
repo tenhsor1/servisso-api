@@ -59,6 +59,12 @@ class Branch extends ServissoModel
         return $this->hasMany('App\Service');
     }
 
+    public function tasks()
+    {
+        // 1 branch can have multiple services
+        return $this->hasMany('App\TaskBranch');
+    }
+
     public function state()
     {
         // 1 branch can have multiple services

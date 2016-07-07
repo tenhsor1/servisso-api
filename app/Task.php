@@ -89,8 +89,13 @@ class Task extends ServissoModel
       return $this->morphTo();
   }
 
+  public function branches()
+    {
+        return $this->hasMany('App\TaskBranch');
+    }
+
   public function notifications(){
-    return $this->morphMany('App\Service', 'object');
+    return $this->morphMany('App\Task', 'object');
   }
 
   public function images(){
@@ -149,34 +154,6 @@ class Task extends ServissoModel
             ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
             ->take($numberBranches)
             ->get();
-    }
-
-    public function scopeWhereUser($query, $userId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->leftJoin('users','users.id','=','companies.user_id')
-              ->where('users.id', $userId)
-              ->select('services.*');
-    }
-
-    public function scopeWhereCompany($query, $companyId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->leftJoin('companies','companies.id','=','branches.company_id')
-              ->where('companies.id', $companyId)
-              ->select('services.*',
-                      'branches.address AS branch_address',
-                      'branches.phone AS branch_phone');
-    }
-
-    public function scopeWhereBranch($query, $branchId)
-    {
-        return $query->leftJoin('branches','branches.id','=','services.branch_id')
-              ->where('branches.id', $branchId)
-              ->select('services.*',
-                      'branches.address AS branch_address',
-                      'branches.phone AS branch_phone');
     }
 
     /**

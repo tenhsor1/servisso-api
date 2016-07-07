@@ -8,10 +8,12 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Task;
 use App\TaskImage;
+use App\TaskBranch;
 use App\Mailers\AppMailer;
 use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
+use App\Jobs\SendFunctionJob;
 
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -77,6 +79,7 @@ class TaskController extends Controller
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){
+            $this->sendTaskToBranches($task);
             $tokenImage = \Crypt::encrypt(['task_id' => $task->id
                                                 ,'date' => $task->created_at->format('Y-m-d H:i:s')]);
             $task->token_image = $tokenImage;
@@ -191,5 +194,21 @@ class TaskController extends Controller
             return $response;
         }
         return ['code' => 200];
+    }
+
+    private function sendTaskToBranches($task){
+        $function = function() use ($task){
+            $branches = $task->getNeareastBranches();
+            foreach ($branches as $key => $branch) {
+                $taskBranch = new TaskBranch;
+                $taskBranch->task_id = $task->id;
+                $taskBranch->branch_id = $branch->id;
+                $taskBranch->status = 0;
+                $taskBranch->save();
+            }
+        };
+
+        $job = (new SendFunctionJob($function,'task-assign-branches'))->onQueue('tasks');
+        $this->dispatch($job);
     }
 }
