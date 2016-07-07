@@ -14,42 +14,22 @@ class AppMailer
 
     function __construct()
     {
-        $this->no_reply = \Config::get('mail.from_no_reply');
+        $this->noReply = \Config::get('mail.from_no_reply');
         $this->baseUrl = \Config::get('app.front_url');
     }
 
-/*    public function sendVerificationEmail($user){
-
-        $function = function() use ($user){
-            Mail::send('emails.verify', ['code' => $user->token, 'baseUrl' => $this->baseUrl], function ($m) use ($user){
-                $m->from($this->no_reply['address'], $this->no_reply['name'])
-                    ->to($user->email, $user->name)
-                    ->subject('Verifica tu e-mail para continuar');
-            });
-        };
-
-        $job = (new SendEmailJob($function,'user-verification-email'))->onQueue('emails');
+    public function pushToQueue($function, $data){
+        $job = (new SendEmailJob('sendVerificationEmail',$data))->onQueue('emails');
         $this->dispatch($job);
-
     }
-*/
 
-    public function sendVerificationEmail($user){
+    public function sendVerificationEmail($data){
 
-		/*$function = function() use ($user){
-			Mail::send('emails.verify', ['code' => $user->token, 'baseUrl' => $this->baseUrl], function ($m) use ($user){
-				$m->from($this->no_reply['address'], $this->no_reply['name'])
-					->to($user->email, $user->name)
-					->subject('Verifica tu e-mail para continuar');
-			});
-		};*/
-        $data = [
-            'token' => $user->token,
-            'email' => $user->email,
-            'name'  => $user->name,
-        ];
-		$job = (new SendEmailJob('sendVerificationEmail',$data))->onQueue('emails');
-		$this->dispatch($job);
+        Mail::send('emails.verify', ['code' => $data['token'], 'baseUrl' => $this->baseUrl], function ($m) use ($data){
+            $m->from($this->noReply['address'], $this->noReply['name'])
+                ->to($data['email'], $data['name'])
+                ->subject('Verifica tu e-mail para continuar');
+        });
     }
 
 	/**
@@ -58,8 +38,11 @@ class AppMailer
 	*/
 	public function sendNonRegisteredBranchEmail($data){
 
-		$job = (new SendEmailJob('sendNonRegisteredBranchEmail',$data))->onQueue('emails');
-		$this->dispatch($job);
+		Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
+                ->to($data['branch_email'], $data['branch_name'])
+                ->subject('Alguien requiere de tus servicios!');
+        });
     }
 
 	/**
@@ -68,8 +51,11 @@ class AppMailer
 	*/
 	public function sendRegisteredBranchEmail($data){
 
-		$job = (new SendEmailJob('sendRegisteredBranchEmail',$data))->onQueue('emails');
-		$this->dispatch($job);
+		Mail::send('emails.registered-branch', $data, function ($m) use ($data){
+            $m->from($this->no_reply['address'], $this->no_reply['name'])
+                ->to($data['user_email'], $data['branch_name'])
+                ->subject('Alguien requiere de tus servicios!');
+        });
     }
 
     /**
