@@ -60,12 +60,12 @@ class UserController extends Controller
 			return response()->json($response,400);
 		}
 
-        $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
+        /*$validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
         if(!$validCaptcha){
             $response = ['error' => ['captcha' => ['El captcha no es válido']],
                         'message' => 'Bad request','code' => 400];
             return response()->json($response,400);
-        }
+        }*/
 
 		$fields = \Input::except('code');
 
@@ -92,7 +92,12 @@ class UserController extends Controller
                 $token = JWTAuth::fromUser($newUser,$extraClaims);
                 $reflector = new \ReflectionClass('JWTAuth');
                 $newUser->access = $token;
-                $this->mailer->sendVerificationEmail($newUser);
+                $this->mailer->pushToQueue('sendVerificationEmail', [
+                    'token' => $newUser->token,
+                    'email' => $newUser->email,
+                    'name'  => $newUser->name,
+                ]);
+                //$this->mailer->sendVerificationEmail($newUser);
             }
 
 			//Si el request tiene el input code significa que el usuario esta registrando una compañia que es de la inegi.
