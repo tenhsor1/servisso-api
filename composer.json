@@ -14,7 +14,7 @@
         "intervention/image": "^2.3",
         "phpseclib/phpseclib": "~0.3.10",
         "league/flysystem-aws-s3-v3": "^1.0",
-	"predis/predis": "~1.0",
+	    "predis/predis": "~1.0",
         "pda/pheanstalk": "~3.0"
     },
     "require-dev": {
