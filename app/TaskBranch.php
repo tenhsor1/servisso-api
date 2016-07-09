@@ -7,6 +7,7 @@ use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
 use App\Notification;
+use App\TaskBranchLog;
 
 class TaskBranch extends ServissoModel
 {
@@ -54,9 +55,15 @@ class TaskBranch extends ServissoModel
 
   public static function boot()
   {
-      /*Task::created(function ($task) {
-        $task->addNotification();
-      });*/
+      TaskBranch::created(function ($taskBranch) {
+        $taskBranch->addLog('SENT');
+        //$taskBranch->addNotification();
+      });
+  }
+
+  public function addLog($type){
+    $log = new TaskBranchLog(['type' => $type]);
+    $this->logs()->save($log);
   }
 
   public function addNotification(){
@@ -87,5 +94,9 @@ class TaskBranch extends ServissoModel
 
     public function notifications(){
         return $this->morphMany('App\TaskBranch', 'object');
+    }
+
+    public function logs(){
+      return $this->hasMany('App\TaskBranchLog');
     }
 }

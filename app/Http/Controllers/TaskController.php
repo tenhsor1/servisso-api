@@ -197,18 +197,13 @@ class TaskController extends Controller
     }
 
     private function sendTaskToBranches($task){
-        $function = function() use ($task){
-            $branches = $task->getNeareastBranches();
-            foreach ($branches as $key => $branch) {
-                $taskBranch = new TaskBranch;
-                $taskBranch->task_id = $task->id;
-                $taskBranch->branch_id = $branch->id;
-                $taskBranch->status = 0;
-                $taskBranch->save();
-            }
-        };
-
-        $job = (new SendFunctionJob($function,'task-assign-branches'))->onQueue('tasks');
-        $this->dispatch($job);
+        $branches = $task->getNeareastBranches();
+        foreach ($branches as $key => $branch) {
+            $taskBranch = new TaskBranch;
+            $taskBranch->task_id = $task->id;
+            $taskBranch->branch_id = $branch->id;
+            $taskBranch->status = 0;
+            $taskBranch->save();
+        }
     }
 }
