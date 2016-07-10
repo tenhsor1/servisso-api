@@ -80,10 +80,11 @@ class TaskController extends Controller
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){
-            $this->sendTaskToBranches($task);
+            $numberBranches = $this->sendTaskToBranches($task);
             $tokenImage = \Crypt::encrypt(['task_id' => $task->id
                                                 ,'date' => $task->created_at->format('Y-m-d H:i:s')]);
             $task->token_image = $tokenImage;
+            $task->branches_sent = $numberBranches;
             $response = ['data' => $task,'code' => 200,'message' => 'Task was created succefully'];
             return response()->json($response,200);
         }
