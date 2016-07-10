@@ -82,7 +82,7 @@ class Task extends ServissoModel
 
     public function category(){
         //a task has 1 category
-        return $this->hasOne('App\Category');
+        return $this->belongsTo('App\Category');
     }
 
   public function userable(){
