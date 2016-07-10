@@ -136,7 +136,7 @@ class ServiceController extends Controller
 						'branch_email' => $branch->email,
 						'branch_name' => $branch->name
 					];
-					$this->mailer->sendNonRegisteredBranchEmail($data);
+					$this->mailer->pushToQueue('sendNonRegisteredBranchEmail', $data);
 
 				//Si es una branch registrada
 				}else{
@@ -149,7 +149,7 @@ class ServiceController extends Controller
 						'user_email' => $branch->company->user->email,
 						'branch_name' => $branch->name
 					];
-					$this->mailer->sendRegisteredBranchEmail($data);
+                    $this->mailer->pushToQueue('sendRegisteredBranchEmail', $data);
 				}
 
                 $tokenImage = \Crypt::encrypt(['service_id' => $service->id

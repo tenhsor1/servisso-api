@@ -92,7 +92,12 @@ class UserController extends Controller
                 $token = JWTAuth::fromUser($newUser,$extraClaims);
                 $reflector = new \ReflectionClass('JWTAuth');
                 $newUser->access = $token;
-                $this->mailer->sendVerificationEmail($newUser);
+                $this->mailer->pushToQueue('sendVerificationEmail', [
+                    'token' => $newUser->token,
+                    'email' => $newUser->email,
+                    'name'  => $newUser->name,
+                ]);
+                //$this->mailer->sendVerificationEmail($newUser);
             }
 
 			//Si el request tiene el input code significa que el usuario esta registrando una compañia que es de la inegi.
