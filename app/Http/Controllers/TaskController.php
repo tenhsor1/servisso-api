@@ -210,8 +210,7 @@ class TaskController extends Controller
         }
         \Log::debug($task->id);
         //then we get the branches branch, company and user information
-        $taskDetail = Task::where(['id' => $task->id])->with('branches.branch.company.user')->get();
-        $taskDetail = $taskDetail[0];
+        $taskDetail = Task::where(['id' => $task->id])->with('branches.branch.company.user')->first();
         $branchesTask = $taskDetail['branches'];
         foreach ($branchesTask as $key => $branchTask) {
 
