@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Task;
+use App\Branch;
 use App\TaskImage;
 use App\TaskBranch;
+use App\TaskBranchQuote;
 use App\Mailers\AppMailer;
 use Validator;
 use JWTAuth;
@@ -22,7 +24,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'store']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'store', 'storeQuote']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -88,10 +90,9 @@ class TaskController extends Controller
             $response = ['data' => $task,'code' => 200,'message' => 'Task was created succefully'];
             return response()->json($response,200);
         }
-        $response = ['error' => 'It has occurred an error trying to save the branch','code' => 500];
+        $response = ['error' => 'It has occurred an error trying to save the task','code' => 500];
         return response()->json($response,500);
     }
-
 
     public function setImages(Request $request, $taskId){
 
@@ -126,6 +127,53 @@ class TaskController extends Controller
             return response()->json($response,500);
         }
 
+    }
+
+    public function storeQuote(Request $request, $taskId){
+        $messages = TaskBranchQuote::getMessages();
+        $rules = TaskBranchQuote::getRules();
+
+        $v = Validator::make($request->all(),$rules,$messages);
+
+        if($v->fails()){
+            $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+            return response()->json($response,400);
+        }
+        $taskBranchId = $request->input('task_branch_id');
+        $taskBranch = TaskBranch::find($taskBranchId);
+
+        $userRequested = \Auth::User();
+        $userBranch = $taskBranch->getOwnerBranch();
+        //If the user is not the owner of the branch, then return a 403
+        if($userRequested->id != $userBranch->id){
+            $response = ['error' => 'Unauthorized',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested add a quote for task: %s with task branch dont own: %s. Real owner: %s",
+                                $userRequested->id, $taskId, $taskBranchId, $userBranch->id));
+            return response()->json($response,403);
+        }
+
+        //check that the task id in the url matches the task_id from task_branch_id
+        if($taskBranch->task_id != $taskId){
+            $response = ['error' => 'Unauthorized',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested add a quote for task: %s with task branch: %s. the taskes dont mach: Real task %s",
+                                $userRequested->id, $taskId, $taskBranchId, $taskBranch->task_id));
+            return response()->json($response,403);
+        }
+
+        $quote = new TaskBranchQuote;
+        $quote->description = $request->input('description');
+        $quote->price = $request->input('price');
+
+        $savedQuote = $taskBranch->quotes()->save($quote);
+        if($savedQuote){
+            $this->sendTaskQuoteEmail($taskBranch, $savedQuote);
+            $response = ['data' => $savedQuote,'code' => 200,'message' => 'Quote was created succefully'];
+            return response()->json($response,200);
+        }
+        $response = ['error' => 'It has occurred an error trying to save the quote','code' => 500];
+        return response()->json($response,500);
     }
 
     /**
@@ -208,7 +256,6 @@ class TaskController extends Controller
             $taskBranch->status = 0;
             $task->branches()->save($taskBranch);
         }
-        \Log::debug($task->id);
         //then we get the branches branch, company and user information
         $taskDetail = Task::where(['id' => $task->id])->with('branches.branch.company.user')->first();
         $branchesTask = $taskDetail['branches'];
@@ -220,8 +267,6 @@ class TaskController extends Controller
             $branchEmail =  isset($user) ? $user['email'] : $branch['email'];
             $branchName = $company['name'];
 
-            \Log::debug($branchEmail);
-            \Log::debug($branchName);
             if(isset($branchEmail)){
                 $this->mailer->pushToQueue('sendNewTaskEmail', [
                     'baseUrl' => $this->baseUrl,
@@ -238,5 +283,25 @@ class TaskController extends Controller
 
         }
         return count($branchesTask);
+    }
+
+    public function sendTaskQuoteEmail($taskBranch, $quote){
+        $task = $taskBranch->task;
+        $user = $task->user;
+        $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
+
+        $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
+            'baseUrl' => $this->baseUrl,
+            'taskDescription' => $task->description,
+            'taskDate' => $task->date,
+            'quotePrice' => number_format($quote->price, 2),
+            'quoteDescription' => $quote->description,
+            'quoteId' => $quote->id,
+            'taskId' => $task->id,
+            'taskBranchId' => $taskBranch->id,
+            'user_email' => $user->email,
+            'user_name' => $user->name,
+            'branchName' => $branch->company->name
+        ]);
     }
 }

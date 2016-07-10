@@ -83,7 +83,6 @@ class PassController extends Controller{
         switch ($response) {
             case Password::PASSWORD_RESET:
                 $user = User::byEmail($request)->first();
-                \Log::debug(json_encode($user));
 
                 $token = JWTAuth::fromUser($user, ['role'=>'USER']);
                 $user->access = $token;

@@ -69,4 +69,16 @@ class AppMailer
                 ->subject('Hay un trabajo para '. $data['category']);
         });
     }
+
+    /**
+     * Send an email to the user which received a quote from the service provider
+     * @param  [array] $data Data needed by the email that will be sent to the owner of the task
+     */
+    public function sendNewTaskQuoteEmail($data){
+        Mail::send('emails.new-task-quote', $data, function ($m) use ($data){
+            $m->from($this->noReply['address'], $this->noReply['name'])
+                ->to($data['user_email'], $data['user_name'])
+                ->subject('Recibiste una cotización para tu proyecto!');
+        });
+    }
 }

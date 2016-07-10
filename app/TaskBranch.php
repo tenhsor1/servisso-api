@@ -108,4 +108,8 @@ class TaskBranch extends ServissoModel
     public function logs(){
       return $this->hasMany('App\TaskBranchLog');
     }
+
+    public function quotes(){
+        return $this->hasMany('App\TaskBranchQuote');
+    }
 }
