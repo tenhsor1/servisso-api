@@ -19,7 +19,7 @@ class AppMailer
     }
 
     public function pushToQueue($function, $data){
-        $job = (new SendEmailJob('sendVerificationEmail',$data))->onQueue('emails');
+        $job = (new SendEmailJob($function,$data))->onQueue('emails');
         $this->dispatch($job);
     }
 
@@ -39,7 +39,7 @@ class AppMailer
 	public function sendNonRegisteredBranchEmail($data){
 
 		Mail::send('emails.non-registered-branch', $data, function ($m) use ($data){
-            $m->from($this->no_reply['address'], $this->no_reply['name'])
+            $m->from($this->noReply['address'], $this->noReply['name'])
                 ->to($data['branch_email'], $data['branch_name'])
                 ->subject('Alguien requiere de tus servicios!');
         });
@@ -52,7 +52,7 @@ class AppMailer
 	public function sendRegisteredBranchEmail($data){
 
 		Mail::send('emails.registered-branch', $data, function ($m) use ($data){
-            $m->from($this->no_reply['address'], $this->no_reply['name'])
+            $m->from($this->noReply['address'], $this->noReply['name'])
                 ->to($data['user_email'], $data['branch_name'])
                 ->subject('Alguien requiere de tus servicios!');
         });
@@ -63,17 +63,10 @@ class AppMailer
      * @param  [array] $data Data needed by the email that will be sent to the branch owner
      */
     public function sendNewTaskEmail($data){
-        /*
-        $function = function() use ($data){
-            Mail::send('emails.new-task-branch', $data, function ($m) use ($data){
-                $m->from($this->no_reply['address'], $this->no_reply['name'])
-                    ->to($data['user_email'], $data['branch_name'])
-                    ->subject('Hay una nueva tarea que te podría interesar!');
-            });
-        };
-
-        $job = (new SendEmailJob($function,'task-branch-email'))->onQueue('emails');
-        $this->dispatch($job);
-        */
+        Mail::send('emails.new-task-branch', $data, function ($m) use ($data){
+            $m->from($this->noReply['address'], $this->noReply['name'])
+                ->to($data['branch_email'], $data['branch_name'])
+                ->subject('Hay un trabajo para '. $data['category']);
+        });
     }
 }

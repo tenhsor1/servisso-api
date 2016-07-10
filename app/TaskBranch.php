@@ -7,6 +7,7 @@ use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
 use App\Notification;
+use App\TaskBranchLog;
 
 class TaskBranch extends ServissoModel
 {
@@ -54,9 +55,15 @@ class TaskBranch extends ServissoModel
 
   public static function boot()
   {
-      /*Task::created(function ($task) {
-        $task->addNotification();
-      });*/
+      TaskBranch::created(function ($taskBranch) {
+        $taskBranch->addLog('SENT');
+        //$taskBranch->addNotification();
+      });
+  }
+
+  public function addLog($type){
+    $log = new TaskBranchLog(['type' => $type]);
+    $this->logs()->save($log);
   }
 
   public function addNotification(){
@@ -75,6 +82,15 @@ class TaskBranch extends ServissoModel
     }
   }
 
+    public function getOwnerBranch(){
+      return $this->select('users.id, users.email, company.name')
+            ->join('branches','branches.id','=','task_branches.branch_id')
+            ->join('companies','companies.id','=','branches.company_id')
+            ->join('users','users.id','=','companies.user_id')
+            ->where('task_branches.id', $this->id)
+            ->get();
+    }
+
     public function task(){
         //1 task-branch has one task
         return $this->belongsTo('App\Task');
@@ -87,5 +103,9 @@ class TaskBranch extends ServissoModel
 
     public function notifications(){
         return $this->morphMany('App\TaskBranch', 'object');
+    }
+
+    public function logs(){
+      return $this->hasMany('App\TaskBranchLog');
     }
 }

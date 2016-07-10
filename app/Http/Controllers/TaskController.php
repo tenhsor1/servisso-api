@@ -21,6 +21,7 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 class TaskController extends Controller
 {
     public function __construct(){
+        parent::__construct();
         $this->middleware('jwt.auth:user', ['only' => ['update', 'store']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
@@ -79,10 +80,11 @@ class TaskController extends Controller
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){
-            $this->sendTaskToBranches($task);
+            $numberBranches = $this->sendTaskToBranches($task);
             $tokenImage = \Crypt::encrypt(['task_id' => $task->id
                                                 ,'date' => $task->created_at->format('Y-m-d H:i:s')]);
             $task->token_image = $tokenImage;
+            $task->branches_sent = $numberBranches;
             $response = ['data' => $task,'code' => 200,'message' => 'Task was created succefully'];
             return response()->json($response,200);
         }
@@ -197,18 +199,45 @@ class TaskController extends Controller
     }
 
     private function sendTaskToBranches($task){
-        $function = function() use ($task){
-            $branches = $task->getNeareastBranches();
-            foreach ($branches as $key => $branch) {
-                $taskBranch = new TaskBranch;
-                $taskBranch->task_id = $task->id;
-                $taskBranch->branch_id = $branch->id;
-                $taskBranch->status = 0;
-                $taskBranch->save();
-            }
-        };
+        $branches = $task->getNeareastBranches();
 
-        $job = (new SendFunctionJob($function,'task-assign-branches'))->onQueue('tasks');
-        $this->dispatch($job);
+        //first we save the branches that we found were close to the task
+        foreach ($branches as $key => $branch) {
+            $taskBranch = new TaskBranch;
+            $taskBranch->branch_id = $branch->id;
+            $taskBranch->status = 0;
+            $task->branches()->save($taskBranch);
+        }
+        \Log::debug($task->id);
+        //then we get the branches branch, company and user information
+        $taskDetail = Task::where(['id' => $task->id])->with('branches.branch.company.user')->get();
+        $taskDetail = $taskDetail[0];
+        $branchesTask = $taskDetail['branches'];
+        foreach ($branchesTask as $key => $branchTask) {
+
+            $branch = $branchTask['branch'];
+            $company = $branch['company'];
+            $user = isset($company['user']) ? $company['user'] : null;
+            $branchEmail =  isset($user) ? $user['email'] : $branch['email'];
+            $branchName = $company['name'];
+
+            \Log::debug($branchEmail);
+            \Log::debug($branchName);
+            if(isset($branchEmail)){
+                $this->mailer->pushToQueue('sendNewTaskEmail', [
+                    'baseUrl' => $this->baseUrl,
+                    'category' => $task->category->name,
+                    'userName' => $task->user->name,
+                    'date' => $task->date,
+                    'taskBranchId' => $branchTask['id'],
+                    'branch_email' => $branchEmail,
+                    'branch_name' => $branchName,
+                    'description' => $task->description
+                ]);
+            }
+            //for each branch, we send an email saying that the task might be interesting for them
+
+        }
+        return count($branchesTask);
     }
 }

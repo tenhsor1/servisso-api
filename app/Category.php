@@ -78,6 +78,14 @@ class Category extends ServissoModel
       return $this->morphTo();
     }
 
+    public function companies(){
+        return $this->hasMany('App\Company');
+    }
+
+    public function tasks(){
+        return $this->hasMany('App\Task');
+    }
+
 
     /**
      * Used for search using 'LIKE', based on query parameters passed to the

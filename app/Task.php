@@ -82,7 +82,7 @@ class Task extends ServissoModel
 
     public function category(){
         //a task has 1 category
-        return $this->hasOne('App\Category');
+        return $this->belongsTo('App\Category');
     }
 
   public function userable(){
@@ -145,12 +145,14 @@ class Task extends ServissoModel
         return null;
     }
 
-    public function getNeareastBranches($numberBranches=20){
-      return $this->select('branches.*')
+    public function getNeareastBranches($numberBranches=20, $meters=2){
+        $feets = $meters / 0.3048;
+        return $this->select('branches.*')
             ->join('branches','branches.id','>',\DB::raw('0'))
             ->join('companies', 'branches.company_id', '=', 'companies.id')
             ->where('tasks.id', $this->id)
             ->where('companies.category_id', $this->category_id)
+            ->whereRaw('ST_DWithin(tasks.geom, branches.geom, '.$feets. ')')
             ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
             ->take($numberBranches)
             ->get();
