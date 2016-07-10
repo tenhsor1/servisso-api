@@ -20,7 +20,6 @@ class NotificationEvent extends Event implements ShouldBroadcast
     {
         $this->content = $notification->toArray();
         $this->channels = [$notification->receiver_id];
-        \Log::debug($this->channels);
     }
 
     /**
