@@ -79,6 +79,10 @@ class Category extends ServissoModel
     }
 
     public function companies(){
+        return $this->hasMany('App\Company');
+    }
+
+    public function tasks(){
         return $this->hasMany('App\Task');
     }
 
