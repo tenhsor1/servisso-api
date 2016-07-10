@@ -371,8 +371,10 @@ class UserController extends Controller
 
 		$issued = time();
 		$expire = $issued + 3600; //los token maximo duran una hora
+		
+		$predict_service_acc = env('PREDICT_SERVICE_ACC');
 
-		$payload = '{"iss":"servsl@testwebdev-962.iam.gserviceaccount.com","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
+		$payload = '{"iss":"'.$predict_service_acc .'","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
 
 		$payloadBase64 = base64_encode($payload);
 		$payloadBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$payloadBase64);//A esto se llema safeBase64
