@@ -75,6 +75,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::put('notifications', 'NotificationController@updateMultiple');
 
     Route::post('tasks/{taskId}/images', 'TaskController@setImages');
+    Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
     Route::resource('tasks', 'TaskController', ['only' => ['store', 'update']]);
 
 });

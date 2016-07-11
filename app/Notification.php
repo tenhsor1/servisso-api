@@ -13,9 +13,12 @@ class Notification extends ServissoModel
     const USER_RELATION = 'App\User';
     const GUEST_RELATION = 'App\Guest';
 
-    const NOTIFICATION_OBJECTS = ['App\Service'];
-    const NOTIFICATION_OBJECTS_ALIAS = ['Service'];
-    const NOTIFICATION_OBJECTS_MAP = ['Service' => 'App\Service'];
+    const NOTIFICATION_OBJECTS = ['App\Service', 'App\TaskBranch'];
+    const NOTIFICATION_OBJECTS_ALIAS = ['Service', 'TaskBranch'];
+    const NOTIFICATION_OBJECTS_MAP = [
+                                        'Service' => 'App\Service',
+                                        'TaskBranch' => 'App\TaskBranch',
+                                        'TaskBranchQuote' => 'App\TaskBranchQuote'];
 
     /**
      * The database table used by the model.
