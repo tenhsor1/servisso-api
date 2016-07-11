@@ -31,8 +31,53 @@ class TaskBranchQuote extends ServissoModel
                             'deleted_at'
                         ];
 
+    public static function boot()
+    {
+        TaskBranchQuote::created(function ($taskBranchQuote) {
+            $taskBranchQuote->addNotification('NEW');
+        });
+    }
+
     public function taskBranch(){
         return $this->belongsTo('App\TaskBranch');
+    }
+
+    public function addNotification($verb){
+
+        $receiver = $this->getUserCreated();
+        $sender = $this->getOwnerBranch();
+
+        $notification = new Notification;
+        $notification->receiver_id = $receiver->id;
+        $notification->object_id = $this->id;
+        $notification->object_type = Notification::NOTIFICATION_OBJECTS_MAP['TaskBranchQuote'];
+        $notification->sender_id = $sender->user_id;
+        $notification->sender_type = Notification::USER_RELATION;
+        $notification->verb = $verb;
+        $notification->extra = json_encode([
+            'task' => $this->taskBranch->task->toArray(),
+            'branch' => $sender
+        ]);
+        $notification->save();
+    }
+
+    public function getUserCreated(){
+      return $this->select('users.id')
+            ->join('task_branches','task_branches.id','=','task_branch_quotes.task_branch_id')
+            ->join('tasks','tasks.id','=','task_branches.task_id')
+            ->join('users','users.id','=','tasks.user_id')
+            ->where('task_branches.id', $this->task_branch_id)
+            ->first();
+    }
+
+    public function getOwnerBranch(){
+      return $this->select('users.id AS user_id', 'companies.name AS company_name')
+            ->join('task_branches','task_branches.id','=','task_branch_quotes.task_branch_id')
+            ->join('branches','branches.id','=','task_branches.branch_id')
+            ->join('companies','companies.id','=','branches.company_id')
+            ->join('users','users.id','=','companies.user_id')
+            ->where('task_branch_quotes.id', $this->id)
+            ->first();
     }
 
     public static function getRules(){
