@@ -14,6 +14,8 @@ class BranchVerification extends ServissoModel
 	
 	protected $fillable = array('branch_id', 'verification_type', 'description','url_verification_img');
 	
+	protected $hidden = ['deleted_at','created_at','updated_at','url_verification_img'];
+	
 	protected $searchFields = [
         'verification_type',
         'description'
