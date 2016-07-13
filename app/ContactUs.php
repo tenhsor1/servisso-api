@@ -8,9 +8,9 @@ class ContactUs extends ServissoModel
     use SoftDeletes;
 	protected $table="contact_us";
 	
-	protected $fillable = array('name','email','comment');
+	protected $guarded = array('name','email','comment','created_at');
 
-    protected $hidden = ['update_id','created_at','updated_at','deleted_at'];
+    protected $hidden = ['update_id','updated_at','deleted_at'];
 	
 	
 	

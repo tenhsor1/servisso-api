@@ -8,12 +8,13 @@ use App\Http\Controllers\Controller;
 use Validator;
 use App\ContactUs;
 use App\Service;
+use App\Task;
 use JWTAuth;
 class ContactUsController extends Controller
 {
 	 public function __construct(){
-        $this->middleware('jwt.auth:admin', ['only' => ['update','destroy']]);
-		$this->middleware('jwt.auth:user', ['only' => ['update','index','show','requirements']]);
+        $this->middleware('jwt.auth:admin', ['only' => ['update','destroy','requirements']]);
+		$this->middleware('jwt.auth:user', ['only' => ['update','index','show']]);
 	}
     /**
      * Display a listing of the resource.
@@ -198,23 +199,29 @@ class ContactUsController extends Controller
 	 public function requirements(Request $request)
     {
         $userRequested = \Auth::User();
-		  $contact = ContactUs::searchBy($request)
-						->betweenBy($request)
-						->orderByCustom($request)
-						->limit($request)
-						->get();
-		 $service =  Service::with('branch')
-						->with('userable')
-						->with('userRate')
-						->with('partnerRate')
-						->searchBy($request)
-						->betweenBy($request)
-						->orderByCustom($request)
-						->limit($request)
-						->get();		
-		 $count = $service->count()+$contact->count();
-		if($contact || $service){
-            $response = ['code' => 200,'Count' => $count,'contact' => $contact,'service' => $service];
+		$contact = ContactUs::select(\DB::raw("created_at,comment,'contact' as type,email,'Feedback/FQA' as sent_to"));
+		
+		$service = Service::leftjoin('users as u', 'u.id', '=', 'services.userable_id')
+		->leftjoin('branches', 'branches.id', '=', 'services.branch_id')
+		->leftjoin('companies', 'companies.id', '=', 'branches.company_id')
+		->leftjoin('users as ub', 'ub.id', '=', 'companies.user_id')
+		->select(\DB::raw("services.created_at,services.description as comment,'service' as type, u.email,ub.email as sent_to"));	
+		
+		$task = Task::leftjoin('categories', 'categories.id', '=', 'tasks.category_id')
+		->leftjoin('users', 'users.id', '=', 'tasks.user_id')
+		
+		->select(\DB::raw("tasks.created_at,CONCAT(tasks.description ,', ',categories.name) as comment,'task' as type,users.email,'0' as sent_to"));	
+		
+		$results = $contact->union($service)->union($task)
+							->searchBy($request)
+							->betweenBy($request)
+							->orderByCustom($request)
+							->limit($request)
+							->get();
+							
+		$count = $results->count();
+		if($results){
+            $response = ['code' => 200,'count' => $count,'results' => $results];
             return response()->json($response,200);
         }else{
             $response = ['error' => 'The questions are empty','code' => 404];
