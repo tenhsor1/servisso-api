@@ -16,6 +16,8 @@ class TaskBranchLogs extends Migration
             $table->increments('id');
             $table->integer('task_branch_id')->unsigned();
             $table->string('type', 50);
+            $table->softDeletes();
+            $table->timestamps();
 
 
             $table->foreign('task_branch_id')->references('id')->on('task_branches');
