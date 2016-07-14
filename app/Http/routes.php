@@ -75,7 +75,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
     Route::resource('tasks', 'TaskController', ['only' => ['store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-	Route::get('contact/requirements/requested', 'ContactUSController@requirements');
+	Route::get('requirements/requested', 'AdminController@requirements');
 });
 
 
