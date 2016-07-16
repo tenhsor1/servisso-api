@@ -50,6 +50,9 @@ Route::group(['prefix' => 'v1'], function()
 	Route::get('task/{usereableId}','ServiceController@task');//to get a request services
     Route::get('branches/{branch}/services','BranchController@services');//to get all services that belongs to one branch
     Route::resource('branches','BranchController',['only' => ['index','update','destroy','show','store']]);
+    Route::post('branches/{id}/verifications','BranchVerificationController@store');
+    Route::put('branches/{id}/verifications/{verification_id}','BranchVerificationController@update');
+    Route::delete('branches/{id}/verifications/{verification_id}','BranchVerificationController@destroy');
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
     Route::resource('partnerrates','PartnerRateController',['only' => ['update','destroy','show','store']]);
