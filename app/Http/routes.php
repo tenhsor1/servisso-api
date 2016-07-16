@@ -73,6 +73,7 @@ Route::group(['prefix' => 'v1'], function()
 
     Route::post('tasks/{taskId}/images', 'TaskController@setImages');
     Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
+    Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
     Route::resource('tasks', 'TaskController', ['only' => ['store', 'update']]);
 
 });

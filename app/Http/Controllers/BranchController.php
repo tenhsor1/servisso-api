@@ -268,6 +268,7 @@ class BranchController extends Controller
 				$branch->schedule = $request->schedule;
 				$branch->name = $request->name;
 				$branch->role_id = $userRequested->id;
+                $branch->geom = [$request->longitude, $request->latitude];
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
 
 				$branch->save();
