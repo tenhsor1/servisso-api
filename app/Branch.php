@@ -64,6 +64,12 @@ class Branch extends ServissoModel
         // 1 branch can have multiple services
         return $this->hasMany('App\TaskBranch');
     }
+	
+	public function verifications()
+    {
+        // 1 branch can have multiple verifications
+        return $this->hasMany('App\BranchVerification');
+    }
 
     public function state()
     {
