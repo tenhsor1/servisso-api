@@ -24,7 +24,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'store', 'storeQuote']]);
+        $this->middleware('jwt.auth:user', ['only' => ['update', 'store', 'storeQuote', 'showTaskBranch']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -185,6 +185,36 @@ class TaskController extends Controller
     public function show($id)
     {
         //
+    }
+
+    public function showTaskBranch($taskId, $taskBranchId){
+        $userRequested = \Auth::User();
+        $taskBranch = TaskBranch::where(['id' => $taskBranchId])->with('task.images')->with('branch.company.user')->first();
+
+        if(!$taskBranch){
+            $response = ['error' => 'Task Branck relationship does not exist','code' => 404];
+            return response()->json($response,404);
+        }
+
+        //check if the user requesting it, is the owner of the branch
+        if($userRequested->id != $taskBranch->branch->company->user->id){
+            $response = ['error' => 'Unauthorized',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested get task branch from taskbranch id: %s. He doesn't own that branch",
+                                $userRequested->id, $taskBranchId));
+            return response()->json($response, 403);
+        }
+
+        if($taskId != $taskBranch->task_id){
+            $response = ['error' => 'The task is not related to the relationship',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested get task branch from branch id: %s. the original task %s doesn't match with: %s",
+                                $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
+            return response()->json($response, 403);
+        }
+
+        $response = ['data' => $taskBranch,'code' => 200,'code' => 200];
+        return response()->json($response,200);
     }
 
     /**
