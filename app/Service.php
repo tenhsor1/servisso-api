@@ -27,6 +27,7 @@ class Service extends ServissoModel
                             , 'branch_id'
                             , 'userable_id'
                             , 'userable_type'
+							,'created_at'							
                         ];
 
     /**

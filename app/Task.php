@@ -25,6 +25,7 @@ class Task extends ServissoModel
      */
     protected $guarded = ['user_id'
                             , 'category_id'
+							,'created_at'
                         ];
 
     /**
