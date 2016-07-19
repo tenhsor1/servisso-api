@@ -275,7 +275,6 @@ class AdminController extends Controller
 		
 		$results = $contact->union($service)->union($task)
 		->orderBy('created_at', 'desc')
-		->take(50)
 		->get();
 							
 		$count = $results->count();
