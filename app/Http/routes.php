@@ -79,7 +79,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
     Route::resource('tasks', 'TaskController', ['only' => ['store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-	Route::post('requirements/requested', 'AdminController@requirements');
+	Route::get('requirements/requested', 'AdminController@requirements');
 });
 
 
