@@ -70,4 +70,16 @@ class AppMailer
                 ->subject('Recibiste una cotización para tu proyecto!');
         });
     }
+	
+	/**
+     * Send an email to the user which received a comment or feedback
+     * @param  [array] $data Data needed by the email that will be sent to the owner of the task
+     */
+    public function sendNewFQA($data){
+        Mail::send('emails.new-comment', $data, function ($m) use ($data){
+            $m->from$data['user_email'], $data['user_name'])
+                ->to($this->noReply['address'], $this->noReply['name'])(
+                ->subject('Se recibio un nuevo FQA');
+        });
+    }
 }

@@ -8,11 +8,13 @@ use App\Http\Controllers\Controller;
 use Validator;
 use App\ContactUs;
 use JWTAuth;
+use App\Mailers\AppMailer;
 class ContactUsController extends Controller
 {
 	 public function __construct(){
         $this->middleware('jwt.auth:admin', ['only' => ['update','destroy']]);
 		$this->middleware('jwt.auth:user', ['only' => ['update','index','show']]);
+		$this->mailer = new AppMailer();
 	}
     /**
      * Display a listing of the resource.
@@ -63,9 +65,15 @@ class ContactUsController extends Controller
             $contact->email = $request->email;
             $contact->name = $request->name;
             $contact->comment = $request->comment;
-			$row= $contact->save();
+			$fqa= $contact->save();
 
         if($row != false){
+			$data = [
+						'comment' => $fqa->comment,
+						'user_email' => $fqa->email,
+						'user_name' => $fqa->name
+					];
+                    $this->mailer->pushToQueue('sendNewFQA', $data);
             $response = ['code' => 200,'message' => 'Comment was created succefully'];
             return response()->json($response,200);
         }else{
