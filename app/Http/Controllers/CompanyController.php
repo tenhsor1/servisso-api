@@ -78,26 +78,38 @@ class CompanyController extends Controller
 		//SE VALIDA QUE EL USER EXISTA
 		if(!is_null($user)){
 
-			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
-			if($userRequested->id == $user->id){
+			 $companies = Company::where('user_id', $user_id)->get();
+			
+			//SE VALIDA QUE EL USUARIO NO TENGA COMPANIES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
+			//PARA PODER GUARDAR UNA NUEVA
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+				$companies->count() == 0) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
-				//SE HACE UNA INSTANCIA DE COMPANY
-				$company = new Company;
-				$company->user_id = $user_id;
-				$company->name = $request->name;
-				$company->description = $request->description;
-				$company->category_id = $request->category_id;
-                $company->web = $request->web;
+				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
+				if($userRequested->id == $user->id){
 
-				$row = $company->save();
+					//SE HACE UNA INSTANCIA DE COMPANY
+					$company = new Company;
+					$company->user_id = $user_id;
+					$company->name = $request->name;
+					$company->description = $request->description;
+					$company->category_id = $request->category_id;
+					$company->web = $request->web;
 
-				if($row != false){
-					$response = ['data' => $company,'code' => 200,'message' => 'Company was created succefully'];
-					return response()->json($response,200);
+					$row = $company->save();
+
+					if($row != false){
+						$response = ['data' => $company,'code' => 200,'message' => 'Company was created succefully'];
+						return response()->json($response,200);
+					}else{
+						$response = ['error' => 'It has occurred an error trying to save the company','code' => 404];
+						return response()->json($response,500);
+					}
 				}else{
-					$response = ['error' => 'It has occurred an error trying to save the company','code' => 404];
-					return response()->json($response,500);
+					$response = ['error'   => 'Unauthorized','code' => 403];
+					return response()->json($response, 403);
 				}
+			
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
