@@ -17,6 +17,7 @@ class ContactUsMigration extends Migration
 			$table->string('email',70);
 			$table->string('name',100);
 			$table->string('comment',300);
+			$table->integer('update_id')->nullable();
 			$table->timestamps();
 			$table->softDeletes();
         });
