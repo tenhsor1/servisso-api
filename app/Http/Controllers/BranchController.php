@@ -122,55 +122,63 @@ class BranchController extends Controller
 
 		//SE OBTIENE EL ID DE LA COMPANY QUE LE PERTENCE LA BRANCH
 		$company_id = $request->company_id;
-		$company = Company::find($company_id);
+		$company = Company::with('branches')->find($company_id);
 
 		if(!is_null($company)){
 
 			$userRequested = \Auth::User();
 			$role = $userRequested->authRole;
+			
+			//SE VALIDA QUE EL USUARIO NO TENGA BRANCHES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
+			//PARA PODER GUARDAR UNA NUEVA
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+				!$company->branches) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
+				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
+				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
 
-			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
-			if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
+					//SE UNA INSTANCIA DE BRANCH
+					$branch = new Branch;
+					$branch->company_id = $company_id;
+					$branch->address = $request->address;
+					$branch->phone = $request->phone;
+					$branch->latitude = $request->latitude;
+					$branch->longitude = $request->longitude;
+					$branch->state_id = $request->state_id;
+					$branch->schedule = $request->schedule;
+					$branch->name = $request->name;
+					$branch->geom = [$request->longitude, $request->latitude];
 
-				//SE UNA INSTANCIA DE BRANCH
-				$branch = new Branch;
-				$branch->company_id = $company_id;
-				$branch->address = $request->address;
-				$branch->phone = $request->phone;
-				$branch->latitude = $request->latitude;
-				$branch->longitude = $request->longitude;
-				$branch->state_id = $request->state_id;
-				$branch->schedule = $request->schedule;
-				$branch->name = $request->name;
-                $branch->geom = [$request->longitude, $request->latitude];
+					$branch->save();
 
-				$branch->save();
+					//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
+					$this->saveTag($request->tag,$branch);
 
-				//SE GUARDAN LOS TAGS QUE YA EXISTEN EN LA DB EN LA BRANCH
-				$this->saveTag($request->tag,$branch);
+					//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
+					$this->newTag($request->tag_new,$company->category_id,$branch);
 
-				//SE GUARDAN LOS NUEVOS TAGS CREADOS POR EL USER
-				$this->newTag($request->tag_new,$company->category_id,$branch);
+					//SE VALIDA QUE LA BRANCH SE HALLA GUARDADO
+					if($branch != false){
 
-				//SE VALIDA QUE LA BRANCH SE HALLA GUARDADO
-				if($branch != false){
+						//SE OBTINEN TODOS LOS TAGS DE LA BRANCH CREADA PARA UNIRLA AL JSON
+						$tags = \DB::table('tags_branches')
+						->join('tags','tags_branches.tag_id','=','tags.id')
+						->where('branch_id','=',$branch->id)
+						->select('tags.id','tags.name','tags.description')
+						->get();
 
-					//SE OBTINEN TODOS LOS TAGS DE LA BRANCH CREADA PARA UNIRLA AL JSON
-					$tags = \DB::table('tags_branches')
-					->join('tags','tags_branches.tag_id','=','tags.id')
-					->where('branch_id','=',$branch->id)
-					->select('tags.id','tags.name','tags.description')
-					->get();
+						$branch->tags = $tags;
 
-					$branch->tags = $tags;
-
-					$response = ['data' => $branch,'code' => 200,'message' => 'Branch was created succefully'];
-					return response()->json($response,200);
+						$response = ['data' => $branch,'code' => 200,'message' => 'Branch was created succefully'];
+						return response()->json($response,200);
+					}else{
+						$response = ['error' => 'It has occurred an error trying to save the branch','code' => 500];
+						return response()->json($response,500);
+					}
 				}else{
-					$response = ['error' => 'It has occurred an error trying to save the branch','code' => 500];
-					return response()->json($response,500);
-				}
+					$response = ['error'   => 'Unauthorized','code' => 403];
+					return response()->json($response, 403);
+				}			
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
@@ -340,29 +348,37 @@ class BranchController extends Controller
 
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
+			
+			//SE VALIDA QUE EL USUARIO TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
+			//PARA PODER ELIMINAR UNA SUCURSAL
+			if($userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
-			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
-			if($userRequested->id == $company->user_id || $userRequested->roleAuth == "ADMIN"){
+				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA ELIMINAR SUS BRANCHES
+				if($userRequested->id == $company->user_id || $userRequested->roleAuth == "ADMIN"){
 
-				$branch->role_id = $userRequested->id;
-				$branch->role = $this->user_roles[$userRequested->roleAuth];
-				$branch->save();
+					$branch->role_id = $userRequested->id;
+					$branch->role = $this->user_roles[$userRequested->roleAuth];
+					$branch->save();
 
-				//SE BORRAR LA BRANCH
-				$rows = $branch->delete();
+					//SE BORRAR LA BRANCH
+					$rows = $branch->delete();
 
-				//SE ELIMINAN TODAS LAS TAG QUE LE PERTENECEN A LA BRANCH
-				/*$timestamp = time()+date('Z');
-				$date = date('Y-m-d H:i:s',$timestamp);
-				\DB::update("UPDATE FROM tags_branches SET deteted_at = NOW WHERE branch_id = ".$branch->id." ");	*/
+					//SE ELIMINAN TODAS LAS TAG QUE LE PERTENECEN A LA BRANCH
+					/*$timestamp = time()+date('Z');
+					$date = date('Y-m-d H:i:s',$timestamp);
+					\DB::update("UPDATE FROM tags_branches SET deteted_at = NOW WHERE branch_id = ".$branch->id." ");	*/
 
-				if($rows > 0){
-					$response = ['code' => 200,'message' => "Branch was deleted succefully"];
-					return response()->json($response,200);
+					if($rows > 0){
+						$response = ['code' => 200,'message' => "Branch was deleted succefully"];
+						return response()->json($response,200);
+					}else{
+						$response = ['error' => 'It has occurred an error trying to delete the branch','code' => 500];
+						return response()->json($response,500);
+					}
 				}else{
-					$response = ['error' => 'It has occurred an error trying to delete the branch','code' => 500];
-					return response()->json($response,500);
-				}
+					$response = ['error'   => 'Unauthorized','code' => 403];
+					return response()->json($response, 403);
+				}			
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);

@@ -211,5 +211,7 @@ return [
     'admin_roles'   => ['SUPER' => 0, 'NORMAL' => 1],
 	'user_roles'    => ['ADMIN' => 1, 'USER' => 2],
     'recaptcha_secret' => env('RECAPTCHA_SECRET', 'my_recaptcha_secret'),
+	'ENABLED_COMPANIES' => 1,
+	'NO_ENABLED_COMPANIES' => 0
 
 ];
