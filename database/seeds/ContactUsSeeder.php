@@ -19,7 +19,7 @@ class ContactUsSeeder extends Seeder {
                 [
                     'email' => $faker->unique()->email,
                     'name'=> $faker->text(50),
-                    'comment'=>$faker->text(300),
+                    'comment'=>$faker->text(200)
                 ]
             );
         }
