@@ -72,8 +72,16 @@ class BranchController extends Controller
 			->where('tags_branches.branch_id','=',$branch->id)
 			->select('tags.name','tags.description')
 			->get();
-
+			
 			$branch->tags = $tags;
+			
+			$verifications = \DB::table('branch_verification AS bv')
+			->where('bv.branch_id','=',$branch->id)
+			->select('bv.verification_type','bv.description','bv.id')
+			->get();
+
+			$branch->verifications = $verifications;
+			
 		}
 
 		$response = ['code' => 200,'count' => $count,'data' => $branches];
@@ -188,6 +196,7 @@ class BranchController extends Controller
         $branch = Branch::with('company')
                         ->with('state')
                         ->with('state.country')
+						->with('verifications')
                         ->where('id','=',$id)
                         ->first();
 
@@ -268,6 +277,7 @@ class BranchController extends Controller
 				$branch->schedule = $request->schedule;
 				$branch->name = $request->name;
 				$branch->role_id = $userRequested->id;
+                $branch->geom = [$request->longitude, $request->latitude];
 				$branch->role = $this->user_roles[$userRequested->roleAuth];
 
 				$branch->save();
