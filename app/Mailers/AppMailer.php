@@ -12,6 +12,7 @@ class AppMailer
     function __construct()
     {
         $this->noReply = \Config::get('mail.from_no_reply');
+        $this->comment = \Config::get('mail.from_contact');
         $this->baseUrl = \Config::get('app.front_url');
     }
     public function pushToQueue($function, $data){
@@ -77,9 +78,9 @@ class AppMailer
      */
     public function sendNewFQA($data){
         Mail::send('emails.new-comment', $data, function ($m) use ($data){
-            $m->from$data['user_email'], $data['user_name'])
-                ->to($this->noReply['address'], $this->noReply['name'])(
-                ->subject('Se recibio un nuevo FQA');
+            $m->from($data['user_email'], $data['user_name'])
+                ->to($this->comment['address'], $this->comment['name'])
+                ->subject('Se recibio un nuevo FAQ');
         });
     }
 }

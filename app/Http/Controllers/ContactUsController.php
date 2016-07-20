@@ -65,15 +65,16 @@ class ContactUsController extends Controller
             $contact->email = $request->email;
             $contact->name = $request->name;
             $contact->comment = $request->comment;
-			$fqa= $contact->save();
-
+			$row = $contact->save();
+			
         if($row != false){
 			$data = [
-						'comment' => $fqa->comment,
-						'user_email' => $fqa->email,
-						'user_name' => $fqa->name
+						'comment' => $contact->comment,
+						'user_email' => $contact->email,
+						'user_name' => $contact->name,
+						'created_date' => $contact->created_at->format('M d, Y g:i a')
 					];
-                    $this->mailer->pushToQueue('sendNewFQA', $data);
+			$this->mailer->pushToQueue('sendNewFQA', $data);
             $response = ['code' => 200,'message' => 'Comment was created succefully'];
             return response()->json($response,200);
         }else{
@@ -195,4 +196,5 @@ class ContactUsController extends Controller
         }
     }
 
+	
 }
