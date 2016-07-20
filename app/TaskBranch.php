@@ -11,6 +11,13 @@ use App\TaskBranchLog;
 
 class TaskBranch extends ServissoModel
 {
+    const STATUSES = [
+        'not_open'      => 0,
+        'open'          => 1,
+        'interested'    => 2,
+        'rejected'      => 3
+    ];
+
     /**
      * The database table used by the model.
      *

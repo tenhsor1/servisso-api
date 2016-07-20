@@ -95,6 +95,10 @@ class Task extends ServissoModel
         return $this->hasMany('App\TaskBranch');
     }
 
+  public function openBranches(){
+      return $this->hasMany('App\TaskBranch')->where('status', 1);
+  }
+
   public function notifications(){
     return $this->morphMany('App\Task', 'object');
   }

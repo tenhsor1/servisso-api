@@ -24,7 +24,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['update', 'store', 'storeQuote', 'showTaskBranch']]);
+        $this->middleware('jwt.auth:user', ['only' => ['index', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -35,9 +35,23 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $user = \Auth::User();
+        $tasks = [];
+        $tasks = Task::with('category')
+                        ->with('userable')
+                        ->with(['branches' => function($query){
+                            $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
+                            $query->with('branch.company');
+                        }])
+                        ->searchBy($request)
+                        ->betweenBy($request)
+                        ->orderByCustom($request)
+                        ->limit($request)
+                        ->get();
+
+        return response()->json(['data'=>$tasks], 200);
     }
 
     /**
