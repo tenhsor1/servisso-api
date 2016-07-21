@@ -24,8 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminSeeder::class);
         $this->call(NewSeeder::class);
         $this->call(NewCommentSeeder::class);
-        $this->call(PartnerRateSeeder::class);
-        $this->call(UserRateSeeder::class);
         $this->call(TagSeeder::class);
         $this->call(TagBranchSeeder::class);
         $this->call(GuestSeeder::class);
