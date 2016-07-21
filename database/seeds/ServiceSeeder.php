@@ -30,7 +30,7 @@ class ServiceSeeder extends Seeder {
 
         $userableTypes = array('App\User', 'App\Guest');
 
-        for ($i=0; $i < 5; $i++) {
+        for ($i=0; $i < 40; $i++) {
             Service::create(
             [
                 'description'=>$faker->text(500),
