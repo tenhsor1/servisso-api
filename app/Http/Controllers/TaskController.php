@@ -24,7 +24,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['index', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
+        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -45,6 +45,31 @@ class TaskController extends Controller
                             $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
                             $query->with('branch.company');
                         }])
+                        ->searchBy($request)
+                        ->betweenBy($request)
+                        ->orderByCustom($request)
+                        ->limit($request)
+                        ->get();
+
+        return response()->json(['data'=>$tasks], 200);
+    }
+
+    public function indexBranch(Request $request, $branchId){
+        $user = \Auth::User();
+        $tasks = [];
+        $branch = Branch::where('id', $branchId)
+                ->with('company.user')
+                ->whereHas('company.user', function($query) use ($user){
+                    $query->where('id', $user->id);
+                })
+                ->first();
+        if(!$branch){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+
+        $tasks = TaskBranch::where('branch_id', $branchId)
+                        ->with('task.user')
                         ->searchBy($request)
                         ->betweenBy($request)
                         ->orderByCustom($request)
