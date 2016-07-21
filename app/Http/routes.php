@@ -77,6 +77,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('tasks/{taskId}/images', 'TaskController@setImages');
     Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
+    Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 	Route::get('requirements/requested', 'AdminController@requirements');
