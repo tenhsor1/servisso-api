@@ -24,7 +24,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
+        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'proyectCompany', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -77,6 +77,28 @@ class TaskController extends Controller
                         ->get();
 
         return response()->json(['data'=>$tasks], 200);
+    }
+	
+	 public function proyectCompany(Request $request){ 
+        $user = \Auth::User();
+       
+        $tasks = TaskBranch::with('branch.company.user')
+						->with('task')
+						 ->whereHas('branch.company.user', function($query) use ($user){
+									$query->where('id', $user->id);
+								})
+                        ->searchBy($request)
+                        ->betweenBy($request)
+                        ->orderByCustom($request)
+                        ->limit($request)
+                        ->get();
+
+		if(!$tasks){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+		$count = $tasks->count();
+        return response()->json(['count'=>$count,'data'=>$tasks], 200);
     }
 
     /**

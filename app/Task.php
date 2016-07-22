@@ -90,6 +90,12 @@ class Task extends ServissoModel
       return $this->morphTo();
   }
 
+  
+  public function task()
+    {
+        return $this->hasMany('App\TaskBranch');
+    }
+  
   public function branches()
     {
         return $this->hasMany('App\TaskBranch');
