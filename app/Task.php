@@ -91,11 +91,6 @@ class Task extends ServissoModel
   }
 
   
-  public function task()
-    {
-        return $this->hasMany('App\TaskBranch');
-    }
-  
   public function branches()
     {
         return $this->hasMany('App\TaskBranch');
