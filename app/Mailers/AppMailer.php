@@ -12,6 +12,7 @@ class AppMailer
     function __construct()
     {
         $this->noReply = \Config::get('mail.from_no_reply');
+        $this->comment = \Config::get('mail.from_contact');
         $this->baseUrl = \Config::get('app.front_url');
     }
     public function pushToQueue($function, $data){
@@ -68,6 +69,18 @@ class AppMailer
             $m->from($this->noReply['address'], $this->noReply['name'])
                 ->to($data['user_email'], $data['user_name'])
                 ->subject('Recibiste una cotización para tu proyecto!');
+        });
+    }
+	
+	/**
+     * Send an email to the user which received a comment or feedback
+     * @param  [array] $data Data needed by the email that will be sent to the owner of the task
+     */
+    public function sendNewFQA($data){
+        Mail::send('emails.new-comment', $data, function ($m) use ($data){
+            $m->from($data['user_email'], $data['user_name'])
+                ->to($this->comment['address'], $this->comment['name'])
+                ->subject('Se recibio un nuevo FAQ');
         });
     }
 }
