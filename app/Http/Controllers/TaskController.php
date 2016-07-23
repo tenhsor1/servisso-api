@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Task;
 use App\Branch;
+use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
@@ -24,7 +25,7 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'proyectCompany', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
+        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'indexCompany', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -79,13 +80,20 @@ class TaskController extends Controller
         return response()->json(['data'=>$tasks], 200);
     }
 	
-	 public function proyectCompany(Request $request){ 
+	 public function indexCompany(Request $request, $companyId){ 
         $user = \Auth::User();
-       
-        $tasks = TaskBranch::with('branch.company.user')
+		
+		 $company = Company::where('id', $companyId)
+                ->first();
+        if(!$company){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+		
+        $tasks = TaskBranch::with('branch.company')
 						->with('task')
-						 ->whereHas('branch.company.user', function($query) use ($user){
-									$query->where('id', $user->id);
+						 ->whereHas('branch.company', function($query) use ($companyId){
+									$query->where('id', $companyId);
 								})
                         ->searchBy($request)
                         ->betweenBy($request)
