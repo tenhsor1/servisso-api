@@ -101,6 +101,12 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasOne('App\State');
     }
 
+    public function ownRates()
+    {
+        // 1 admin can have one state
+        return $this->hasMany('App\UserRate');
+    }
+
     public function getBranch($id){
         $branch = Branch::find($id)
             ->with('company')

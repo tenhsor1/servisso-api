@@ -55,7 +55,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::delete('branches/{id}/verifications/{verification_id}','BranchVerificationController@destroy');
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
-    Route::resource('partnerrates','PartnerRateController',['only' => ['update','destroy','show','store']]);
+    Route::resource('branchrates','BranchRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrates','UserRateController',['only' => ['update','destroy','show','store']]);
 	Route::get('categories/{id}/tags','CategoryController@categoryTags');
 	Route::resource('categories','CategoryController',['only' => ['index']]);

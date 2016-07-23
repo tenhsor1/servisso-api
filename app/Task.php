@@ -104,6 +104,14 @@ class Task extends ServissoModel
     return $this->morphMany('App\Task', 'object');
   }
 
+  public function userRates(){
+    return $this->morphMany('App\UserRate', 'object');
+  }
+
+  public function branchRates(){
+    return $this->morphMany('App\BranchRate', 'object');
+  }
+
   public function images(){
     return  $this->hasMany('App\TaskImage');
   }
