@@ -16,7 +16,7 @@ class TaskBranchesMigration extends Migration
             $table->increments('id');
             $table->integer('task_id')->unsigned();
             $table->integer('branch_id')->unsigned();
-            $table->tinyInteger('status')->default(0)->comment('0 = not read, 1 = read, 2 = interested, 3 = rejected');
+            $table->tinyInteger('status')->default(0)->comment('0 = not read, 1 = read, 2 = interested, 3 = rejected, 4 = finished');
             $table->softDeletes();
             $table->timestamps();
 
