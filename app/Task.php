@@ -90,7 +90,7 @@ class Task extends ServissoModel
       return $this->morphTo();
   }
 
-  
+
   public function branches()
     {
         return $this->hasMany('App\TaskBranch');
@@ -159,14 +159,13 @@ class Task extends ServissoModel
         return null;
     }
 
-    public function getNeareastBranches($numberBranches=20, $meters=2){
-        $feets = $meters / 0.3048;
+    public function getNeareastBranches($numberBranches=20, $meters=10000){
         return $this->select('branches.*')
             ->join('branches','branches.id','>',\DB::raw('0'))
             ->join('companies', 'branches.company_id', '=', 'companies.id')
             ->where('tasks.id', $this->id)
             ->where('companies.category_id', $this->category_id)
-            ->whereRaw('ST_DWithin(tasks.geom, branches.geom, '.$feets. ')')
+            ->whereRaw('ST_DWithin(tasks.geom::geography, branches.geom::geography, '.$meters. ', false)')
             ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
             ->take($numberBranches)
             ->get();

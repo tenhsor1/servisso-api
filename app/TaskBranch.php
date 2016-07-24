@@ -66,10 +66,18 @@ class TaskBranch extends ServissoModel
             $taskBranch->addLog('SENT');
             $taskBranch->addNotification('NEW');
         });
+
+        TaskBranch::updating(function ($taskBranch){
+            if($taskBranch->status != $taskBranch->getOriginal('status')){
+                \Log::info("taskbranch {$taskBranch->id} status: {$taskBranch->getOriginal('status')} just updated to {$taskBranch->status}");
+                $taskBranch->addLog('STATUS', $taskBranch->status);
+            }
+
+        });
     }
 
-    public function addLog($type){
-        $log = new TaskBranchLog(['type' => $type]);
+    public function addLog($type, $value=null){
+        $log = new TaskBranchLog(['type' => $type, 'value' => $value]);
         $this->logs()->save($log);
     }
 
@@ -118,6 +126,21 @@ class TaskBranch extends ServissoModel
 
     public function quotes(){
         return $this->hasMany('App\TaskBranchQuote');
+    }
+
+    public static function getUpdateRules(){
+        $rules = [
+            'status' => ['in:1,2,3,4']
+        ];
+
+        return $rules;
+    }
+
+    public static function getUpdateMessages(){
+        $messages = [
+            'status.in' => 'El status no es válido',
+        ];
+        return $messages;
     }
 
 
