@@ -362,7 +362,11 @@ class TaskController extends Controller
     }
 
     private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId){
-        $taskBranch = TaskBranch::where(['id' => $taskBranchId])->with('task.images')->with('branch.company.user')->first();
+        $taskBranch = TaskBranch::withDistance()
+                ->where(['task_branches.id' => $taskBranchId])
+                ->with('task.images')
+                ->with('branch.company.user')
+                ->first();
 
         if(!$taskBranch){
             $response = ['error' => 'Task Branck relationship does not exist','code' => 404];

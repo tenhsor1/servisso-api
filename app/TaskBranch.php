@@ -106,6 +106,12 @@ class TaskBranch extends ServissoModel
             ->first();
     }
 
+    public function scopeWithDistance($query){
+        return $query->join('tasks','task_branches.task_id','=','tasks.id')
+            ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
+            ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
+    }
+
     public function task(){
         //1 task-branch has one task
         return $this->belongsTo('App\Task');
