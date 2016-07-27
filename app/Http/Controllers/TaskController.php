@@ -51,7 +51,7 @@ class TaskController extends Controller
         $user = \Auth::User();
         $tasks = [];
         $tasks = Task::with('category')
-                        ->with('distanceBranches')
+                        ->with('distanceBranches.branch.company')
                         ->searchBy($request)
                         ->betweenBy($request)
                         ->orderByCustom($request)

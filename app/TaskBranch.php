@@ -96,7 +96,8 @@ class TaskBranch extends ServissoModel
         $notification->sender_type = Notification::USER_RELATION;
         $notification->verb = $verb;
         $notification->extra = json_encode([
-            'task' => $this->task->toArray()
+            'task' => $this->task->toArray(),
+            'distance' => $this->getDistance()
         ]);
         $notification->save();
     }
@@ -114,6 +115,15 @@ class TaskBranch extends ServissoModel
         return $query->join('tasks','task_branches.task_id','=','tasks.id')
             ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
             ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
+    }
+
+    public function getDistance(){
+        $result = TaskBranch::select(\DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'))
+        ->join('tasks','task_branches.task_id','=','tasks.id')
+        ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
+        ->where('id', $this->id)
+        ->first();
+        return $result->meters_distance;
     }
 
     public function task(){
