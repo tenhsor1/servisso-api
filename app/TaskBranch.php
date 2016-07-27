@@ -18,6 +18,10 @@ class TaskBranch extends ServissoModel
         'rejected'      => 3
     ];
 
+    const ACCEPTED_STATUSES = [
+        'interested'    => 2
+    ];
+
     /**
      * The database table used by the model.
      *

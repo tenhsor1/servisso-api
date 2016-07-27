@@ -34,6 +34,7 @@ class Task extends ServissoModel
      * @var array
      */
     protected $hidden = [
+                            'geom',
                             'deleted_at'
                         ];
 
@@ -95,6 +96,14 @@ class Task extends ServissoModel
     {
         return $this->hasMany('App\TaskBranch');
     }
+
+  public function distanceBranches(){
+    return $this->hasMany('App\TaskBranch')
+      ->join('tasks', 'task_branches.task_id', '=', 'tasks.id')
+      ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
+      ->whereIn('task_branches.status', TaskBranch::ACCEPTED_STATUSES)
+      ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
+  }
 
   public function openBranches(){
       return $this->hasMany('App\TaskBranch')->where('status', 1);
