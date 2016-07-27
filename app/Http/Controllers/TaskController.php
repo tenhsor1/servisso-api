@@ -51,15 +51,12 @@ class TaskController extends Controller
         $user = \Auth::User();
         $tasks = [];
         $tasks = Task::with('category')
-                        ->with('userable')
-                        ->with(['branches' => function($query){
-                            $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
-                            $query->with('branch.company');
-                        }])
+                        ->with('distanceBranches')
                         ->searchBy($request)
                         ->betweenBy($request)
                         ->orderByCustom($request)
                         ->limit($request)
+                        ->where('tasks.user_id', $user->id)
                         ->get();
 
         return response()->json(['data'=>$tasks], 200);
@@ -80,6 +77,7 @@ class TaskController extends Controller
         }
 
         $tasks = TaskBranch::where('branch_id', $branchId)
+                        ->withDistance()
                         ->with('task.user')
                         ->searchBy($request)
                         ->betweenBy($request)
@@ -264,12 +262,20 @@ class TaskController extends Controller
     public function show($id)
     {
         $user = \Auth::User();
-        $task = Task::with('category')
+        /*$task = Task::with('category')
                         ->with('userable')
                         ->with(['branches' => function($query){
-                            $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
+                            $query->whereIn('status', [TaskBranch::STATUSES['interested']]);
                             $query->with('branch.company');
                         }])
+                        ->where('id', $id)
+                        ->where('user_id', $user->id)
+                        ->first();
+        */
+
+        $task = Task::with('category')
+                        ->with('userable')
+                        ->with('distanceBranches')
                         ->where('id', $id)
                         ->where('user_id', $user->id)
                         ->first();
@@ -362,7 +368,11 @@ class TaskController extends Controller
     }
 
     private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId){
-        $taskBranch = TaskBranch::where(['id' => $taskBranchId])->with('task.images')->with('branch.company.user')->first();
+        $taskBranch = TaskBranch::withDistance()
+                ->where(['task_branches.id' => $taskBranchId])
+                ->with('task.images')
+                ->with('branch.company.user')
+                ->first();
 
         if(!$taskBranch){
             $response = ['error' => 'Task Branck relationship does not exist','code' => 404];
