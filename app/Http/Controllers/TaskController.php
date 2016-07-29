@@ -262,19 +262,8 @@ class TaskController extends Controller
     public function show($id)
     {
         $user = \Auth::User();
-        /*$task = Task::with('category')
-                        ->with('userable')
-                        ->with(['branches' => function($query){
-                            $query->whereIn('status', [TaskBranch::STATUSES['interested']]);
-                            $query->with('branch.company');
-                        }])
-                        ->where('id', $id)
-                        ->where('user_id', $user->id)
-                        ->first();
-        */
 
         $task = Task::with('category')
-                        ->with('userable')
                         ->with('distanceBranches')
                         ->where('id', $id)
                         ->where('user_id', $user->id)

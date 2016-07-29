@@ -7,27 +7,31 @@ use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
 use App\Notification;
-use App\TaskBranchLog;
 
-class TaskBranch extends ServissoModel
+use Validator;
+
+class Message extends ServissoModel
 {
-    const STATUSES = [
-        'not_open'      => 0,
-        'open'          => 1,
-        'interested'    => 2,
-        'rejected'      => 3
-    ];
+    const BRANCH_TO_TASK  = 'branch_to_task';
+    const USER_TO_TASK    = 'user_to_task';
+    const USER_TO_BRANCH  = 'user_to_branch';
+    const BRANCH_TO_USER  = 'branch_to_user';
 
-    const ACCEPTED_STATUSES = [
-        'interested'    => 2
-    ];
+    const MESSAGE_OBJECTS = ['task_branch' => 'App\TaskBranch'];
+    const MESSAGE_SENDERS = ['user' => 'App\User', 'branch' => 'App\Branch'];
+    const MESSAGE_RECEIVERS = ['user' => 'App\User', 'branch' => 'App\Branch'];
+
+    const MESSAGE_TYPES = [Message::BRANCH_TO_TASK, Message::USER_TO_TASK, Message::USER_TO_BRANCH, Message::BRANCH_TO_USER];
+    const MESSAGE_TYPES_OBJECT = [Message::BRANCH_TO_TASK, Message::USER_TO_TASK];
+    const MESSAGE_TYPES_TO_USER = [Message::BRANCH_TO_USER];
+    const MESSAGE_TYPES_TO_BRANCH = [Message::USER_TO_BRANCH];
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'task_branches';
+    protected $table = 'messages';
     use SoftDeletes;
 
     /**
@@ -35,8 +39,9 @@ class TaskBranch extends ServissoModel
      *
      * @var array
      */
-    protected $guarded = ['task_id'
-                            , 'branch_id'
+    protected $guarded = [
+                          'created_at',
+                          'updated_at'
                         ];
 
     /**
@@ -50,8 +55,8 @@ class TaskBranch extends ServissoModel
 
     protected $searchFields = [
         'id',
-        'task',
-        'branch',
+        'status',
+        'message'
     ];
 
     protected $betweenFields = [
@@ -64,107 +69,96 @@ class TaskBranch extends ServissoModel
         'updated'
     ];
 
-    public static function boot()
-    {
-        TaskBranch::created(function ($taskBranch) {
-            $taskBranch->addLog('SENT');
-            $taskBranch->addNotification('NEW');
+  public static function boot()
+  {
+  }
+
+  public function addNotification(){
+    /*$this->id;
+    Notification::SERVICE_RELATION;*/
+    $receivers = $this->getOwnerBranch();
+    foreach ($receivers as $key => $receiver) {
+      $notification = new Notification;
+      $notification->receiver_id = $receiver->id;
+      $notification->object_id = $this->id;
+      $notification->object_type = Notification::SERVICE_RELATION;
+      $notification->sender_id = $this->userable_id;
+      $notification->sender_type = $this->userable_type;
+      $notification->verb = 'NEW';
+      $notification->save();
+    }
+  }
+
+  public function sender(){
+      return $this->morphTo();
+  }
+
+  public function receiver(){
+      return $this->morphTo();
+  }
+
+  public function object(){
+      return $this->morphTo();
+  }
+
+  public function notification(){
+      return $this->morphTo();
+  }
+
+  public static function validatePayloadStore($request){
+        $v = Validator::make($request->all(), Message::getRules(), Message::getMessages());
+
+        $v->sometimes('object_id', 'required|exists:task_branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_OBJECT);
         });
 
-        TaskBranch::updating(function ($taskBranch){
-            if($taskBranch->status != $taskBranch->getOriginal('status')){
-                \Log::info("taskbranch {$taskBranch->id} status: {$taskBranch->getOriginal('status')} just updated to {$taskBranch->status}");
-                $taskBranch->addLog('STATUS', $taskBranch->status);
-            }
+        /*$v->sometimes('sender_id', 'required|exists:branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_OBJECT);
+        });*/
 
+        $v->sometimes('receiver_id', 'required|exists:branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_TO_BRANCH);
         });
-    }
 
-    public function addLog($type, $value=null){
-        $log = new TaskBranchLog(['type' => $type, 'value' => $value]);
-        $this->logs()->save($log);
-    }
+        $v->sometimes('receiver_id', 'required|exists:users,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_TO_USER);
+        });
 
-    public function addNotification($verb){
+        if($v->fails()){
+            $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+            return response()->json($response,400);
+        }
+        return true;
+  }
 
-        $receiver = $this->getOwnerBranch();
-        $notification = new Notification;
-        $notification->receiver_id = $receiver->id;
-        $notification->object_id = $this->id;
-        $notification->object_type = Notification::NOTIFICATION_OBJECTS_MAP['TaskBranch'];
-        $notification->sender_id = $this->task->user_id;
-        $notification->sender_type = Notification::USER_RELATION;
-        $notification->verb = $verb;
-        $notification->extra = json_encode([
-            'task' => $this->task->toArray(),
-            'distance' => $this->getDistance()
-        ]);
-        $notification->save();
-    }
-
-    public function getOwnerBranch(){
-      return $this->select('users.id')
-            ->join('branches','branches.id','=','task_branches.branch_id')
-            ->join('companies','companies.id','=','branches.company_id')
-            ->join('users','users.id','=','companies.user_id')
-            ->where('task_branches.id', $this->id)
-            ->first();
-    }
-
-    public function scopeWithDistance($query){
-        return $query->join('tasks','task_branches.task_id','=','tasks.id')
-            ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
-            ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
-    }
-
-    public function getDistance(){
-        $result = TaskBranch::select(\DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'))
-        ->join('tasks','task_branches.task_id','=','tasks.id')
-        ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
-        ->where('task_branches.id', $this->id)
-        ->first();
-        return $result->meters_distance;
-    }
-
-    public function task(){
-        //1 task-branch has one task
-        return $this->belongsTo('App\Task');
-    }
-
-    public function branch(){
-        //a task has 1 category
-        return $this->belongsTo('App\Branch');
-    }
-
-    public function notifications(){
-        return $this->morphMany('App\TaskBranch', 'object');
-    }
-
-    public function logs(){
-      return $this->hasMany('App\TaskBranchLog');
-    }
-
-    public function quotes(){
-        return $this->hasMany('App\TaskBranchQuote');
-    }
-
-    public static function getUpdateRules(){
+    public static function getRules(){
         $rules = [
-            'status' => ['in:1,2,3,4']
+            'message' => ['required','max:500', 'min:1'],
+            'type' => ['required', 'in:'.implode(',', Message::MESSAGE_TYPES)],
+            'object_id' => ['numeric'],
+            'sender_id' => ['numeric'],
+            'receiver_id' => ['numeric'],
         ];
 
         return $rules;
     }
 
-    public static function getUpdateMessages(){
+    public static function getMessages(){
         $messages = [
-            'status.in' => 'El status no es válido',
+            'message.required' => 'El mensaje es obligatorio',
+            'message.max' => 'El mensaje debe tener máximo :max caracteres',
+            'message.min' => 'El mensaje debe tener minimo :min caracteres',
+            'object_id.numeric' => 'El id del objeto debe de ser un entero',
+            'sender_id.numeric' => 'El id del emisor debe de ser un entero',
+            'receiver_id.numeric' => 'El id del receptor debe de ser un entero',
+            'type.required' => 'El tipo de mensaje es requerido',
+            'type.in' => 'El mensaje debe de ser de tipo: ' . implode(',', Message::MESSAGE_TYPES),
         ];
+
         return $messages;
     }
 
-
-     /**
+    /**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: services?search=test&searchFields=description,company,address)
      * @param  [QueryBuilder] $query    The consecutive query
@@ -181,16 +175,16 @@ class TaskBranch extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'description':
-                        //search by the description of the task
-                        $query->$where('tasks.description', 'LIKE', '%'.$search.'%');
+                    case 'message':
+                        //search by the message
+                        $query->$where('messages.message', 'LIKE', '%'.$search.'%');
                         break;
                     case 'id':
                         //search for the address of the branch related to the service
-                        $query->$where('tasks.id', '=', $search);
+                        $query->$where('messages.id', '=', $search);
                         break;
                     case 'status':
-                        $query->$where('tasks.status', '=', $search);
+                        $query->$where('messages.status', '=', $search);
                         break;
                 }
                 $where = "orWhere";
@@ -226,16 +220,16 @@ class TaskBranch extends ServissoModel
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->$where('tasks_branches.created_at', '>=', $start);
+                            $query->$where('messages.created_at', '>=', $start);
                         if($end)
-                            $query->$where('tasks_branches.created_at', '<=', $end);
+                            $query->$where('messages.created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->$where('tasks_branches.updated_at', '>=', $start);
+                            $query->$where('messages.updated_at', '>=', $start);
                         if($end)
-                            $query->$where('tasks_branches.updated_at', '<=', $end);
+                            $query->$where('messages.updated_at', '<=', $end);
                         break;
                 }
             }
@@ -259,11 +253,11 @@ class TaskBranch extends ServissoModel
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
                     case 'created':
-                        $query->orderBy('task_branches.created_at', $orderType);
+                        $query->orderBy('messages.created_at', $orderType);
                         break;
 
                     case 'updated':
-                        $query->orderBy('task_branches.updated_at', $orderType);
+                        $query->orderBy('messages.updated_at', $orderType);
                         break;
                 }
                 $cont++;
