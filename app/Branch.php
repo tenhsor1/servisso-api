@@ -14,7 +14,9 @@ class Branch extends ServissoModel
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id','name');
 
-	protected $hidden = ['geom', 'deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['geom', 'id_negocio', 'inegi', 'deleted_at','created_at','updated_at','role_id','role'];
+
+    protected $with = ['company'];
 
 	protected $searchFields = [
         'address',

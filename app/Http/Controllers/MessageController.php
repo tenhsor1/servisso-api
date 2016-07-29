@@ -19,6 +19,7 @@ class MessageController extends Controller
     public function __construct(){
         parent::__construct();
         $this->middleware('jwt.auth:user', ['only' => ['index',
+                                                        'indexTaskBranch',
                                                         'store',
                                                         'show',
                                                         'update',
@@ -36,6 +37,29 @@ class MessageController extends Controller
     public function index()
     {
         //
+    }
+
+    public function indexTaskBranch(Request $request, $taskId, $taskBranchId){
+        $userRequested = \Auth::User();
+        $taskBranch = TaskBranch::where(['id' => $taskBranchId])->first();
+        if(!$taskBranch){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+        if($taskBranch->task->user_id != $userRequested->id){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+
+        $tbComplex = $taskBranch->with(['messages' => function($query){
+            $query->with('sender');
+            $query->with('receiver');
+        }])
+        ->where(['id' => $taskBranchId])
+        ->first();
+        $messages = $tbComplex['messages'];
+
+        return response()->json(['data' => $messages], 200);
     }
 
     /**

@@ -137,7 +137,7 @@ class TaskBranch extends ServissoModel
     }
 
     public function notifications(){
-        return $this->morphMany('App\TaskBranch', 'object');
+        return $this->morphMany('App\Notification', 'object');
     }
 
     public function logs(){
@@ -146,6 +146,10 @@ class TaskBranch extends ServissoModel
 
     public function quotes(){
         return $this->hasMany('App\TaskBranchQuote');
+    }
+
+    public function messages(){
+        return $this->morphMany('App\Message', 'object');
     }
 
     public static function getUpdateRules(){

@@ -89,20 +89,43 @@ class Message extends ServissoModel
     }
   }
 
+  //which can be Branch, User
   public function sender(){
       return $this->morphTo();
   }
 
+  //which can be Branch, User
   public function receiver(){
       return $this->morphTo();
   }
 
+  //which can be TaskBranch,
   public function object(){
       return $this->morphTo();
   }
 
   public function notification(){
       return $this->morphTo();
+  }
+
+  //add this so when retreving the user, only retrieve it with certain fields
+  public function getSenderTypeAttribute($value)
+  {
+    if (is_null($value)) return ($value);
+    if($value == Message::MESSAGE_SENDERS['user']){
+      return ($value.'Hidden');
+    }
+    return $value;
+  }
+
+  //add this so when retreving the user, only retrieve it with certain fields
+  public function getReceiverTypeAttribute($value)
+  {
+    if (is_null($value)) return ($value);
+    if($value == Message::MESSAGE_RECEIVERS['user']){
+      return ($value.'Hidden');
+    }
+    return $value;
   }
 
   public static function validatePayloadStore($request){
