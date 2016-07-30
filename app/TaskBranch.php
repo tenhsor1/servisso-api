@@ -52,6 +52,7 @@ class TaskBranch extends ServissoModel
         'id',
         'task',
         'branch',
+		'status'
     ];
 
     protected $betweenFields = [
@@ -190,7 +191,7 @@ class TaskBranch extends ServissoModel
                         $query->$where('tasks.id', '=', $search);
                         break;
                     case 'status':
-                        $query->$where('tasks.status', '=', $search);
+                        $query->$where('task_branches.status', '=', $search);
                         break;
                 }
                 $where = "orWhere";
