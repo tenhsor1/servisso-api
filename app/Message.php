@@ -8,14 +8,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
 use App\Notification;
 
-class Task extends ServissoModel
+use Validator;
+
+class Message extends ServissoModel
 {
+    const BRANCH_TO_TASK  = 'branch_to_task';
+    const USER_TO_TASK    = 'user_to_task';
+    const USER_TO_BRANCH  = 'user_to_branch';
+    const BRANCH_TO_USER  = 'branch_to_user';
+
+    const MESSAGE_OBJECTS = ['task_branch' => 'App\TaskBranch'];
+    const MESSAGE_SENDERS = ['user' => 'App\User', 'branch' => 'App\Branch'];
+    const MESSAGE_RECEIVERS = ['user' => 'App\User', 'branch' => 'App\Branch'];
+
+    const MESSAGE_TYPES = [Message::BRANCH_TO_TASK, Message::USER_TO_TASK, Message::USER_TO_BRANCH, Message::BRANCH_TO_USER];
+    const MESSAGE_TYPES_OBJECT = [Message::BRANCH_TO_TASK, Message::USER_TO_TASK];
+    const MESSAGE_TYPES_TO_USER = [Message::BRANCH_TO_USER];
+    const MESSAGE_TYPES_TO_BRANCH = [Message::USER_TO_BRANCH];
+
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'tasks';
+    protected $table = 'messages';
     use SoftDeletes;
 
     /**
@@ -23,9 +39,9 @@ class Task extends ServissoModel
      *
      * @var array
      */
-    protected $guarded = ['user_id'
-                            , 'category_id'
-							,'created_at'
+    protected $guarded = [
+                          'created_at',
+                          'updated_at'
                         ];
 
     /**
@@ -34,14 +50,13 @@ class Task extends ServissoModel
      * @var array
      */
     protected $hidden = [
-                            'geom',
                             'deleted_at'
                         ];
 
     protected $searchFields = [
         'id',
         'status',
-        'description',
+        'message'
     ];
 
     protected $betweenFields = [
@@ -56,9 +71,6 @@ class Task extends ServissoModel
 
   public static function boot()
   {
-      /*Task::created(function ($task) {
-        $task->addNotification();
-      });*/
   }
 
   public function addNotification(){
@@ -77,62 +89,55 @@ class Task extends ServissoModel
     }
   }
 
-  public function user(){
-      //1 task is made by 1 user
-      return $this->belongsTo('App\User');
-  }
-
-    public function category(){
-        //a task has 1 category
-        return $this->belongsTo('App\Category');
-    }
-
-  public function userable(){
+  public function sender(){
       return $this->morphTo();
   }
 
-
-  public function branches()
-    {
-        return $this->hasMany('App\TaskBranch');
-    }
-
-  public function distanceBranches(){
-    return $this->hasMany('App\TaskBranch')
-      ->join('tasks', 'task_branches.task_id', '=', 'tasks.id')
-      ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
-      ->whereIn('task_branches.status', TaskBranch::ACCEPTED_STATUSES)
-      ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
+  public function receiver(){
+      return $this->morphTo();
   }
 
-  public function openBranches(){
-      return $this->hasMany('App\TaskBranch')->where('status', 1);
+  public function object(){
+      return $this->morphTo();
   }
 
-  public function notifications(){
-    return $this->morphMany('App\Task', 'object');
+  public function notification(){
+      return $this->morphTo();
   }
 
-  public function userRates(){
-    return $this->morphMany('App\UserRate', 'object');
-  }
+  public static function validatePayloadStore($request){
+        $v = Validator::make($request->all(), Message::getRules(), Message::getMessages());
 
-  public function branchRates(){
-    return $this->morphMany('App\BranchRate', 'object');
-  }
+        $v->sometimes('object_id', 'required|exists:task_branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_OBJECT);
+        });
 
-  public function images(){
-    return  $this->hasMany('App\TaskImage');
+        /*$v->sometimes('sender_id', 'required|exists:branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_OBJECT);
+        });*/
+
+        $v->sometimes('receiver_id', 'required|exists:branches,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_TO_BRANCH);
+        });
+
+        $v->sometimes('receiver_id', 'required|exists:users,id', function($input){
+            return in_array($input->type, Message::MESSAGE_TYPES_TO_USER);
+        });
+
+        if($v->fails()){
+            $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+            return response()->json($response,400);
+        }
+        return true;
   }
 
     public static function getRules(){
         $rules = [
-            'description' => ['required','max:500', 'min:30'],
-            'category_id' => ['required','exists:categories,id'],
-            'date' => ['required','date_format:Y-m-d H:i:s', 'after:yesterday'],
-            'delivery_service' => ['required', 'boolean'],
-            'latitude' => ['required', 'regex:/^[-]?(([0-8]?[0-9])\.(\d+))|(90(\.0+)?)$/'],
-            'longitude' => ['required', 'regex:/^[-]?((((1[0-7][0-9])|([0-9]?[0-9]))\.(\d+))|180(\.0+)?)$/'],
+            'message' => ['required','max:500', 'min:1'],
+            'type' => ['required', 'in:'.implode(',', Message::MESSAGE_TYPES)],
+            'object_id' => ['numeric'],
+            'sender_id' => ['numeric'],
+            'receiver_id' => ['numeric'],
         ];
 
         return $rules;
@@ -140,44 +145,17 @@ class Task extends ServissoModel
 
     public static function getMessages(){
         $messages = [
-            'description.required' => 'Descripción es obligatoria',
-            'description.max' => 'Descripción debe tener máximo :max caracteres',
-            'description.min' => 'Descripción debe tener minimo :min caracteres',
-            'category_id.required' => 'La categoria es obligatoria',
-            'category.exists' => 'La categoria no existe',
-            'date.required' => 'la fecha es obligatoria',
-            'date.date_format' => 'la fecha debe de ser en formato Y-m-d H:i:s',
-            'date.after' => 'la fecha no puede ser anterior a hoy',
-            'delivery_service.required' => 'delivery_service es obligatorio',
-            'delivery_service.boolean' => 'delivery_service debe de ser booleano',
-            'latitude.required' => 'La latitud es requerida',
-            'longitude.required' => 'La longitud es requerida',
-            'latitude.regex' => 'La latitud no es valida',
-            'longitude.regex' => 'La longitud no es valida',
+            'message.required' => 'El mensaje es obligatorio',
+            'message.max' => 'El mensaje debe tener máximo :max caracteres',
+            'message.min' => 'El mensaje debe tener minimo :min caracteres',
+            'object_id.numeric' => 'El id del objeto debe de ser un entero',
+            'sender_id.numeric' => 'El id del emisor debe de ser un entero',
+            'receiver_id.numeric' => 'El id del receptor debe de ser un entero',
+            'type.required' => 'El tipo de mensaje es requerido',
+            'type.in' => 'El mensaje debe de ser de tipo: ' . implode(',', Message::MESSAGE_TYPES),
         ];
 
         return $messages;
-    }
-
-    public function setGeomAttribute($value) {
-        //position 0 = longitude, 1 = latitude
-        $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
-    }
-
-    public function getGeomAttribute(){
-        return null;
-    }
-
-    public function getNeareastBranches($numberBranches=20, $meters=10000){
-        return $this->select('branches.*')
-            ->join('branches','branches.id','>',\DB::raw('0'))
-            ->join('companies', 'branches.company_id', '=', 'companies.id')
-            ->where('tasks.id', $this->id)
-            ->where('companies.category_id', $this->category_id)
-            ->whereRaw('ST_DWithin(tasks.geom::geography, branches.geom::geography, '.$meters. ', false)')
-            ->orderBy(\DB::raw('branches.geom <-> tasks.geom'))
-            ->take($numberBranches)
-            ->get();
     }
 
     /**
@@ -197,16 +175,16 @@ class Task extends ServissoModel
             $searchFields = is_array($fields) ? $fields : $defaultFields;
             foreach ($searchFields as $searchField) {
                 switch ($searchField) {
-                    case 'description':
-                        //search by the description of the task
-                        $query->$where('tasks.description', 'LIKE', '%'.$search.'%');
+                    case 'message':
+                        //search by the message
+                        $query->$where('messages.message', 'LIKE', '%'.$search.'%');
                         break;
                     case 'id':
                         //search for the address of the branch related to the service
-                        $query->$where('tasks.id', '=', $search);
+                        $query->$where('messages.id', '=', $search);
                         break;
                     case 'status':
-                        $query->$where('tasks.status', '=', $search);
+                        $query->$where('messages.status', '=', $search);
                         break;
                 }
                 $where = "orWhere";
@@ -242,16 +220,16 @@ class Task extends ServissoModel
                     case 'created':
                         //search depending on the creation time
                         if($start)
-                            $query->$where('tasks.created_at', '>=', $start);
+                            $query->$where('messages.created_at', '>=', $start);
                         if($end)
-                            $query->$where('tasks.created_at', '<=', $end);
+                            $query->$where('messages.created_at', '<=', $end);
                         break;
                     case 'updated':
                         //search depending on the updated time
                         if($start)
-                            $query->$where('tasks.updated_at', '>=', $start);
+                            $query->$where('messages.updated_at', '>=', $start);
                         if($end)
-                            $query->$where('tasks.updated_at', '<=', $end);
+                            $query->$where('messages.updated_at', '<=', $end);
                         break;
                 }
             }
@@ -275,11 +253,11 @@ class Task extends ServissoModel
                 $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
                 switch ($orderField) {
                     case 'created':
-                        $query->orderBy('tasks.created_at', $orderType);
+                        $query->orderBy('messages.created_at', $orderType);
                         break;
 
                     case 'updated':
-                        $query->orderBy('tasks.updated_at', $orderType);
+                        $query->orderBy('messages.updated_at', $orderType);
                         break;
                 }
                 $cont++;

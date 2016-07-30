@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class TaskBranchesMigration extends Migration
+class BranchRatesMigration extends Migration
 {
     /**
      * Run the migrations.
@@ -12,15 +12,19 @@ class TaskBranchesMigration extends Migration
      */
     public function up()
     {
-        Schema::create('task_branches', function (Blueprint $table) {
+        Schema::create('branch_rates', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('task_id')->unsigned();
+
+            $table->integer('user_id')->unsigned();
             $table->integer('branch_id')->unsigned();
-            $table->tinyInteger('status')->default(0)->comment('0 = not read, 1 = read, 2 = interested, 3 = rejected, 4 = finished');
+            $table->integer('object_id')->nullable()->unsigned();
+            $table->string('object_type', 48)->nullable();
+            $table->float('rate');
+            $table->text('comment')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('task_id')->references('id')->on('tasks');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('branch_id')->references('id')->on('branches');
         });
     }
@@ -32,6 +36,6 @@ class TaskBranchesMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('task_branches');
+        Schema::drop('branch_rates');
     }
 }

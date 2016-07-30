@@ -10,6 +10,7 @@ use JWTAuth;
 use Validator;
 use App\Service;
 use App\Branch;
+use App\TaskBranch;
 use App\User;
 use App\Company;
 
@@ -28,7 +29,7 @@ class UserRateController extends Controller
      */
     public function index()
     {
-        $rates = UserRate::with('services')->get();
+        $rates = UserRate::with('tasks')->get();
 		$response = ['data' => $rates,'code' => 200];
 		return response()->json($rates,200);
     }
@@ -51,60 +52,86 @@ class UserRateController extends Controller
      */
     public function store(Request $request)
     {
-		$userRequested = \Auth::User();
-
 		$messages = UserRate::getMessages();
-		$validation = UserRate::getValidations();
+        $rules = UserRate::getRules();
 
-		$v = Validator::make($request->all(),$validation,$messages);
+        $v = Validator::make($request->all(),$rules,$messages);
 
-		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
-		if($v->fails()){
-			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
-			return response()->json($response,422);
-		}
+        $v->sometimes('task_branch_id', 'required|exists:task_branches,id', function($input){
+            return $input->type == 'task';
+        });
 
-		$service_id = $request->service_id;
-		$service = Service::with('branch.company')->where('id','=',$service_id)->first();
+        $v->sometimes('branch_id', 'required|exists:branches,id', function($input){
+            return $input->type == 'other';
+        });
 
+        $v->sometimes('user_id', 'required|exists:users,id', function($input){
+            return $input->type == 'other';
+        });
+
+        if($v->fails()){
+            $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+            return response()->json($response,400);
+        }
+
+        $rate = new UserRate;
+        $userRequested = \Auth::User();
+        if($request->input('type') == 'other'){
+            $branch = Branch::where(['id' => $request->input('branch_id')])->first();
+            if($userRequested->id != $branch->company->user->id){
+                $response = ['error' => 'Unauthorized',
+                            'code' => 403];
+                \Log::error(sprintf("User: %s requested add a user rate with branch dont own: %s. Real owner: %s",
+                                    $userRequested->id, $request->input('branch_id'), $branch->company->id));
+                return response()->json($response,403);
+            }
+            $rate->branch_id  = $request->input('branch_id');
+            $rate->user_id = $request->input('user_id');
+        }elseif($request->input('type') == 'task'){
+            $taskBranch = TaskBranch::where(['id' => $request->input('task_branch_id')])->first();
+            if($userRequested->id != $taskBranch->branch->company->user->id){
+                $response = ['error' => 'Unauthorized',
+                            'code' => 403];
+                \Log::error(sprintf("User: %s requested add a user rate with task branch dont own: %s. Real owner: %s",
+                                    $userRequested->id, $request->input('task_branch_id'), $taskBranch->branch->company->user->id));
+                return response()->json($response,403);
+            }
+
+            $findRate = UserRate::where('object_id', $taskBranch->task->id)
+                                ->where('object_type', UserRate::USER_RATE_OBJECTS_MAP['Task'])
+                                ->where('branch_id', $taskBranch->branch_id)
+                                ->first();
+            if($findRate){
+                $response = ['error' => "Ya calificaste al usuario de esta tarea", 'code' =>  422];
+                return response()->json($response,422);
+            }
+
+            $rate->object_id = $taskBranch->task->id;
+            $rate->object_type = UserRate::USER_RATE_OBJECTS_MAP['Task'];
+            $rate->branch_id = $taskBranch->branch_id;
+            $rate->user_id = $taskBranch->task->user->id;
+        }
+
+
+        if($userRequested->id == $request->input('user_id')){
+            $response = ['error' => "Can't rate yourself", 'code' =>  422];
+            return response()->json($response,422);
+        }
+
+
+        $attributes = [     'rate'
+                            , 'comment'
+                        ];
+        $this->updateModel($request, $rate, $attributes);
+        $saved = $rate->save();
 		//SE VALIDA QUE EL SERVICE EXISTA
-		if(!is_null($service)){
-
-			$user = User::find($service->user_id);
-
-			//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR UN RATE
-			if($userRequested->id == $user->id){
-
-
-
-				$company = $service->branch->company;
-
-				$rate = new UserRate;
-				$rate->service_id = $request->service_id;
-				$rate->rate = $request->rate;
-				$rate->comment = $request->comment;
-				$rate->user_id = $company->user_id;
-
-				$rate = $rate->save();
-
-				//SE VALIDA QUE EL REGISTRO SE HALLA GUARDADO
-				if(!is_null($rate)){
-					$response = ['data' => $rate,'code' => 200,'message' => 'Rate was registered succefully'];
-					return response()->json($response,200);
-				}else{
-					$response = ['error' => 'It has occurred an error trying to register the rate','code' => 404];
-					return response()->json($response,404);
-				}
-
-			}else{
-				$response = ['error'   => 'Unauthorized','code' => 403];
-				return response()->json($response, 403);
-			}
-
+		if($saved){
+			$response = ['data' => $rate,'code' => 200,'message' => 'Rate was registered succefully'];
+			return response()->json($response,200);
 		}else{
 			//EN DADO CASO QUE EL ID DEL SERVICE NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Service does not exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'It has occurred an error trying to set the rate','code' => 500];
+			return response()->json($response,500);
 		}
     }
 
@@ -161,11 +188,7 @@ class UserRateController extends Controller
 		}
 
 		$rate = UserRate::find($id);
-
-		//SE VALIDA QUE EL RATE EXISTA
 		if(!is_null($rate)){
-
-			//SE GUARDAN EN UN ARREGLO LOS CAMPOS QUE SE PUEDEN ACTUALIZAR Y SE IGUALAN A LOS QUE VIENEN POR LA PETICION
 			$fields = ['rate' => $request->rate,'comment' => $request->comment];
 
 			$row = UserRate::where('id','=',$id)->update($fields);
@@ -175,8 +198,8 @@ class UserRateController extends Controller
 				$response = ['data' => $rate,'code' => 200,'message' => 'Rate was updated succefully'];
 				return response()->json($response,200);
 			}else{
-				$response = ['error' => 'It has occurred an error trying to update the rate','code' => 404];
-				return response()->json($response,404);
+				$response = ['error' => 'It has occurred an error trying to update the rate','code' => 500];
+				return response()->json($response,500);
 			}
 
 		}else{
