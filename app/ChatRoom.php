@@ -69,6 +69,10 @@ class ChatRoom extends ServissoModel
     return $this->hasMany('App\ChatMessage');
   }
 
+  public function latestMessage(){
+   return $this->hasOne('App\ChatMessage')->latest();
+  }
+
   public function participants(){
     return $this->hasMany('App\ChatParticipant');
   }
@@ -113,5 +117,34 @@ class ChatRoom extends ServissoModel
         ];
 
         return $messages;
+    }
+
+    /**
+     * Used for ordering the result of a get request
+     * (example: services?orderBy=created,updated&orderTypes=ASC,DESC)
+     * @param  [QueryBuilder] $query    The consecutive query
+     * @param  [Request] $request       The HTTP Request object of the call
+     * @return [QueryBuilder]           The new query builder
+     */
+    public function scopeOrderByCustom($query, $request){
+        $orderFields = $this->orderByParametersAreValid($request);
+        if($orderFields){
+            $orderTypes = explode(',', $request->input('orderTypes'));
+            $cont=0;
+            foreach ($orderFields as $orderField) {
+                $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
+                switch ($orderField) {
+                    case 'created':
+                        $query->orderBy('chat_rooms.created_at', $orderType);
+                        break;
+
+                    case 'updated':
+                        $query->orderBy('chat_rooms.updated_at', $orderType);
+                        break;
+                }
+                $cont++;
+            }
+        }
+        return $query;
     }
 }

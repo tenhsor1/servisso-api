@@ -26,9 +26,32 @@ class ChatController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+
+    public function index(Request $request)
     {
-        //
+        $userRequested = \Auth::User();
+        $messages = ChatRoom::orderByCustom($request)
+                        ->with('object')
+                        ->with(['latestMessage' => function($q){
+                            $q->with(['chatParticipant' => function($q){
+                                $q->with('user');
+                                $q->with('object');
+                            }]);
+                        }])
+                        ->join('chat_messages AS cm', function($q){
+                            $q->on('cm.chat_room_id', '=', 'chat_rooms.id')
+                            ->on('cm.updated_at', '=', \DB::raw('(SELECT MAX(cmm.updated_at) FROM chat_messages cmm WHERE cmm.chat_room_id = chat_rooms.id)'));
+
+                        })
+                        ->whereHas('participants', function($q) use ($userRequested){
+                            $q->where('user_id', $userRequested->id);
+                        })
+                        ->select('chat_rooms.id',
+                                'chat_rooms.object_id',
+                                'chat_rooms.object_type',
+                                'chat_rooms.name')
+                        ->get();
+        return response()->json(['data' => $messages], 200);
     }
 
     /**
@@ -186,6 +209,9 @@ class ChatController extends Controller
             $validUser = true;
             $sender->object_id = $taskBranch->branch_id;
             $sender->object_type = ChatParticipant::PARTICIPANT_OBJECTS['branch'];
+            $receiver->user_id = $taskBranch->task->user_id;
+            $receiver->object_id = null;
+            $receiver->object_type = null;
         }
 
         if(!$validUser){

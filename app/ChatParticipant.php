@@ -58,7 +58,7 @@ class ChatParticipant extends ServissoModel
 
     public function user(){
         // 1 participant is one user
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\UserHidden');
     }
 
     public function room(){

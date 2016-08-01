@@ -71,7 +71,6 @@ class ChatMessage extends ServissoModel
     }
 
     public function addNotification($verb){
-        \Log::debug($verb);
         foreach ($this->chatRoom->participants as $key => $participant) {
             $notification = new Notification;
             $notification->receiver_id = $participant->user_id;
