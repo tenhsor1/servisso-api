@@ -129,7 +129,15 @@ class ChatController extends Controller
         }
 
         if($taskBranch->chatRoom){
-            return $this->createMessage($message, $taskBranch->chatRoom, $userRequested);
+            $participant = ChatParticipant::where([
+                                            'chat_room_id' => $taskBranch->chatRoom->id,
+                                            'user_id' => $userRequested->id,
+                                            ])->first();
+            if(!$participant){
+                abort(403, 'Unauthorized');
+                return false;
+            }
+            return $this->createMessage($message, $taskBranch->chatRoom, $participant);
         }
         //create a new chat room with it participants based on the task branch object
         $chatRoom = $this->createChatRoom($userRequested, $taskBranch);
