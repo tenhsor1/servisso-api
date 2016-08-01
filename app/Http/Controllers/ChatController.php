@@ -15,6 +15,12 @@ use App\TaskBranch;
 
 class ChatController extends Controller
 {
+
+    public function __construct(){
+        parent::__construct();
+        $this->middleware('jwt.auth:user');
+        $this->middleware('default.headers');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -45,11 +51,7 @@ class ChatController extends Controller
     {
         $userRequested = \Auth::User();
 
-        $errorResponse = ChatRoom::validatePayloadStore($request);
-
-        if($errorResponse instanceof JsonResponse){
-            return $errorResponse;
-        };
+        ChatRoom::validatePayloadStore($request);
 
         $type = $request->object_type;
         $message = $request->message;
@@ -67,8 +69,8 @@ class ChatController extends Controller
                 break;
         }
 
-        //$response = ['code' => 500, 'message' => 'Something wrong happened, please contact support'];
-        return response()->json($response,500);
+        $response = ['data' => $message, 'code' => 200, 'message' => 'Message was created succefully'];
+        return response()->json($response,200);
     }
 
     /**
@@ -132,7 +134,7 @@ class ChatController extends Controller
         //create a new chat room with it participants based on the task branch object
         $chatRoom = $this->createChatRoom($userRequested, $taskBranch);
         $participants = $chatRoom->participants;
-        return $this->createMessage($message, $chatRoom, $sender, $participants[0]);
+        return $this->createMessage($message, $chatRoom, $participants[0]);
     }
 
     private function createChatRoom($userRequested, $object){
@@ -143,7 +145,8 @@ class ChatController extends Controller
         if($object instanceof $class){
             $participants = $this->getTaskBranchParticipants($userRequested, $object);
             $chatRoom->name = substr($object->task->description, 0, 12);
-            $chatRoom->object = $object;
+            $chatRoom->object_id = $object->id;
+            $chatRoom->object_type = $class;
         }
 
         if(!$participants){
@@ -187,11 +190,11 @@ class ChatController extends Controller
         return $participants;
     }
 
-    private function createMessage($message, $chatRoom, $sender){
+    private function createMessage($message, $chatRoom, $participant){
         $chatMessage = new ChatMessage;
         $chatMessage->message = $message;
-        $chatMessage->room = $chatRoom;
-        $chatMessage->sender = $sender;
+        $chatMessage->chat_room_id = $chatRoom->id;
+        $chatMessage->chat_participant_id = $participant->id;
         if(!$chatMessage->save()){
             abort(500, 'Something went wrong, please contact support');
         }

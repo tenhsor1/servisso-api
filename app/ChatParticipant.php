@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ChatParticipant extends ServissoModel
 {
 
-    const CHAT_OBJECTS = ['branch' => 'App\Branch'];
+    const PARTICIPANT_OBJECTS = ['branch' => 'App\Branch'];
     /**
      * The database table used by the model.
      *

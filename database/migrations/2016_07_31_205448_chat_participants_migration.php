@@ -16,8 +16,8 @@ class ChatParticipantsMigration extends Migration
             $table->increments('id');
             $table->integer('chat_room_id')->unsigned();
             $table->integer('user_id')->unsigned();
-            $table->integer('object_id')->unsigned();
-            $table->string('object_type', 45);
+            $table->integer('object_id')->unsigned()->nullable();
+            $table->string('object_type', 45)->nullable();
             $table->softDeletes();
             $table->timestamps();
 
@@ -33,6 +33,6 @@ class ChatParticipantsMigration extends Migration
      */
     public function down()
     {
-        $table->integer('chat_participants')->unsigned();
+        Schema::drop('chat_participants');
     }
 }

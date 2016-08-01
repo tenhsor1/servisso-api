@@ -29,6 +29,6 @@ class ChatRoomsMigration extends Migration
      */
     public function down()
     {
-        Schema::drop('chat_messages');
+        Schema::drop('chat_rooms');
     }
 }

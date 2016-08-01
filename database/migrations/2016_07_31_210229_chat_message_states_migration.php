@@ -32,6 +32,6 @@ class ChatMessageStatesMigration extends Migration
      */
     public function down()
     {
-        $table->integer('chat_message_states')->unsigned();
+        Schema::drop('chat_message_states');
     }
 }

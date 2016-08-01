@@ -16,6 +16,7 @@ class ChatMessagesMigration extends Migration
             $table->increments('id');
             $table->integer('chat_room_id')->unsigned();
             $table->integer('chat_participant_id')->unsigned();
+            $table->text('message');
             $table->softDeletes();
             $table->timestamps();
 
@@ -31,6 +32,6 @@ class ChatMessagesMigration extends Migration
      */
     public function down()
     {
-        $table->integer('chat_messages')->unsigned();
+        Schema::drop('chat_messages');
     }
 }
