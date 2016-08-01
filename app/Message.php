@@ -71,22 +71,28 @@ class Message extends ServissoModel
 
   public static function boot()
   {
+      Message::created(function ($message) {
+            $message->addNotification('NEW');
+      });
   }
 
-  public function addNotification(){
-    /*$this->id;
-    Notification::SERVICE_RELATION;*/
-    $receivers = $this->getOwnerBranch();
-    foreach ($receivers as $key => $receiver) {
-      $notification = new Notification;
-      $notification->receiver_id = $receiver->id;
-      $notification->object_id = $this->id;
-      $notification->object_type = Notification::SERVICE_RELATION;
-      $notification->sender_id = $this->userable_id;
-      $notification->sender_type = $this->userable_type;
-      $notification->verb = 'NEW';
-      $notification->save();
-    }
+  public function addNotification($verb){
+    $receiverId = $this->getUserId($this->receiver);
+    $notification = new Notification;
+    $notification->receiver_id = $receiverId;
+    $notification->object_id = $this->id;
+    $notification->object_type = Notification::MESSAGE_RELATION;
+    $notification->sender_id = $this->sender_id;
+    $notification->sender_type = $this->sender_type;
+    $notification->verb = $verb;
+    $notification->type = 1;
+    $object = $this->getObjectNotification();
+    $notification->extra = json_encode([
+        'receiver' => $this->receiver->toArray(),
+        'object' => $object
+    ]);
+
+    $notification->save();
   }
 
   //which can be Branch, User
@@ -104,8 +110,8 @@ class Message extends ServissoModel
       return $this->morphTo();
   }
 
-  public function notification(){
-      return $this->morphTo();
+  public function notifications(){
+      return $this->morphMany('App\Notification', 'object');
   }
 
   //add this so when retreving the user, only retrieve it with certain fields
@@ -126,6 +132,25 @@ class Message extends ServissoModel
       return ($value.'Hidden');
     }
     return $value;
+  }
+
+  public function getUserId($object){
+    $class = 'App\\Branch';
+    if($object instanceof $class){
+      return $object->company->user_id;
+    }
+    return $object->id;
+  }
+
+  public function getObjectNotification(){
+    $object = null;
+
+    $class = 'App\TaskBranch';
+    if($this->object instanceof $class){
+        $object = $this->object->task->toArray();
+        return $object;
+    }
+    return $object;
   }
 
   public static function validatePayloadStore($request){

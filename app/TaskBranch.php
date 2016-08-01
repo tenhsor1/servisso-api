@@ -148,8 +148,8 @@ class TaskBranch extends ServissoModel
         return $this->hasMany('App\TaskBranchQuote');
     }
 
-    public function messages(){
-        return $this->morphMany('App\Message', 'object');
+    public function chatRoom(){
+        return $this->morphOne('App\ChatRoom', 'object');
     }
 
     public static function getUpdateRules(){

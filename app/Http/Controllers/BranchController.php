@@ -72,16 +72,16 @@ class BranchController extends Controller
 			->where('tags_branches.branch_id','=',$branch->id)
 			->select('tags.name','tags.description')
 			->get();
-			
+
 			$branch->tags = $tags;
-			
+
 			$verifications = \DB::table('branch_verification AS bv')
 			->where('bv.branch_id','=',$branch->id)
 			->select('bv.verification_type','bv.description','bv.id')
 			->get();
 
 			$branch->verifications = $verifications;
-			
+
 		}
 
 		$response = ['code' => 200,'count' => $count,'data' => $branches];
@@ -128,10 +128,10 @@ class BranchController extends Controller
 
 			$userRequested = \Auth::User();
 			$role = $userRequested->authRole;
-			
+
 			//SE VALIDA QUE EL USUARIO NO TENGA BRANCHES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER GUARDAR UNA NUEVA
-			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') &&
 				!$company->branches) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
 				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
@@ -178,7 +178,7 @@ class BranchController extends Controller
 				}else{
 					$response = ['error'   => 'Unauthorized','code' => 403];
 					return response()->json($response, 403);
-				}			
+				}
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);
@@ -260,8 +260,8 @@ class BranchController extends Controller
 
 		//SE VERIFICA SI ALGUN CAMPO NO ESTA CORRECTO
 		if($v->fails()){
-			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  422];
-			return response()->json($response,422);
+			$response = ['error' => 'Bad Request', 'data' => $v->messages(), 'code' =>  400];
+			return response()->json($response, 400);
 		}
 
 		//SE OBTIENE LA BRANCH SOLICITIDA JUNTO CON LA COMPANY QUE LE PERTENECE
@@ -324,8 +324,8 @@ class BranchController extends Controller
 
 		}else{
 			//EN DADO CASO QUE EL ID DE BRANCH NO SE HALLA ENCONTRADO
-			$response = ['error' => 'Branch does not exist','code' => 422];
-			return response()->json($response,422);
+			$response = ['error' => 'Branch does not exist','code' => 404];
+			return response()->json($response, 404);
 		}
 
     }
@@ -348,7 +348,7 @@ class BranchController extends Controller
 
 			//SE OBTIENE LA COMPANY DE LA BRANCH
 			$company = $branch->company;
-			
+
 			//SE VALIDA QUE EL USUARIO TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER ELIMINAR UNA SUCURSAL
 			if($userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
@@ -378,7 +378,7 @@ class BranchController extends Controller
 				}else{
 					$response = ['error'   => 'Unauthorized','code' => 403];
 					return response()->json($response, 403);
-				}			
+				}
 			}else{
 				$response = ['error'   => 'Unauthorized','code' => 403];
 				return response()->json($response, 403);

@@ -83,6 +83,10 @@ class Branch extends ServissoModel
         return $this->hasMany('App\UserRate');
     }
 
+    public function chatParticipants(){
+        return $this->morphMany('App\ChatParticipant', 'object');
+    }
+
 	public static function getRules(){
 		$rules = [
 			'address' => ['required','min:2','max:120'],

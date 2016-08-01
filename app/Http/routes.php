@@ -83,7 +83,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('proyect/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
-    Route::resource('messages', 'MessageController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
+    Route::resource('chat', 'ChatController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
 
 	Route::get('requirements/requested', 'AdminController@requirements');
 });

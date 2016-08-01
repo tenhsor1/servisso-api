@@ -29,6 +29,13 @@ class CompanySeeder extends Seeder
 			$categoryIds = Category::all()->count();
 
 		Company::create([
+			'user_id' => 1,
+			'name' => $faker->company,
+			'description' => $faker->text(100),
+			'category_id' => 1,
+		]);
+
+		Company::create([
 			'user_id' => $faker->numberBetween(1,$userIds),
 			'name' => $faker->company,
 			'description' => $faker->text(100),

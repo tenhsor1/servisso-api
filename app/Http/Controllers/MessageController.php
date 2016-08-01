@@ -34,9 +34,12 @@ class MessageController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $userRequested = \Auth::User();
+        $messages = Message::orderByCustom($request)
+                        ->get();
+        return response()->json(['data' => $messages], 200);
     }
 
     public function indexTaskBranch(Request $request, $taskId, $taskBranchId){

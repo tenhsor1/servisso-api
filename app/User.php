@@ -107,6 +107,10 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasMany('App\UserRate');
     }
 
+    public function chatParticipants(){
+        return $this->hasMany('App\ChatParticipant');
+    }
+
     public function getBranch($id){
         $branch = Branch::find($id)
             ->with('company')

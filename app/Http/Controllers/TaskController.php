@@ -414,7 +414,7 @@ class TaskController extends Controller
 
     private function sendTaskToBranches($task){
         $branches = $task->getNeareastBranches();
-
+        \Log::debug($branches);
         //first we save the branches that we found were close to the task
         foreach ($branches as $key => $branch) {
             $taskBranch = new TaskBranch;
