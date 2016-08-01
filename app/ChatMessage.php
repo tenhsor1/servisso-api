@@ -49,12 +49,18 @@ class ChatMessage extends ServissoModel
         'updated'
     ];
 
+    public static function boot(){
+      ChatMessage::created(function ($message) {
+            $message->addNotification('NEW');
+      });
+    }
+
     //which can be TaskBranch,
-    public function room(){
+    public function chatRoom(){
         return $this->belongsTo('App\ChatRoom');
     }
 
-    public function sender(){
+    public function chatParticipant(){
         // 1 participant is one user
         return $this->belongsTo('App\ChatParticipant');
     }
@@ -64,4 +70,29 @@ class ChatMessage extends ServissoModel
         return $this->hasMany('App\ChatMessageState');
     }
 
+    public function addNotification($verb){
+        \Log::debug($verb);
+        foreach ($this->chatRoom->participants as $key => $participant) {
+            $notification = new Notification;
+            $notification->receiver_id = $participant->user_id;
+            $notification->object_id = $this->id;
+            $notification->object_type = Notification::MESSAGE_RELATION;
+
+            $notification->sender_id = $this->chatParticipant->user_id;
+            $notification->sender_type = Notification::USER_RELATION;
+            if($this->chatParticipant->object_id){
+                $notification->sender_id = $this->chatParticipant->object_id;
+                $notification->sender_type = $this->chatParticipant->object_type;
+            }
+
+            $notification->verb = $verb;
+            $notification->type = 1;
+            $object = $this->chatRoom->object ? $this->chatRoom->object->toArray() : null;
+            $notification->extra = json_encode([
+                'object' => $object
+            ]);
+
+            $notification->save();
+        }
+    }
 }

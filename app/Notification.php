@@ -12,7 +12,7 @@ class Notification extends ServissoModel
     const SERVICE_RELATION = 'App\Service';
     const USER_RELATION = 'App\User';
     const GUEST_RELATION = 'App\Guest';
-    const MESSAGE_RELATION = 'App\Message';
+    const MESSAGE_RELATION = 'App\ChatMessage';
 
     const NOTIFICATION_OBJECTS = ['App\Service', 'App\TaskBranch'];
     const NOTIFICATION_OBJECTS_ALIAS = ['Service', 'TaskBranch'];

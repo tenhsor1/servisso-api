@@ -121,7 +121,6 @@ class ChatController extends Controller
 
 
     private function chatTaskBranch($message, $userRequested, $request){
-        \Log::debug($request->object_id);
         $taskBranch = TaskBranch::where(['id' => $request->object_id])->first();
 
         if(!$taskBranch){
