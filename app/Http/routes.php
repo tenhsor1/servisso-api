@@ -34,6 +34,8 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('users/{user_id}/companies', 'UserController@companies');
     Route::put('users/{user_id}/password', 'UserController@updatePassword');
     Route::put('users/{user_id}/preferences', 'UserController@update');
+	Route::post('users/invitation/create', 'UserController@createInvitation');
+	Route::get('users/invitation/{code}', 'UserController@getInvitation');
     Route::resource('users', 'UserController', ['only' => ['destroy', 'show', 'store']]);
 
     Route::post('services/{serviceId}/images', 'ServiceController@setImages');

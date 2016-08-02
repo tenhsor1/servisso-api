@@ -7,16 +7,19 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\UserInvitation;
 use App\UserSocial;
 use App\Company;
 use JWTAuth;
 use Validator;
 use App\Extensions\Utils;
+//use Illuminate\Contracts\Encryption\DecryptException;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm','predict','storeSearched','updateSearched']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm','predict','storeSearched',
+												'updateSearched','getInvitation']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -158,7 +161,8 @@ class UserController extends Controller
         //check if the user who requested the resource is the same
         //as the resource been requested
         if($userRequested->id == $id){
-            return response()->json(['data'=>$userRequested], 200);
+			$user = User::with('invitations')->find($userRequested->id);
+            return response()->json(['data'=>$user], 200);
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
@@ -340,6 +344,58 @@ class UserController extends Controller
                         return response()->json($response,403);
         }
     }
+	
+	/*
+	* Para verificar si un codigo existe.
+	*/
+	public function getInvitation($code){	
+		
+		$invitation = UserInvitation::where('code','=',$code)->get()->first();
+		if($invitation){
+			$response = ['code' => 200,'data' => $invitation];
+				return response()->json($response,200);
+		}else{
+			$response = ['code' => 403,'error' => "Código no encontrado"];
+				return response()->json($response,403);
+		}
+	}
+	
+	/*
+	* Crea un codigo de invitacion. Solo los admin los pueden crear.
+	*/
+	public function createInvitation(Request $request){
+						
+		$userRequested = \Auth::User();
+
+		if($userRequested->roleAuth  == "ADMIN"){
+			
+			$key = config('app.key');
+			$code = hash_hmac('sha256', str_random(40), $key);
+			$invitation = new UserInvitation;
+			$invitation->user_id = $request->user_id;
+			$invitation->to_user_email = $request->to_user_email;
+			$invitation->invitation_type = $request->invitation_type;
+			$invitation->code = $code;		
+			$invitation->save();
+			
+			if($invitation){
+				
+				$response = ['code' => 200,'data' => $invitation];
+				return response()->json($response,200);
+				
+			}else{
+				
+				$response = ['code' => 500,'error' => "It has occurred an error trying to save the invitation"];
+				return response()->json($response,500);
+				
+			}
+		}else{
+			
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+			
+		}
+	}
 
 	public function predict(Request $request){
 		//SE VALIDA QUE SE HALLA ENVIADO LA FRASE

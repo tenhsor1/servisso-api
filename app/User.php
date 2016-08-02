@@ -100,6 +100,10 @@ class User extends Model implements AuthenticatableContract,
         // 1 admin can have one state
         return $this->hasOne('App\State');
     }
+	
+	public function invitations(){
+		return $this->hasMany('App\UserInvitation');
+	}
 
     public function getBranch($id){
         $branch = Branch::find($id)
