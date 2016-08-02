@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Task;
 use App\Branch;
+use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
@@ -24,7 +26,16 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user', ['only' => ['index', 'indexBranch', 'show', 'update', 'store', 'storeQuote', 'showTaskBranch']]);
+        $this->middleware('jwt.auth:user', ['only' => ['index',
+                                                        'indexBranch',
+                                                        'indexCompany',
+                                                        'show',
+                                                        'update',
+                                                        'store',
+                                                        'storeQuote',
+                                                        'showTaskBranch',
+                                                        'updateTaskBranch',
+                                                        ]]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
         $this->mailer = new AppMailer();
@@ -40,15 +51,12 @@ class TaskController extends Controller
         $user = \Auth::User();
         $tasks = [];
         $tasks = Task::with('category')
-                        ->with('userable')
-                        ->with(['branches' => function($query){
-                            $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
-                            $query->with('branch.company');
-                        }])
+                        ->with('distanceBranches.branch.company')
                         ->searchBy($request)
                         ->betweenBy($request)
                         ->orderByCustom($request)
                         ->limit($request)
+                        ->where('tasks.user_id', $user->id)
                         ->get();
 
         return response()->json(['data'=>$tasks], 200);
@@ -69,6 +77,7 @@ class TaskController extends Controller
         }
 
         $tasks = TaskBranch::where('branch_id', $branchId)
+                        ->withDistance()
                         ->with('task.user')
                         ->searchBy($request)
                         ->betweenBy($request)
@@ -77,6 +86,36 @@ class TaskController extends Controller
                         ->get();
 
         return response()->json(['data'=>$tasks], 200);
+    }
+
+	 public function indexCompany(Request $request, $companyId){
+        $user = \Auth::User();
+
+		 $company = Company::where('id', $companyId)
+                ->first();
+        if(!$company){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+
+		// \DB::connection()->enableQueryLog();
+        $tasks = TaskBranch::with('branch.company')
+						->with('task')
+						 ->whereHas('branch.company', function($query) use ($companyId){
+									$query->where('id', $companyId);
+								})
+                        ->searchBy($request)
+                        ->betweenBy($request)
+                        ->orderByCustom($request)
+                        ->limit($request)
+                        ->get();
+		// $query = \DB::getQueryLog();
+		if(!$tasks){
+            $response = ['error' => 'Resource not found','code' => 404];
+            return response()->json($response,404);
+        }
+		$count = $tasks->count();
+        return response()->json(['count'=>$count,'data'=>$tasks], 200);
     }
 
     /**
@@ -224,12 +263,9 @@ class TaskController extends Controller
     public function show($id)
     {
         $user = \Auth::User();
+
         $task = Task::with('category')
-                        ->with('userable')
-                        ->with(['branches' => function($query){
-                            $query->whereIn('status', [TaskBranch::STATUSES['open'], TaskBranch::STATUSES['rejected']]);
-                            $query->with('branch.company');
-                        }])
+                        ->with('distanceBranches')
                         ->where('id', $id)
                         ->where('user_id', $user->id)
                         ->first();
@@ -249,28 +285,9 @@ class TaskController extends Controller
 
     public function showTaskBranch($taskId, $taskBranchId){
         $userRequested = \Auth::User();
-        $taskBranch = TaskBranch::where(['id' => $taskBranchId])->with('task.images')->with('branch.company.user')->first();
-
-        if(!$taskBranch){
-            $response = ['error' => 'Task Branck relationship does not exist','code' => 404];
-            return response()->json($response,404);
-        }
-
-        //check if the user requesting it, is the owner of the branch
-        if($userRequested->id != $taskBranch->branch->company->user->id){
-            $response = ['error' => 'Unauthorized',
-                        'code' => 403];
-            \Log::error(sprintf("User: %s requested get task branch from taskbranch id: %s. He doesn't own that branch",
-                                $userRequested->id, $taskBranchId));
-            return response()->json($response, 403);
-        }
-
-        if($taskId != $taskBranch->task_id){
-            $response = ['error' => 'The task is not related to the relationship',
-                        'code' => 403];
-            \Log::error(sprintf("User: %s requested get task branch from branch id: %s. the original task %s doesn't match with: %s",
-                                $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
-            return response()->json($response, 403);
+        $taskBranch = $this->validateTaskBranchOwner($userRequested, $taskId, $taskBranchId);
+        if($taskBranch instanceof JsonResponse){
+            return $taskBranch;
         }
 
         $response = ['data' => $taskBranch,'code' => 200,'code' => 200];
@@ -300,6 +317,35 @@ class TaskController extends Controller
         //
     }
 
+    public function updateTaskBranch(Request $request, $taskId, $taskBranchId){
+        $userRequested = \Auth::User();
+
+        $taskBranch = $this->validateTaskBranchOwner($userRequested, $taskId, $taskBranchId);
+        if($taskBranch instanceof JsonResponse){
+            return $taskBranch;
+        }
+        $messages = TaskBranch::getUpdateMessages();
+        $rules = TaskBranch::getUpdateRules();
+
+        $v = Validator::make($request->all(),$rules,$messages);
+
+        if($v->fails()){
+            $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
+            return response()->json($response,400);
+        }
+
+        if($request->input('status'))
+            $taskBranch->status = $request->input('status');
+
+        if($taskBranch->save()){
+            $response = ['data' => $taskBranch,'code' => 200,'code' => 200];
+            return response()->json($response,200);
+        }else{
+            $response = ['error' => 'It has occurred an error trying to update the task branch relationship','code' => 500];
+            return response()->json($response,500);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -309,6 +355,37 @@ class TaskController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId){
+        $taskBranch = TaskBranch::withDistance()
+                ->where(['task_branches.id' => $taskBranchId])
+                ->with('task.images')
+                ->with('branch.company.user')
+                ->first();
+
+        if(!$taskBranch){
+            $response = ['error' => 'Task Branck relationship does not exist','code' => 404];
+            return response()->json($response,404);
+        }
+
+        //check if the user requesting it, is the owner of the branch
+        if($userRequested->id != $taskBranch->branch->company->user->id){
+            $response = ['error' => 'Unauthorized',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested get task branch from taskbranch id: %s. He doesn't own that branch",
+                                $userRequested->id, $taskBranchId));
+            return response()->json($response, 403);
+        }
+
+        if($taskId != $taskBranch->task_id){
+            $response = ['error' => 'The task is not related to the relationship',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested update task branch from branch id: %s. the original task %s doesn't match with: %s",
+                                $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
+            return response()->json($response, 403);
+        }
+        return $taskBranch;
     }
 
 

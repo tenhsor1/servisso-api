@@ -30,7 +30,11 @@ class Guest extends Model
     public function services(){
         return $this->morphMany('App\Service', 'userable');
     }
-	
+
+     public function notifications(){
+        return $this->morphMany('App\Notifications', 'sender');
+    }
+
 	public static function getRules(){
 		$rules = [
 			'email' => ['required','email'],
@@ -39,7 +43,7 @@ class Guest extends Model
 			'phone' => ['max:30'],
 			'zipcode' => ['max:8']
 		];
-		
+
 		return $rules;
 	}
 

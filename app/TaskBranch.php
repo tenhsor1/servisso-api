@@ -18,6 +18,10 @@ class TaskBranch extends ServissoModel
         'rejected'      => 3
     ];
 
+    const ACCEPTED_STATUSES = [
+        'interested'    => 2
+    ];
+
     /**
      * The database table used by the model.
      *
@@ -48,6 +52,7 @@ class TaskBranch extends ServissoModel
         'id',
         'task',
         'branch',
+		'status'
     ];
 
     protected $betweenFields = [
@@ -66,10 +71,18 @@ class TaskBranch extends ServissoModel
             $taskBranch->addLog('SENT');
             $taskBranch->addNotification('NEW');
         });
+
+        TaskBranch::updating(function ($taskBranch){
+            if($taskBranch->status != $taskBranch->getOriginal('status')){
+                \Log::info("taskbranch {$taskBranch->id} status: {$taskBranch->getOriginal('status')} just updated to {$taskBranch->status}");
+                $taskBranch->addLog('STATUS', $taskBranch->status);
+            }
+
+        });
     }
 
-    public function addLog($type){
-        $log = new TaskBranchLog(['type' => $type]);
+    public function addLog($type, $value=null){
+        $log = new TaskBranchLog(['type' => $type, 'value' => $value]);
         $this->logs()->save($log);
     }
 
@@ -84,7 +97,8 @@ class TaskBranch extends ServissoModel
         $notification->sender_type = Notification::USER_RELATION;
         $notification->verb = $verb;
         $notification->extra = json_encode([
-            'task' => $this->task->toArray()
+            'task' => $this->task->toArray(),
+            'distance' => $this->getDistance()
         ]);
         $notification->save();
     }
@@ -96,6 +110,21 @@ class TaskBranch extends ServissoModel
             ->join('users','users.id','=','companies.user_id')
             ->where('task_branches.id', $this->id)
             ->first();
+    }
+
+    public function scopeWithDistance($query){
+        return $query->join('tasks','task_branches.task_id','=','tasks.id')
+            ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
+            ->select('task_branches.*', \DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'));
+    }
+
+    public function getDistance(){
+        $result = TaskBranch::select(\DB::raw('ST_Distance_Sphere(branches.geom,tasks.geom) as meters_distance'))
+        ->join('tasks','task_branches.task_id','=','tasks.id')
+        ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
+        ->where('task_branches.id', $this->id)
+        ->first();
+        return $result->meters_distance;
     }
 
     public function task(){
@@ -118,6 +147,21 @@ class TaskBranch extends ServissoModel
 
     public function quotes(){
         return $this->hasMany('App\TaskBranchQuote');
+    }
+
+    public static function getUpdateRules(){
+        $rules = [
+            'status' => ['in:1,2,3,4']
+        ];
+
+        return $rules;
+    }
+
+    public static function getUpdateMessages(){
+        $messages = [
+            'status.in' => 'El status no es válido',
+        ];
+        return $messages;
     }
 
 
@@ -147,7 +191,7 @@ class TaskBranch extends ServissoModel
                         $query->$where('tasks.id', '=', $search);
                         break;
                     case 'status':
-                        $query->$where('tasks.status', '=', $search);
+                        $query->$where('task_branches.status', '=', $search);
                         break;
                 }
                 $where = "orWhere";

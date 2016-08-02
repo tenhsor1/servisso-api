@@ -57,7 +57,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::delete('branches/{id}/verifications/{verification_id}','BranchVerificationController@destroy');
 
     Route::resource('categories','CategoryController',['only' => ['index','update','destroy','show','store']]);
-    Route::resource('partnerrates','PartnerRateController',['only' => ['update','destroy','show','store']]);
+    Route::resource('branchrates','BranchRateController',['only' => ['update','destroy','show','store']]);
     Route::resource('userrates','UserRateController',['only' => ['update','destroy','show','store']]);
 	Route::get('categories/{id}/tags','CategoryController@categoryTags');
 	Route::resource('categories','CategoryController',['only' => ['index']]);
@@ -79,9 +79,12 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('tasks/{taskId}/images', 'TaskController@setImages');
     Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
+    Route::put('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@updateTaskBranch');
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
+    Route::get('project/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
+    Route::resource('messages', 'MessageController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
 	Route::get('requirements/requested', 'AdminController@requirements');
 });
 
