@@ -78,7 +78,6 @@ Route::group(['prefix' => 'v1'], function()
     Route::post('tasks/{taskId}/quotes', 'TaskController@storeQuote');
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
     Route::put('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@updateTaskBranch');
-    Route::get('tasks/{taskId}/tbranches/{taskBranchId}/messages', 'MessageController@indexTaskBranch');
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
     Route::get('project/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
