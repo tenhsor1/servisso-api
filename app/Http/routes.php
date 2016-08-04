@@ -80,7 +80,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::put('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@updateTaskBranch');
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}/messages', 'MessageController@indexTaskBranch');
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
-    Route::get('proyect/{companyId}/company', 'TaskController@indexCompany');
+    Route::get('project/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
 	Route::resource('contact', 'ContactUSController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
     Route::resource('chats', 'ChatController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]);

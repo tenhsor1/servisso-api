@@ -98,6 +98,7 @@ class TaskController extends Controller
             return response()->json($response,404);
         }
 
+		// \DB::connection()->enableQueryLog();
         $tasks = TaskBranch::with('branch.company')
 						->with('task')
 						 ->whereHas('branch.company', function($query) use ($companyId){
@@ -108,7 +109,7 @@ class TaskController extends Controller
                         ->orderByCustom($request)
                         ->limit($request)
                         ->get();
-
+		// $query = \DB::getQueryLog();
 		if(!$tasks){
             $response = ['error' => 'Resource not found','code' => 404];
             return response()->json($response,404);
