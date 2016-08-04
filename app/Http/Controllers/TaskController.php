@@ -264,7 +264,7 @@ class TaskController extends Controller
         $user = \Auth::User();
 
         $task = Task::with('category')
-                        ->with('distanceBranches')
+                        ->with('distanceBranches.branch.company')
                         ->where('id', $id)
                         ->where('user_id', $user->id)
                         ->first();
