@@ -4,6 +4,8 @@ namespace App;
 
 //use Illuminate\Database\Eloquent\Model;
 use App\Extensions\ServissoModel;
+use App\ChatMessage;
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Validator;
@@ -114,6 +116,34 @@ class ChatRoom extends ServissoModel
             'object_id.numeric' => 'El id del objeto debe de ser un entero',
             'object_type.required' => 'El tipo del objeto es requerido',
             'object_type.in' => 'El tipo del objeto debe de ser: '.implode(',', ChatRoom::CHAT_OBJECTS),
+        ];
+
+        return $messages;
+    }
+
+    public static function validatePayloadUpdate($request){
+        $v = Validator::make($request->all(), ChatRoom::getUpdateRules(), ChatRoom::getUpdateMessages());
+
+        if($v->fails()){
+            $response = json_encode($v->errors());
+            abort(400, $response);
+            return false;
+            //return response()->json($response,400);
+        }
+        return true;
+    }
+
+    public static function getUpdateRules(){
+        $rules = [
+            'state' => ['in:' . implode(',', ChatMessage::STATES)]
+        ];
+
+        return $rules;
+    }
+
+    public static function getUpdateMessages(){
+        $messages = [
+            'state.in' => 'El tipo del estado debe de ser: '.implode(',', ChatMessage::STATES),
         ];
 
         return $messages;

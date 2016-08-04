@@ -5,8 +5,9 @@ namespace App;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ChatMessageState extends Model
+class ChatMessageState extends ServissoModel
 {
+
     /**
      * The database table used by the model.
      *

@@ -5,8 +5,12 @@ namespace App;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\ChatMessageState;
+
 class ChatMessage extends ServissoModel
 {
+    const READ_STATE = 'READ';
+    const STATES = [ChatMessage::READ_STATE];
     /**
      * The database table used by the model.
      *
@@ -69,6 +73,14 @@ class ChatMessage extends ServissoModel
         // 1 participant is one user
         return $this->hasMany('App\ChatMessageState');
     }
+
+    public function createState($chat_participant_id, $state){
+        $messageState = new ChatMessageState;
+        $messageState->chat_message_id = $this->id;
+        $messageState->chat_participant_id = $chat_participant_id;
+        $messageState->state = $state;
+        return $messageState->save();
+   }
 
     public function addNotification($verb){
         foreach ($this->chatRoom->participants as $key => $participant) {

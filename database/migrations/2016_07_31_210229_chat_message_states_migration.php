@@ -22,6 +22,7 @@ class ChatMessageStatesMigration extends Migration
 
             $table->foreign('chat_message_id')->references('id')->on('chat_messages');
             $table->foreign('chat_participant_id')->references('id')->on('chat_participants');
+            $table->unique(['chat_message_id', 'chat_participant_id', 'state']);
         });
     }
 

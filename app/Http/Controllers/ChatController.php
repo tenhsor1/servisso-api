@@ -32,6 +32,7 @@ class ChatController extends Controller
         $userRequested = \Auth::User();
         $messages = ChatRoom::orderByCustom($request)
                         ->with('object')
+                        ->with('participants')
                         ->with(['latestMessage' => function($q){
                             $q->with(['chatParticipant' => function($q){
                                 $q->with('user');
@@ -43,13 +44,23 @@ class ChatController extends Controller
                             ->on('cm.updated_at', '=', \DB::raw('(SELECT MAX(cmm.updated_at) FROM chat_messages cmm WHERE cmm.chat_room_id = chat_rooms.id)'));
 
                         })
+                        ->leftJoin('chat_participants as cmp', function($q) use($userRequested){
+                            $q->on('chat_rooms.id', '=', 'cmp.chat_room_id')
+                                ->on('cmp.user_id', '=', \DB::raw($userRequested->id));
+                        })
+                        ->leftJoin('chat_message_states AS sread', function($q){
+                            $q->on('cm.id', '=', 'sread.chat_message_id')
+                                ->on('sread.chat_participant_id', '=', 'cmp.id')
+                                ->on('state', '=', \DB::raw("'".ChatMessage::READ_STATE."'"));
+                        })
                         ->whereHas('participants', function($q) use ($userRequested){
                             $q->where('user_id', $userRequested->id);
                         })
                         ->select('chat_rooms.id',
                                 'chat_rooms.object_id',
                                 'chat_rooms.object_type',
-                                'chat_rooms.name')
+                                'chat_rooms.name',
+                                \DB::raw('sread.id > 0 AS read'))
                         ->get();
         return response()->json(['data' => $messages], 200);
     }
@@ -127,7 +138,36 @@ class ChatController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        ChatRoom::validatePayloadUpdate($request);
+        $room = ChatRoom::where(['id' => $id])->first();
+        if(!$room){
+            abort(404, 'Resource not found');
+        }
+
+        $userRequested = \Auth::User();
+        $participant = ChatParticipant::where(['user_id' => $userRequested->id, 'chat_room_id' => $id])->first();
+        if(!$participant){
+            abort(403, 'Unauthorized');
+        }
+
+        $roomMessages = ChatRoom::where(['id' => $id])
+                            ->with(['messages' => function($query) use($participant){
+                                $query->select('chat_messages.*')
+                                ->leftJoin('chat_message_states AS s', function($q) use($participant){
+                                    $q->on('chat_messages.id', '=', 's.chat_message_id')
+                                        ->on('s.chat_participant_id', '=', \DB::raw($participant->id))
+                                        ->on('s.state', '=', \DB::raw("'".ChatMessage::READ_STATE."'"));
+                                })->whereNull('s.id');
+                                //->select('chat_messages.id');
+
+                            }])->first();
+        foreach ($roomMessages['messages'] as $message){
+            $state = $message->createState($participant->id, ChatMessage::READ_STATE);
+            \Log::debug($state);
+        }
+        $response = ['data' => $roomMessages, 'code' => 200, 'message' => 'Message was created succefully'];
+        return response()->json($response,200);
     }
 
     /**

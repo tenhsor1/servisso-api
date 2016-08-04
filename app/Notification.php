@@ -155,6 +155,9 @@ class Notification extends ServissoModel
      * @return [QueryBuilder]           The new query builder
      */
     public function scopeSearchBy($query, $request, $defaultFields=array('description')){
+        if(isset($request->type)){
+            $query->where('notifications.type', '=', $request->type);
+        }
         $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');
