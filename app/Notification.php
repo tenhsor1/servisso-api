@@ -12,6 +12,7 @@ class Notification extends ServissoModel
     const SERVICE_RELATION = 'App\Service';
     const USER_RELATION = 'App\User';
     const GUEST_RELATION = 'App\Guest';
+    const MESSAGE_RELATION = 'App\ChatMessage';
 
     const NOTIFICATION_OBJECTS = ['App\Service', 'App\TaskBranch'];
     const NOTIFICATION_OBJECTS_ALIAS = ['Service', 'TaskBranch'];
@@ -99,6 +100,7 @@ class Notification extends ServissoModel
             'created'   => $this->created_at->format('Y-m-d\TH:i:s\Z'),
             'is_open'   => $this->is_open ? true : false,
             'is_read'   => $this->is_read ? true : false,
+            'type'      => $this->type
         ];
     }
 
@@ -109,7 +111,6 @@ class Notification extends ServissoModel
             , 'object_type' => ['required']
             , 'sender_id' => ['required']
             , 'sender_type' => ['required']
-            , 'type' => ['required']
         ];
 
         return $rules;
@@ -122,7 +123,6 @@ class Notification extends ServissoModel
             , 'object_type.required' => 'El tipo del objeto de la notificación es obligatoria'
             , 'sender_id.required' => 'El id del emisor de la notificación es obligatoria'
             , 'sender_type.required' => 'El tipo del emisor de la notificación es obligatoria'
-            , 'type.required' => 'El tipo de la notificación es obligatoria'
         ];
 
         return $messages;
@@ -155,6 +155,9 @@ class Notification extends ServissoModel
      * @return [QueryBuilder]           The new query builder
      */
     public function scopeSearchBy($query, $request, $defaultFields=array('description')){
+        if(isset($request->type)){
+            $query->where('notifications.type', '=', $request->type);
+        }
         $fields = $this->searchParametersAreValid($request);
         if($fields){
             $search = $request->input('search');

@@ -265,7 +265,7 @@ class TaskController extends Controller
         $user = \Auth::User();
 
         $task = Task::with('category')
-                        ->with('distanceBranches')
+                        ->with('distanceBranches.branch.company')
                         ->where('id', $id)
                         ->where('user_id', $user->id)
                         ->first();
@@ -415,7 +415,7 @@ class TaskController extends Controller
 
     private function sendTaskToBranches($task){
         $branches = $task->getNeareastBranches();
-
+        \Log::debug($branches);
         //first we save the branches that we found were close to the task
         foreach ($branches as $key => $branch) {
             $taskBranch = new TaskBranch;

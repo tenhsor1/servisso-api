@@ -107,6 +107,10 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasMany('App\UserRate');
     }
 
+    public function chatParticipants(){
+        return $this->hasMany('App\ChatParticipant');
+    }
+
     public function getBranch($id){
         $branch = Branch::find($id)
             ->with('company')
@@ -175,4 +179,14 @@ class User extends Model implements AuthenticatableContract,
         }
         return null;
     }
+}
+
+/**
+ * Used to hide certain fields for the user model,
+ * basically for tasks where the branch still doesn´t have permissions for see the user info
+ */
+class UserHidden extends User
+{
+    //only show id and name for this kind of model
+    protected $visible = ['id', 'name'];
 }
