@@ -27,7 +27,20 @@ class ChatController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function index(Request $request)
+
+    public function index(Request $request){
+
+        $userRequested = \Auth::User();
+        $notOpen = ChatParticipant::where(['user_id' => $userRequested->id, 'open' => false])->count();
+
+       $data = [
+        'not_open' => $notOpen
+       ];
+        return response()->json(['data' => $data], 200);
+
+    }
+
+    public function indexMessages(Request $request)
     {
         $userRequested = \Auth::User();
         $messages = ChatRoom::orderByCustom($request)
@@ -64,6 +77,7 @@ class ChatController extends Controller
                         ->get();
         return response()->json(['data' => $messages], 200);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -157,18 +171,29 @@ class ChatController extends Controller
                                 ->leftJoin('chat_message_states AS s', function($q) use($participant){
                                     $q->on('chat_messages.id', '=', 's.chat_message_id')
                                         ->on('s.chat_participant_id', '=', \DB::raw($participant->id))
-                                        ->on('s.state', '=', \DB::raw("'".ChatMessage::READ_STATE."'"));
+                                        ->on('s.state', '=', \DB::raw("'".$request->state."'"));
                                 })->whereNull('s.id');
                                 //->select('chat_messages.id');
 
                             }])->first();
         foreach ($roomMessages['messages'] as $message){
-            $state = $message->createState($participant->id, ChatMessage::READ_STATE);
-            \Log::debug($state);
+            $state = $message->createState($participant->id, $request->state);
         }
         $response = ['data' => $roomMessages, 'code' => 200, 'message' => 'Message was created succefully'];
         return response()->json($response,200);
     }
+
+    public function updateAll(Request $request){
+        $userRequested = \Auth::User();
+        $message = null;
+        if($request->type == 'open'){
+            $userRequested->chatParticipants()->update(['open' => true]);
+            $message = 'Open status for message updated correctly';
+        }
+        $response = ['data' => $userRequested, 'code' => 200, 'message' => $message];
+        return response()->json($response,200);
+    }
+
 
     /**
      * Remove the specified resource from storage.
@@ -268,9 +293,14 @@ class ChatController extends Controller
         $chatMessage->message = $message;
         $chatMessage->chat_room_id = $chatRoom->id;
         $chatMessage->chat_participant_id = $participant->id;
+        $chatRoom->participants()->update(['open' => false]);
+        $participant->open = true;
+        $participant->save();
+
         if(!$chatMessage->save()){
             abort(500, 'Something went wrong, please contact support');
         }
+
         return $chatMessage;
     }
 }

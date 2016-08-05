@@ -18,6 +18,7 @@ class ChatParticipantsMigration extends Migration
             $table->integer('user_id')->unsigned();
             $table->integer('object_id')->unsigned()->nullable();
             $table->string('object_type', 45)->nullable();
+            $table->boolean('open')->default(false);
             $table->softDeletes();
             $table->timestamps();
 
