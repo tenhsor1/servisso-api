@@ -90,7 +90,7 @@ class ChatMessage extends ServissoModel
             $notification->object_type = Notification::MESSAGE_RELATION;
 
             $notification->sender_id = $this->chatParticipant->user_id;
-            $notification->sender_type = Notification::USER_RELATION;
+            $notification->sender_type = Notification::USER_HIDDEN_RELATION;
             if($this->chatParticipant->object_id){
                 $notification->sender_id = $this->chatParticipant->object_id;
                 $notification->sender_type = $this->chatParticipant->object_type;
@@ -98,9 +98,17 @@ class ChatMessage extends ServissoModel
 
             $notification->verb = $verb;
             $notification->type = 1;
-            $object = $this->chatRoom->object ? $this->chatRoom->object->toArray() : null;
+            $object = $this->chatRoom->object;
+            $chatRoom = $this->ChatRoom;
+            $objectArray = null;
+            $task = null;
+            if($object){
+              $objectArray = $object->toArray();
+              $task = $object->task ? $object->task->toArray() : null;
+            }
             $notification->extra = json_encode([
-                'object' => $object
+                'object' => $object,
+                'chatRoom' => $chatRoom,
             ]);
 
             $notification->save();
