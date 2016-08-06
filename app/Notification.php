@@ -11,6 +11,7 @@ class Notification extends ServissoModel
 {
     const SERVICE_RELATION = 'App\Service';
     const USER_RELATION = 'App\User';
+    const USER_HIDDEN_RELATION = 'App\UserHidden';
     const GUEST_RELATION = 'App\Guest';
     const MESSAGE_RELATION = 'App\ChatMessage';
 

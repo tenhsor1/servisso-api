@@ -31,10 +31,14 @@ class ChatController extends Controller
     public function index(Request $request){
 
         $userRequested = \Auth::User();
-        $notOpen = ChatParticipant::where(['user_id' => $userRequested->id, 'open' => false])->count();
+        $notOpen = ChatParticipant::where(['user_id' => $userRequested->id, 'open' => false])->get();
+        \Log::debug($notOpen);
+        //$notOpenCount = count($notOpen);
+        $notOpenChatRooms = $notOpen->pluck('chat_room_id'); //($notOpen, 'chat_room_id');
 
+        //$keyed =
        $data = [
-        'not_open' => $notOpen
+        'not_open_chats' => $notOpenChatRooms
        ];
         return response()->json(['data' => $data], 200);
 
@@ -44,8 +48,12 @@ class ChatController extends Controller
     {
         $userRequested = \Auth::User();
         $messages = ChatRoom::orderByCustom($request)
+                        ->limit($request)
                         ->with('object')
-                        ->with('participants')
+                        ->with(['participants' => function($q){
+                            $q->with('user');
+                            $q->with('object');
+                        }])
                         ->with(['latestMessage' => function($q){
                             $q->with(['chatParticipant' => function($q){
                                 $q->with('user');
@@ -239,7 +247,7 @@ class ChatController extends Controller
         $class = 'App\TaskBranch';
         if($object instanceof $class){
             $participants = $this->getTaskBranchParticipants($userRequested, $object);
-            $chatRoom->name = substr($object->task->description, 0, 12);
+            $chatRoom->name = substr($object->task->description, 0, 20);
             $chatRoom->object_id = $object->id;
             $chatRoom->object_type = $class;
         }
