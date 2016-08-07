@@ -98,17 +98,27 @@ class ChatMessage extends ServissoModel
 
             $notification->verb = $verb;
             $notification->type = 1;
-            $object = $this->chatRoom->object;
             $chatRoom = $this->ChatRoom;
-            $objectArray = null;
-            $task = null;
-            if($object){
-              $objectArray = $object->toArray();
-              $task = $object->task ? $object->task->toArray() : null;
+            $chatName = '';
+            foreach ($chatRoom->participants as $participant) {
+              if($participant->user_id != $this->chatParticipant->user_id){
+                if($participant->object_id){
+                  $chatName .= substr($participant->object->company->name, 0, 20) . ', ';
+                }else{
+                  $chatName .= substr($participant->user->id, 0, 20);
+                }
+              }
             }
+            $chatName = rtrim($chatName, ',');
+            $chatName .= ' - '.$chatRoom->name;
+            $task = null;
+
             $notification->extra = json_encode([
-                'object' => $object,
-                'chatRoom' => $chatRoom,
+                'chat_room_id' => $chatRoom->id,
+                'chat_name' => $chatName,
+                'id_1' => $chatRoom->object->task_id,
+                'id_2' => $chatRoom->object->id,
+                'owner' => $chatRoom->object->task->user_id,
             ]);
 
             $notification->save();

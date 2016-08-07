@@ -52,7 +52,8 @@ class ChatRoom extends ServissoModel
 
     protected $orderByFields = [
         'created',
-        'updated'
+        'updated',
+        'last',
     ];
 
   /*public static function boot()
@@ -166,6 +167,9 @@ class ChatRoom extends ServissoModel
                 switch ($orderField) {
                     case 'created':
                         $query->orderBy('chat_rooms.created_at', $orderType);
+                        break;
+                    case 'last':
+                        $query->orderBy('cm.created_at', $orderType);
                         break;
 
                     case 'updated':
