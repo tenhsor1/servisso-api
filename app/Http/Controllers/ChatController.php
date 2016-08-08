@@ -32,7 +32,6 @@ class ChatController extends Controller
 
         $userRequested = \Auth::User();
         $notOpen = ChatParticipant::where(['user_id' => $userRequested->id, 'open' => false])->get();
-        \Log::debug($notOpen);
         //$notOpenCount = count($notOpen);
         $notOpenChatRooms = $notOpen->pluck('chat_room_id'); //($notOpen, 'chat_room_id');
 
@@ -84,6 +83,27 @@ class ChatController extends Controller
                                 \DB::raw('sread.id > 0 AS read'))
                         ->get();
         return response()->json(['data' => $messages], 200);
+    }
+
+    public function indexTaskBranch(Request $request, $taskBranchId){
+        $userRequested = \Auth::User();
+        $chatRoom = ChatRoom::with(['participants' => function($q){
+                    $q->with('user')
+                      ->with('object');
+                }])
+                ->with(['messages' => function($q) use ($request){
+                    $q->orderByCustom($request)
+                      ->limit($request);
+                }])
+                 ->whereHas('participants', function($q) use ($userRequested){
+                    $q->where('user_id', $userRequested->id);
+                })
+                ->where(['object_id' => $taskBranchId, 'object_type' => ChatRoom::CHAT_OBJECTS['task_branch']])
+                ->first();
+        if(!$chatRoom){
+            abort(404, 'Resource not found');
+        }
+        return response()->json(['data' => $chatRoom], 200);
     }
 
 
@@ -174,9 +194,9 @@ class ChatController extends Controller
         }
 
         $roomMessages = ChatRoom::where(['id' => $id])
-                            ->with(['messages' => function($query) use($participant){
+                            ->with(['messages' => function($query) use($request, $participant){
                                 $query->select('chat_messages.*')
-                                ->leftJoin('chat_message_states AS s', function($q) use($participant){
+                                ->leftJoin('chat_message_states AS s', function($q) use($request, $participant){
                                     $q->on('chat_messages.id', '=', 's.chat_message_id')
                                         ->on('s.chat_participant_id', '=', \DB::raw($participant->id))
                                         ->on('s.state', '=', \DB::raw("'".$request->state."'"));
