@@ -85,6 +85,7 @@ Route::group(['prefix' => 'v1'], function()
 
     Route::put('chats', 'ChatController@updateAll');
     Route::get('chats/messages', 'ChatController@indexMessages');
+    Route::get('tbranches/{taskBranchId}/chat', 'ChatController@indexTaskBranch');
     Route::resource('chats', 'ChatController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
 
 	Route::get('requirements/requested', 'AdminController@requirements');

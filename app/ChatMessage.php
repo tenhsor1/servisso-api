@@ -124,4 +124,33 @@ class ChatMessage extends ServissoModel
             $notification->save();
         }
     }
+
+    /**
+     * Used for ordering the result of a get request
+     * (example: services?orderBy=created,updated&orderTypes=ASC,DESC)
+     * @param  [QueryBuilder] $query    The consecutive query
+     * @param  [Request] $request       The HTTP Request object of the call
+     * @return [QueryBuilder]           The new query builder
+     */
+    public function scopeOrderByCustom($query, $request){
+        $orderFields = $this->orderByParametersAreValid($request);
+        if($orderFields){
+            $orderTypes = explode(',', $request->input('orderTypes'));
+            $cont=0;
+            foreach ($orderFields as $orderField) {
+                $orderType = $orderTypes[$cont] ? $orderTypes[$cont] : 'DESC';
+                switch ($orderField) {
+                    case 'created':
+                        $query->orderBy('chat_messages.created_at', $orderType);
+                        break;
+
+                    case 'updated':
+                        $query->orderBy('chat_messages.updated_at', $orderType);
+                        break;
+                }
+                $cont++;
+            }
+        }
+        return $query;
+    }
 }
