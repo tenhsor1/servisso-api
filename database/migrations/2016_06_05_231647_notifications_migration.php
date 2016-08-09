@@ -23,6 +23,7 @@ class NotificationsMigration extends Migration
             $table->string('extra', 1000)->nullable();
             $table->boolean('is_open')->default(false);
             $table->boolean('is_read')->default(false);
+            $table->tinyInteger('type')->default(0)->comment('0 = GENERAL, 1 = MESSAGE');
             $table->softDeletes();
             $table->timestamps();
 
