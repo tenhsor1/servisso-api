@@ -346,6 +346,28 @@ class UserController extends Controller
     }
 	
 	/*
+	* Se obtienen todas las invitaciones
+	*/
+	public function sentInvitations($user_id){
+		$userRequested = \Auth::User();
+		$user = User::find($user_id);
+		if($userRequested->id == $user->id){
+			$invitationsSent = UserInvitation::withTrashed()
+												->where('user_id','=',$user_id)
+												->orderBy('created_at','desc')
+												->get(['to_user_email','comment','created_at']);
+												
+			$data = ["invitations_sent" => $invitationsSent ];
+			
+			$response = ['code' => 200,'data' => $data];
+			return response()->json($response,200);
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
 	* Para verificar si un codigo existe.
 	*/
 	public function getInvitation($code){	
@@ -353,48 +375,112 @@ class UserController extends Controller
 		$invitation = UserInvitation::where('code','=',$code)->get()->first();
 		if($invitation){
 			$response = ['code' => 200,'data' => $invitation];
-				return response()->json($response,200);
+			return response()->json($response,200);
 		}else{
 			$response = ['code' => 403,'error' => "Código no encontrado"];
-				return response()->json($response,403);
+			return response()->json($response,403);
 		}
 	}
 	
 	/*
-	* Crea un codigo de invitacion. Solo los admin los pueden crear.
+	* El asociado crea un código que es enviado a un amigo/persona al correo
 	*/
-	public function createInvitation(Request $request){
-						
+	public function createInvitation(Request $request){				
+		$userRequested = \Auth::User();
+		$user = User::find($userRequested->id);
+		if($user || $userRequested->roleAuth  == "ADMIN"){
+			
+			if($userRequested->roleAuth  == "ADMIN")
+				$user = User::find(0);
+			
+			if($user->invitations > 0){						
+				
+				$key = config('app.key');
+				$code = hash_hmac('sha256', str_random(40), $key);
+				$invitation = new UserInvitation;
+				$invitation->user_id = $user->id;
+				$invitation->to_user_email = $request->email;
+				$invitation->comment = $request->comment;
+				$invitation->invitation_type = 'Exclusive Partner Reference';
+				$invitation->code = $code;		
+				$invitation->save();
+
+				if($invitation){	
+					
+					$baseUrl = config('app.front_url');
+
+					$data = [
+						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
+						'presional_name' => $user->name,
+						'created_date' => $invitation->created_at->format('M d, Y g:i a'),
+						'comment' => $invitation->comment,
+						'profesional_email' => $user->email,
+						'reference_email' => $invitation->to_user_email
+					];
+					
+					$this->mailer->pushToQueue('sendInvitation', $data);			
+				
+					$user->invitations = $user->invitations - 1;
+					$user->save();
+					
+					$response = ['code' => 200,'data' => $invitation];
+					return response()->json($response,200);				
+				}else{				
+					$response = ['code' => 500,'error' => "It has occurred an error trying to save the invitation"];
+					return response()->json($response,500);			
+				}			
+				
+			}else{
+				$errorJSON = ['error'   => 'You do not have more invitations available', 'code' => 410];//Gone
+				return response()->json($errorJSON, 410);
+			}
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
+	* Para obtener el número de invitaciones de un usuario
+	*/
+	public function getNumberOfInvitations($user_id){
+		$userRequested = \Auth::User();
+		$user = User::find($user_id);
+		if($userRequested->id == $user->id || $userRequested->roleAuth  == "ADMIN"){
+			$data = ['invitations' => $user->invitations];
+			$response = ['code' => 200,'data' => $data];
+			return response()->json($response,200);
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
+	* Admins pueden colocarle a un usuario el número de invitaciones que podrán usar.
+	*/
+	public function setInvitations(Request $request){
 		$userRequested = \Auth::User();
 
 		if($userRequested->roleAuth  == "ADMIN"){
-			
-			$key = config('app.key');
-			$code = hash_hmac('sha256', str_random(40), $key);
-			$invitation = new UserInvitation;
-			$invitation->user_id = $request->user_id;
-			$invitation->to_user_email = $request->to_user_email;
-			$invitation->invitation_type = $request->invitation_type;
-			$invitation->code = $code;		
-			$invitation->save();
-			
-			if($invitation){
+			$invitations_number = $request->invitations_number;
+			$user_id = $request->to_user_id;
+			$user = User::find($user_id);
+			if($user){
+				$user->invitations = $invitations_number;
+				$user->save();
 				
-				$response = ['code' => 200,'data' => $invitation];
+				$response = ['code' => 200,'message' => $invitations_number." Invitations were added in the ".$user->name."'s account"];
 				return response()->json($response,200);
-				
 			}else{
-				
-				$response = ['code' => 500,'error' => "It has occurred an error trying to save the invitation"];
-				return response()->json($response,500);
-				
+				$errorJSON = ['error'   => 'Resource not found', 'code' => 404];
+				return response()->json($errorJSON, 404);
 			}
 		}else{
-			
 			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
             return response()->json($errorJSON, 403);
-			
 		}
+		
 	}
 
 	public function predict(Request $request){

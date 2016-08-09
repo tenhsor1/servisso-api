@@ -18,6 +18,7 @@ class UsersInvitations extends Migration
 			$table->text('code')->nullable();
 			$table->string('to_user_email', 45);
 			$table->integer('to_user_id')->unsigned()->default(0);
+			$table->string('comment')->nullable();
 			$table->string('invitation_type', 45);
 			$table->tinyInteger('sent')->default(0);
             $table->timestamps();

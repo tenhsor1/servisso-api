@@ -14,7 +14,7 @@ class UserInvitation extends ServissoModel
 	
 	protected $fillable = array('user_id','to_user_id','invititation_type');
 	
-	protected $hidden = ['deleted_at','created_at','updated_at'];
+	protected $hidden = ['deleted_at','updated_at'];
 	
 	public function user()
     {

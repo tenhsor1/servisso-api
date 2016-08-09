@@ -133,7 +133,7 @@ class BranchController extends Controller
 			//SE VALIDA QUE EL USUARIO NO TENGA BRANCHES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER GUARDAR UNA NUEVA
 			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
-				!$company->branches) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
+				$company->branches->count() == 0) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
 				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
 				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){	
@@ -181,11 +181,11 @@ class BranchController extends Controller
 						return response()->json($response,500);
 					}
 				}else{
-					$response = ['error'   => 'Unauthorized','code' => 403];
+					$response = ['error'   => 'Unauthorized2','code' => 403];
 					return response()->json($response, 403);
 				}			
 			}else{
-				$response = ['error'   => 'Unauthorized','code' => 403];
+				$response = ['error'   => 'Unauthorized1','code' => 403];
 				return response()->json($response, 403);
 			}
 

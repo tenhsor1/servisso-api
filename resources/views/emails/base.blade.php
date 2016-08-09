@@ -274,7 +274,7 @@
 											<tr>
 												<td style="font-family: Helvetica, arial, sans-serif; font-size: 12px; color: #95a5a6;text-align:center">
 													<div>
-														Para cualquier duda o sugerencia visitanos en <a href="#">servisso.com.mx/contacto</a>
+														Para cualquier duda o sugerencia visitanos en <a href="https://www.servisso.com/">www.servisso.com</a>
 													</div>
 													<div>
 														Si ya no quieres recibir más notificaciones da <a href="#" style="color:gray">click aqui</a>
