@@ -56,7 +56,7 @@ class CompanyController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {	
 		$userRequested = \Auth::User();
 
 		$messages = Company::getMessages();
@@ -73,7 +73,7 @@ class CompanyController extends Controller
 
 		//ID DEL ASOCIADO QUE LE PERTENECE LA COMPANY
 		$user_id = $request->user_id;
-		$user = User::find($user_id);
+		$user = User::find($user_id);		
 
 		//SE VALIDA QUE EL USER EXISTA
 		if(!is_null($user)){
@@ -111,7 +111,7 @@ class CompanyController extends Controller
 				}
 			
 			}else{
-				$response = ['error'   => 'Unauthorized','code' => 403];
+				$response = ['error'   => 'You cannot create more companies','code' => 403];
 				return response()->json($response, 403);
 			}
 
