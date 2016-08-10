@@ -360,7 +360,10 @@ class TaskController extends Controller
     private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId){
         $taskBranch = TaskBranch::withDistance()
                 ->where(['task_branches.id' => $taskBranchId])
-                ->with('task.images')
+                ->with(['task' => function($q){
+                    $q->with('images');
+                    $q->with('userHidden');
+                }])
                 ->with('branch.company.user')
                 ->first();
 

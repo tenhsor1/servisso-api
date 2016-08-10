@@ -9,6 +9,7 @@ class ChatParticipant extends ServissoModel
 {
 
     const PARTICIPANT_OBJECTS = ['branch' => 'App\Branch'];
+    protected $with = ['object', 'user'];
     /**
      * The database table used by the model.
      *
