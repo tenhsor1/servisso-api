@@ -13,6 +13,7 @@ use App\Tag;
 use App\TagBranch;
 use Validator;
 use JWTAuth;
+use App\UserInvitation;
 
 class BranchController extends Controller
 {
@@ -131,12 +132,16 @@ class BranchController extends Controller
 
 			//SE VALIDA QUE EL USUARIO NO TENGA BRANCHES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER GUARDAR UNA NUEVA
-			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') &&
-				!$company->branches) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+				$company->branches->count() == 0) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
 				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
-				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
+				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){	
 
+					//Si se detecta un codigo de invitacion entonces de borra el codigo
+					if($request->code)
+						$this::clearCode($request->code,$company->user_id);
+					
 					//SE UNA INSTANCIA DE BRANCH
 					$branch = new Branch;
 					$branch->company_id = $company_id;
@@ -176,11 +181,11 @@ class BranchController extends Controller
 						return response()->json($response,500);
 					}
 				}else{
-					$response = ['error'   => 'Unauthorized','code' => 403];
+					$response = ['error'   => 'Unauthorized2','code' => 403];
 					return response()->json($response, 403);
 				}
 			}else{
-				$response = ['error'   => 'Unauthorized','code' => 403];
+				$response = ['error'   => 'Unauthorized1','code' => 403];
 				return response()->json($response, 403);
 			}
 
@@ -191,6 +196,17 @@ class BranchController extends Controller
 		}
 
     }
+	
+	/*
+	* Borra el código de invitación utilizado para guardar una branch y
+	* actualiza el id del usuario que usó el código
+	*/
+	private function clearCode($code,$user_id){
+		$invitation = UserInvitation::where('code','=',$code)->get()->first();
+		$invitation->to_user_id = $user_id;
+		$invitation->save();
+		$invitation->delete();
+	}
 
     /**
      * Display the specified resource.
@@ -409,20 +425,25 @@ class BranchController extends Controller
 
 				for($i = 0;$i < count($tags);$i++){
 					$tag = (object) $tags[$i];
+					
+					$tag_verification = Tag::find($tag->tag_id);
+					
+					//Si el tag existe entonces se guarda en la db
+					if($tag_verification){
+						$row = \DB::table('tags_branches')->insert(
+								[
+											'tag_id' => $tag->tag_id,
+											'branch_id' => $branch->id,
+											'created_at' => date('Y-m-d h:i:s',time()),
+											'updated_at' => date('Y-m-d h:i:s',time())
+								]
+							);
 
-					$row = \DB::table('tags_branches')->insert(
-							[
-										'tag_id' => $tag->tag_id,
-										'branch_id' => $branch->id,
-                                        'created_at' => date('Y-m-d h:i:s',time()),
-                                        'updated_at' => date('Y-m-d h:i:s',time())
-							]
-						);
-
-					//SE VALIDA QUE EL TAG SE GUARDO CORRECTAMENTE
-					if($row != true){
-						$response = ['error' => 'It has occurred an error trying to save tags','code' => 500];
-						return response()->json($response,500);
+						//SE VALIDA QUE EL TAG SE GUARDO CORRECTAMENTE
+						if($row != true){
+							$response = ['error' => 'It has occurred an error trying to save tags','code' => 500];
+							return response()->json($response,500);
+						}
 					}
 				}
 			}

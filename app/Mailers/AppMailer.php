@@ -83,4 +83,15 @@ class AppMailer
                 ->subject('Se recibio un nuevo FAQ');
         });
     }
+	
+	/*
+	* Envia una invitación que fue creada por un profesional
+	*/
+    public function sendInvitation($data){
+        Mail::send('emails.invitation', $data, function ($m) use ($data){
+            $m->from($data['profesional_email'], $data['presional_name'])
+                ->to($data['reference_email'], 'Holis')
+                ->subject($data['presional_name'].' te invita a unirte a Servisso');
+        });
+    }
 }

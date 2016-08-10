@@ -5,6 +5,11 @@ namespace App;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Extensions\ServissoModel;
 
+/*
+* Con esta clase se obtienen todas las validaciones que tiene una sucursal.
+* Eg: Address(Recibo Agua o Luz), Teléfono o Alguna identificación (Licencia de conducir).
+* Entre más validaciones tenga una sucursal, mejor.
+*/
 class BranchVerification extends ServissoModel
 {
     //
