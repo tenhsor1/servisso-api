@@ -79,7 +79,12 @@ class Task extends ServissoModel
 
   public function user(){
       //1 task is made by 1 user
-      return $this->belongsTo('App\User');
+      return $this->belongsTo('App\UserHidden');
+  }
+
+  public function userHidden(){
+        // 1 participant is one user
+      return $this->belongsTo('App\UserHidden', 'user_id', 'id');
   }
 
     public function category(){
