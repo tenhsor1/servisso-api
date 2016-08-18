@@ -379,7 +379,7 @@ class TaskController extends Controller
         }
 
         if($taskId != $taskBranch->task_id){
-            $response = ['error' => 'The task is not related to the relationship',
+            $response = ['error' => 'No se encontro la relación con la tarea',
                         'code' => 403];
             \Log::error(sprintf("User: %s requested update task branch from branch id: %s. the original task %s doesn't match with: %s",
                                 $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
