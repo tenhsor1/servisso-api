@@ -71,7 +71,7 @@ class AppMailer
                 ->subject('Recibiste una cotización para tu proyecto!');
         });
     }
-	
+
 	/**
      * Send an email to the user which received a comment or feedback
      * @param  [array] $data Data needed by the email that will be sent to the owner of the task
@@ -81,6 +81,17 @@ class AppMailer
             $m->from($data['user_email'], $data['user_name'])
                 ->to($this->comment['address'], $this->comment['name'])
                 ->subject('Se recibio un nuevo FAQ');
+        });
+    }
+
+	/*
+	* Envia una invitación que fue creada por un profesional
+	*/
+    public function sendInvitation($data){
+        Mail::send('emails.invitation', $data, function ($m) use ($data){
+            $m->from($data['profesional_email'], $data['presional_name'])
+                ->to($data['reference_email'], '')
+                ->subject($data['presional_name'].' te invita a unirte a Servisso');
         });
     }
 }
