@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Guest;
 use JWTAuth;
 use Validator;
+use App\Mailers\AppMailer;
 
 class GuestController extends Controller
 {
@@ -17,6 +18,7 @@ class GuestController extends Controller
         $this->middleware('jwt.auth:admin', ['only' => ['index', 'update', 'destroy']]);
         $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('default.headers');
+		$this->mailer = new AppMailer();
     }
     /**
      * Display a listing of the resource.
@@ -63,7 +65,8 @@ class GuestController extends Controller
 
         $guest = Guest::create($request->all());
 
-        if($guest){
+        if($guest){		
+			
             $response = ['data' => $guest,'code' => 200,'message' => 'Guest was created succefully'];
             return response()->json($response,200);
         }else{

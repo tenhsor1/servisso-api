@@ -41,13 +41,6 @@ class EmailController extends Controller
      */
     public function store(Request $request)
     {
-        /*$result = Mail::send('emails.test', ['testVar' => 'Second Email'], function ($m){
-            $m->from('no-reply@servisso.com.mx', 'Servisso');
-
-            $m->to('ricardo.romo.ramirez@gmail.com', 'Rick')->subject('Second email');
-        });*/
-
-        //\Log::debug($result);
         $tokenArray = ['random' => str_random(16)
                             , 'email' => 'test'
                             , 'role' => 'USER'];

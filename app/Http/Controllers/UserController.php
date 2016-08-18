@@ -7,16 +7,19 @@ use App\Http\Requests;
 use App\Mailers\AppMailer;
 use App\Http\Controllers\Controller;
 use App\User;
+use App\UserInvitation;
 use App\UserSocial;
 use App\Company;
 use JWTAuth;
 use Validator;
 use App\Extensions\Utils;
+//use Illuminate\Contracts\Encryption\DecryptException;
 
 class UserController extends Controller
 {
     public function __construct(){
-        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm', 'predict']]);
+        $this->middleware('jwt.auth:user|admin', ['except' => ['store', 'confirm','predict','storeSearched',
+												'updateSearched','getInvitation']]);
         $this->middleware('default.headers');
         $this->user_roles = \Config::get('app.user_roles');
         $this->mailer = new AppMailer();
@@ -28,7 +31,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return "index";
+        return 'index';
     }
 
     /**
@@ -39,6 +42,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+
 		$valuesProvider = false;
         if($request->input('val', null)){
             //if we are trying to create a user using a social provider, then validate that
@@ -66,7 +70,9 @@ class UserController extends Controller
             return response()->json($response,400);
         }
 
-        $newUser = User::create($request->all());
+		$fields = \Input::except('code');
+
+        $newUser = User::create($fields);
 
         if($newUser){
             if($valuesProvider){
@@ -89,8 +95,28 @@ class UserController extends Controller
                 $token = JWTAuth::fromUser($newUser,$extraClaims);
                 $reflector = new \ReflectionClass('JWTAuth');
                 $newUser->access = $token;
-                $this->mailer->sendVerificationEmail($newUser);
+                $this->mailer->pushToQueue('sendVerificationEmail', [
+                    'token' => $newUser->token,
+                    'email' => $newUser->email,
+                    'name'  => $newUser->name,
+                ]);
+                //$this->mailer->sendVerificationEmail($newUser);
             }
+
+			//Si el request tiene el input code significa que el usuario esta registrando una compañia que es de la inegi.
+			if($request->code){
+				$company_id = \Crypt::decrypt($request->code);
+				$company = Company::find($company_id);
+				$branch = $company->branches[0];
+
+				//Siempre y cuando la branch de la compañia(inegi) sea true, significa que no ha sido tomada
+				if($branch->inegi){
+					$company->user_id = $newUser->id;
+					$branch->inegi = false;
+					$branch->save();
+					$company->save();
+				}
+			}
 
             $response = ['data' => $newUser
                         ,'code' => 200
@@ -135,7 +161,8 @@ class UserController extends Controller
         //check if the user who requested the resource is the same
         //as the resource been requested
         if($userRequested->id == $id){
-            return response()->json(['data'=>$userRequested], 200);
+			$user = User::with('invitations')->find($userRequested->id);
+            return response()->json(['data'=>$user], 200);
         }else{
             $errorJSON = ['error'   => 'Unauthorized'
                             , 'code' => 403];
@@ -317,6 +344,144 @@ class UserController extends Controller
                         return response()->json($response,403);
         }
     }
+	
+	/*
+	* Se obtienen todas las invitaciones
+	*/
+	public function sentInvitations($user_id){
+		$userRequested = \Auth::User();
+		$user = User::find($user_id);
+		if($userRequested->id == $user->id){
+			$invitationsSent = UserInvitation::withTrashed()
+												->where('user_id','=',$user_id)
+												->orderBy('created_at','desc')
+												->get(['to_user_email','comment','created_at']);
+												
+			$data = ["invitations_sent" => $invitationsSent ];
+			
+			$response = ['code' => 200,'data' => $data];
+			return response()->json($response,200);
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
+	* Para verificar si un codigo existe.
+	*/
+	public function getInvitation($code){	
+		
+		$invitation = UserInvitation::where('code','=',$code)->get()->first();
+		if($invitation){
+			$response = ['code' => 200,'data' => $invitation];
+			return response()->json($response,200);
+		}else{
+			$response = ['code' => 403,'error' => "Código no encontrado"];
+			return response()->json($response,403);
+		}
+	}
+	
+	/*
+	* El asociado crea un código que es enviado a un amigo/persona al correo
+	*/
+	public function createInvitation(Request $request){				
+		$userRequested = \Auth::User();
+		$user = User::find($userRequested->id);
+		if($user || $userRequested->roleAuth  == "ADMIN"){
+			
+			if($userRequested->roleAuth  == "ADMIN")
+				$user = User::find(0);
+			
+			if($user->invitations > 0){						
+				
+				$key = config('app.key');
+				$code = hash_hmac('sha256', str_random(40), $key);
+				$invitation = new UserInvitation;
+				$invitation->user_id = $user->id;
+				$invitation->to_user_email = $request->email;
+				$invitation->comment = $request->comment;
+				$invitation->invitation_type = 'Exclusive Partner Reference';
+				$invitation->code = $code;		
+				$invitation->save();
+
+				if($invitation){	
+					
+					$baseUrl = config('app.front_url');
+
+					$data = [
+						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
+						'presional_name' => $user->name,
+						'created_date' => $invitation->created_at->format('M d, Y g:i a'),
+						'comment' => $invitation->comment,
+						'profesional_email' => $user->email,
+						'reference_email' => $invitation->to_user_email
+					];
+					
+					$this->mailer->pushToQueue('sendInvitation', $data);			
+				
+					$user->invitations = $user->invitations - 1;
+					$user->save();
+					
+					$response = ['code' => 200,'data' => $invitation];
+					return response()->json($response,200);				
+				}else{				
+					$response = ['code' => 500,'error' => "It has occurred an error trying to save the invitation"];
+					return response()->json($response,500);			
+				}			
+				
+			}else{
+				$errorJSON = ['error'   => 'You do not have more invitations available', 'code' => 410];//Gone
+				return response()->json($errorJSON, 410);
+			}
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
+	* Para obtener el número de invitaciones de un usuario
+	*/
+	public function getNumberOfInvitations($user_id){
+		$userRequested = \Auth::User();
+		$user = User::find($user_id);
+		if($userRequested->id == $user->id || $userRequested->roleAuth  == "ADMIN"){
+			$data = ['invitations' => $user->invitations];
+			$response = ['code' => 200,'data' => $data];
+			return response()->json($response,200);
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+	}
+	
+	/*
+	* Admins pueden colocarle a un usuario el número de invitaciones que podrán usar.
+	*/
+	public function setInvitations(Request $request){
+		$userRequested = \Auth::User();
+
+		if($userRequested->roleAuth  == "ADMIN"){
+			$invitations_number = $request->invitations_number;
+			$user_id = $request->to_user_id;
+			$user = User::find($user_id);
+			if($user){
+				$user->invitations = $invitations_number;
+				$user->save();
+				
+				$response = ['code' => 200,'message' => $invitations_number." Invitations were added in the ".$user->name."'s account"];
+				return response()->json($response,200);
+			}else{
+				$errorJSON = ['error'   => 'Resource not found', 'code' => 404];
+				return response()->json($errorJSON, 404);
+			}
+		}else{
+			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+            return response()->json($errorJSON, 403);
+		}
+		
+	}
 
 	public function predict(Request $request){
 		//SE VALIDA QUE SE HALLA ENVIADO LA FRASE
@@ -353,8 +518,10 @@ class UserController extends Controller
 
 		$issued = time();
 		$expire = $issued + 3600; //los token maximo duran una hora
+		
+		$predict_service_acc = env('PREDICT_SERVICE_ACC');
 
-		$payload = '{"iss":"servsl@testwebdev-962.iam.gserviceaccount.com","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
+		$payload = '{"iss":"'.$predict_service_acc .'","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';
 
 		$payloadBase64 = base64_encode($payload);
 		$payloadBase64 = str_replace(array('+', '/', '\r', '\n', '='),array('-', '_'),$payloadBase64);//A esto se llema safeBase64
@@ -459,5 +626,34 @@ class UserController extends Controller
 
 			}
 		}
+	}
+
+	public function storeSearched(Request $request){
+		$id = \DB::table('search_log')->insertGetId([
+			"ip" => $request->ip,
+			"search_term" => $request->search_term,
+			"detected_category" => $request->detected_category,
+			'created_at' => date('Y-m-d h:i:s',time()),
+			'updated_at' => date('Y-m-d h:i:s',time())
+		]);
+
+		$log = new \stdClass;
+		$log->id = $id;
+
+		$response = ['code' => 200,'data' => $log];
+		return response()->json($response,200);
+	}
+
+	public function updateSearched(Request $request, $id){
+
+		$inputs = $request->all();
+
+		if($request->correct_date != null)
+			$inputs['correct_date'] = date('Y-m-d h:i:s',time());
+
+		\DB::table('search_log')->where('id',$id)->update($inputs);
+
+		$response = ['code' => 200];
+		return response()->json($response,200);
 	}
 }

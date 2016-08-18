@@ -14,6 +14,11 @@ abstract class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    public function __construct(){
+        $this->noReply = \Config::get('mail.from_no_reply');
+        $this->baseUrl = \Config::get('app.front_url');
+    }
+
     protected function updateModel($request, $model, $attributes){
         foreach ($attributes as $attribute) {
             if($request->has($attribute))

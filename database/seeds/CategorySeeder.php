@@ -22,13 +22,23 @@ class CategorySeeder extends Seeder {
         // For covering the users, we get the count from user model.
         // So that way the foreign key user_id won't give us any problems.
 
+        Category::create(
+                [
+                    'name'=>'Abogado',
+                    'description'=>'Todo lo relacionado a la ley',
+                    'role_id'=>0,
+                    'role'=>0
+
+                ]
+            );
+
         for ($i=0; $i < 40; $i++) {
             Category::create(
                 [
                     'name'=>$faker->text(45),
                     'description'=>$faker->text(500),
 					'role_id'=>0,
-					'role'=>0 
+					'role'=>0
 
                 ]
             );

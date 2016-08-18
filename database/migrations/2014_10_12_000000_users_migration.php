@@ -26,6 +26,9 @@ class UsersMigration extends Migration
             $table->integer('role')->unsigned()->nullable();
             $table->string('token', 600)->nullable();
             $table->boolean('confirmed')->default(false);
+			$table->tinyInteger('enabled_companies')->default(0);
+			$table->integer('invitations')->unsigned()->default(0);
+			//$table->tinyInteger('user_as')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

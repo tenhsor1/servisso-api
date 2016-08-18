@@ -6,6 +6,7 @@ namespace App;
 use App\Extensions\ServissoModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Log;
+use App\Notification;
 
 class Service extends ServissoModel
 {
@@ -26,6 +27,7 @@ class Service extends ServissoModel
                             , 'branch_id'
                             , 'userable_id'
                             , 'userable_type'
+							,'created_at'							
                         ];
 
     /**
@@ -33,7 +35,8 @@ class Service extends ServissoModel
      *
      * @var array
      */
-    protected $hidden = [   'userable_type'
+    protected $hidden = [
+                            'userable_type'
                             , 'deleted_at'
                             , 'updated_at'
                         ];
@@ -54,10 +57,33 @@ class Service extends ServissoModel
         'updated'
     ];
 
-    public function branch(){
-        //1 service is related to one branch
-        return $this->belongsTo('App\Branch');
+  public static function boot()
+  {
+      Service::created(function ($service) {
+        $service->addNotification();
+      });
+  }
+
+  public function addNotification(){
+    /*$this->id;
+    Notification::SERVICE_RELATION;*/
+    $receivers = $this->getOwnerBranch();
+    foreach ($receivers as $key => $receiver) {
+      $notification = new Notification;
+      $notification->receiver_id = $receiver->id;
+      $notification->object_id = $this->id;
+      $notification->object_type = Notification::SERVICE_RELATION;
+      $notification->sender_id = $this->userable_id;
+      $notification->sender_type = $this->userable_type;
+      $notification->verb = 'NEW';
+      $notification->save();
     }
+  }
+
+  public function branch(){
+      //1 service is related to one branch
+      return $this->belongsTo('App\Branch');
+  }
 
 	public function userRate(){
 		//1 sevice is related to one user rate
@@ -73,13 +99,18 @@ class Service extends ServissoModel
       return $this->morphTo();
   }
 
+  public function notifications(){
+    return $this->morphMany('App\Service', 'object');
+  }
+
   public function images(){
     return  $this->hasMany('App\ServiceImage');
   }
 
 	public static function getRules(){
 		$rules = [
-			'description' => ['required','max:250']
+			'description' => ['required','max:250'],
+      'branch_id' => ['required','exists:branches,id']
 		];
 
 		return $rules;
@@ -88,12 +119,22 @@ class Service extends ServissoModel
 	public static function getMessages(){
 		$messages = [
 			'description.required' => 'Descripción es obligatoria',
-			'description.max' => 'Descripción debe tener máximo :max caracteres'
+			'description.max' => 'Descripción debe tener máximo :max caracteres',
+      'branch_id.required' => 'La sucursal es obligatoria',
+      'branch_id.exists' => 'La sucursal no existe'
 		];
 
 		return $messages;
 	}
 
+    public function getOwnerBranch(){
+      return $this->select('users.id')
+            ->join('branches','branches.id','=','services.branch_id')
+            ->join('companies','companies.id','=','branches.company_id')
+            ->join('users','users.id','=','companies.user_id')
+            ->where('services.id', $this->id)
+            ->get();
+    }
 
     public function scopeWhereUser($query, $userId)
     {

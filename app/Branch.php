@@ -14,7 +14,9 @@ class Branch extends ServissoModel
 
 	protected $fillable = array('address', 'phone', 'latitude','longitude','schedule','company_id','state_id','name');
 
-	protected $hidden = ['geom', 'deleted_at','created_at','updated_at','role_id','role'];
+	protected $hidden = ['geom', 'id_negocio', 'inegi', 'deleted_at','created_at','updated_at','role_id','role'];
+
+    protected $with = ['company'];
 
 	protected $searchFields = [
         'address',
@@ -59,10 +61,30 @@ class Branch extends ServissoModel
         return $this->hasMany('App\Service');
     }
 
+    public function tasks()
+    {
+        // 1 branch can have multiple services
+        return $this->hasMany('App\TaskBranch');
+    }
+
+	public function verifications()
+    {
+        // 1 branch can have multiple verifications
+        return $this->hasMany('App\BranchVerification');
+    }
+
     public function state()
     {
         // 1 branch can have multiple services
         return $this->belongsTo('App\State');
+    }
+
+    public function ratesMade(){
+        return $this->hasMany('App\UserRate');
+    }
+
+    public function chatParticipants(){
+        return $this->morphMany('App\ChatParticipant', 'object');
     }
 
 	public static function getRules(){

@@ -77,6 +77,14 @@ class User extends Model implements AuthenticatableContract,
         return $this->morphMany('App\Service', 'userable');
     }
 
+    public function tasks(){
+        return $this->hasMany('App\Task');
+    }
+
+    public function notifications(){
+        return $this->morphMany('App\Notifications', 'sender');
+    }
+
     public function socials(){
         return $this->hasMany('App\UserSocial');
     }
@@ -91,6 +99,20 @@ class User extends Model implements AuthenticatableContract,
     {
         // 1 admin can have one state
         return $this->hasOne('App\State');
+    }
+	
+	public function invitations(){
+		return $this->hasMany('App\UserInvitation');
+	}
+
+    public function ownRates()
+    {
+        // 1 admin can have one state
+        return $this->hasMany('App\UserRate');
+    }
+
+    public function chatParticipants(){
+        return $this->hasMany('App\ChatParticipant');
     }
 
     public function getBranch($id){
@@ -161,4 +183,14 @@ class User extends Model implements AuthenticatableContract,
         }
         return null;
     }
+}
+
+/**
+ * Used to hide certain fields for the user model,
+ * basically for tasks where the branch still doesn´t have permissions for see the user info
+ */
+class UserHidden extends User
+{
+    //only show id and name for this kind of model
+    protected $visible = ['id', 'name'];
 }
