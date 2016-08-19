@@ -393,7 +393,6 @@ class TaskController extends Controller
             return response()->json($response, 403);
         }
 
-
         return $taskBranch;
     }
 
