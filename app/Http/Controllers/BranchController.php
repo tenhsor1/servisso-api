@@ -132,16 +132,16 @@ class BranchController extends Controller
 
 			//SE VALIDA QUE EL USUARIO NO TENGA BRANCHES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER GUARDAR UNA NUEVA
-			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') &&
 				$company->branches->count() == 0) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
 				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO PUEDA GUARDAR BRANCHES EN SUS COMPANIES
-				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){	
+				if(($userRequested->id == $company->user_id) || $role == 'ADMIN'){
 
 					//Si se detecta un codigo de invitacion entonces de borra el codigo
 					if($request->code)
 						$this::clearCode($request->code,$company->user_id);
-					
+
 					//SE UNA INSTANCIA DE BRANCH
 					$branch = new Branch;
 					$branch->company_id = $company_id;
@@ -196,7 +196,7 @@ class BranchController extends Controller
 		}
 
     }
-	
+
 	/*
 	* Borra el código de invitación utilizado para guardar una branch y
 	* actualiza el id del usuario que usó el código
@@ -425,9 +425,9 @@ class BranchController extends Controller
 
 				for($i = 0;$i < count($tags);$i++){
 					$tag = (object) $tags[$i];
-					
+
 					$tag_verification = Tag::find($tag->tag_id);
-					
+
 					//Si el tag existe entonces se guarda en la db
 					if($tag_verification){
 						$row = \DB::table('tags_branches')->insert(
@@ -508,8 +508,6 @@ class BranchController extends Controller
 		}
 		$services = Service::whereBranch($id)
                                 ->with('userable')
-                                ->with('userRate')
-                                ->with('partnerRate')
                                 ->get();
 		return response()->json(['data' => $services], 200);
 	}
