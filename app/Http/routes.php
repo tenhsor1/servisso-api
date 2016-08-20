@@ -97,7 +97,3 @@ Route::group(['prefix' => 'v1'], function()
 
 	Route::get('requirements/requested', 'AdminController@requirements');
 });
-
-
-
-

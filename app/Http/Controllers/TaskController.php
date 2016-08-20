@@ -364,7 +364,8 @@ class TaskController extends Controller
                     $q->with('images');
                     $q->with('userHidden');
                 }])
-                ->with('branch.company.user')
+                ->with('quotes')
+                ->with('branch.tags')
                 ->first();
 
         if(!$taskBranch){
@@ -392,7 +393,6 @@ class TaskController extends Controller
                                 $userRequested->id, $taskBranchId));
             return response()->json($response, 403);
         }
-
 
         return $taskBranch;
     }
