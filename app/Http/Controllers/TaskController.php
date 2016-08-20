@@ -364,6 +364,7 @@ class TaskController extends Controller
                     $q->with('images');
                     $q->with('userHidden');
                 }])
+                ->with('quotes')
                 ->with('branch.tags')
                 ->first();
 

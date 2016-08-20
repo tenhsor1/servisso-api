@@ -104,6 +104,8 @@ class Task extends ServissoModel
 
   public function distanceBranches(){
     return $this->hasMany('App\TaskBranch')
+      ->with('latestQuote')
+      ->with('chatRoom.latestMessage')
       ->join('tasks', 'task_branches.task_id', '=', 'tasks.id')
       ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
       ->whereIn('task_branches.status', TaskBranch::ACCEPTED_STATUSES)

@@ -149,6 +149,10 @@ class TaskBranch extends ServissoModel
         return $this->hasMany('App\TaskBranchQuote');
     }
 
+    public function latestQuote(){
+        return $this->hasOne('App\TaskBranchQuote')->latest();
+    }
+
     public function chatRoom(){
         return $this->morphOne('App\ChatRoom', 'object');
     }
