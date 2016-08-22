@@ -27,7 +27,7 @@ class UserSeeder extends Seeder {
             'id' => 0,
             'email' => 'notaccount@servisso.com.mx',
             'password' => 'Jisk3sl20sll32pñ0',
-            'name' => 'NOT',
+            'name' => 'Servisso',
             'lastname' => 'ACCOUNT',
             'phone' => '0000000000',
             'address' => 'NONE',
