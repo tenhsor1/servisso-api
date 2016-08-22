@@ -16,41 +16,45 @@ class Tag extends ServissoModel
 
 
     protected $hidden = ['created_at','updated_at','deleted_at','role_id','role'];
-	
+
 	public function category()
     {
         // 1 tag is related to one category
         return $this->belongsTo('App\Category');
     }
-	
+
+    public function branches(){
+        return $this->belongsToMany('App\Branch', 'tags_branches');
+    }
+
 	/**
 	* Se obtienen los mensajes de errores
 	*/
 	public static function getMessages(){
-		$messages = 
+		$messages =
 		[
 			'required' => ':attribute is required',
 			'max' => ':attribute length too long',
 			'min' => ':attribute length too short',
 		];
-		
+
 		return $messages;
 	}
-	
+
 	/**
 	* Se obtienen las validaciones del modelo Branch
 	*/
 	public static function getValidations(){
-		$validation = 
+		$validation =
 			[
 				'name' => 'required|max:44|min:4',
 				'description' => 'required|max:100|min:4',
 				'category_id' => 'required'
 			];
-		
+
 		return $validation;
 	}
-	
+
 	protected $searchFields = [
         'name',
         'description'
@@ -63,7 +67,7 @@ class Tag extends ServissoModel
     protected $orderByFields = [
         'created'
     ];
-	
+
 	/**
      * Used for search using 'LIKE', based on query parameters passed to the
      * request (example: services?search=test&searchFields=description,company,address)
@@ -72,21 +76,21 @@ class Tag extends ServissoModel
      * @param  array  $defaultFields    The default fields if there are no 'searchFields' param passed
      * @return [QueryBuilder]           The new query builder
      */
-    public function scopeSearchBy($query, $request, $defaultFields=array('description')){		
+    public function scopeSearchBy($query, $request, $defaultFields=array('description')){
         $fields = $this->searchParametersAreValid($request);
         if($fields){
-            $search = $request->input('search');		
+            $search = $request->input('search');
 			$where = "where";
             $searchFields = is_array($fields) ? $fields : $defaultFields;
-            foreach ($searchFields as $searchField) {				
+            foreach ($searchFields as $searchField) {
                 switch ($searchField) {
                     case 'name':
                         //search by the name of the service
-                        $query->$where('name', 'LIKE', '%'.$search.'%');	
+                        $query->$where('name', 'LIKE', '%'.$search.'%');
                         break;
                     case 'description':
                         //search by the description of the service
-                        $query->$where('description', 'LIKE', '%'.$search.'%');	
+                        $query->$where('description', 'LIKE', '%'.$search.'%');
                         break;
                 }
 				$where = "orWhere";

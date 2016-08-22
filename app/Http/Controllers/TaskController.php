@@ -285,7 +285,7 @@ class TaskController extends Controller
 
     public function showTaskBranch($taskId, $taskBranchId){
         $userRequested = \Auth::User();
-        $taskBranch = $this->validateTaskBranchOwner($userRequested, $taskId, $taskBranchId);
+        $taskBranch = $this->validateTaskBranchOwner($userRequested, $taskId, $taskBranchId, true);
         if($taskBranch instanceof JsonResponse){
             return $taskBranch;
         }
@@ -357,16 +357,32 @@ class TaskController extends Controller
         //
     }
 
-    private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId){
+    private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId, $ownerTask=false){
         $taskBranch = TaskBranch::withDistance()
                 ->where(['task_branches.id' => $taskBranchId])
-                ->with('task.images')
-                ->with('branch.company.user')
+                ->with(['task' => function($q){
+                    $q->with('images');
+                    $q->with('userHidden');
+                }])
+                ->with('quotes')
+                ->with('branch.tags')
                 ->first();
 
         if(!$taskBranch){
             $response = ['error' => 'Task Branck relationship does not exist','code' => 404];
             return response()->json($response,404);
+        }
+
+        if($taskId != $taskBranch->task_id){
+            $response = ['error' => 'The task is not related to the relationship',
+                        'code' => 403];
+            \Log::error(sprintf("User: %s requested update task branch from branch id: %s. the original task %s doesn't match with: %s",
+                                $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
+            return response()->json($response, 403);
+        }
+
+        if($ownerTask && $userRequested->id == $taskBranch->task->user_id){
+            return $taskBranch;
         }
 
         //check if the user requesting it, is the owner of the branch
@@ -378,13 +394,6 @@ class TaskController extends Controller
             return response()->json($response, 403);
         }
 
-        if($taskId != $taskBranch->task_id){
-            $response = ['error' => 'The task is not related to the relationship',
-                        'code' => 403];
-            \Log::error(sprintf("User: %s requested update task branch from branch id: %s. the original task %s doesn't match with: %s",
-                                $userRequested->id, $taskBranchId, $taskBranch->task_id, $taskId));
-            return response()->json($response, 403);
-        }
         return $taskBranch;
     }
 

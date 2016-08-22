@@ -79,6 +79,10 @@ class Branch extends ServissoModel
         return $this->belongsTo('App\State');
     }
 
+    public function tags(){
+        return $this->belongsToMany('App\Tag', 'tags_branches');
+    }
+
     public function ratesMade(){
         return $this->hasMany('App\UserRate');
     }

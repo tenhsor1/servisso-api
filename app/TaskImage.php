@@ -71,7 +71,7 @@ class TaskImage extends Model
     }
 
     public function getThumbnailAttribute($value){
-        $s3Client = AWS::createClient('s3');
+		 $s3Client = AWS::createClient('s3');
         $cmd = $s3Client->getCommand('GetObject', [
             'Bucket' => env('S3_IMAGES_BUCKET'),
             'Key'    => $value
