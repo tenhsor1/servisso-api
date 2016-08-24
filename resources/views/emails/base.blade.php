@@ -212,12 +212,12 @@
 												<td width="270" valign="middle" style="font-family: Helvetica, Arial, sans-serif;font-size: 14px; color: #ffffff;line-height: 24px; padding: 10px 0;" align="right" class="menu" st-content="menu">
 													<p>
 														<span style="color: rgb(43, 187, 196);">
-															<a href="{{ $menuItemHow or 'www.servisso.com.mx/como-funciona' }}">
+															<a href="{{ $menuItemHow or 'www.servisso.com.mx/profesionales' }}">
 																<span style="color: rgb(43, 187, 196);">COMO FUNCIONA</span>
 															</a>
 														</span> |
 														<span style="color: rgb(43, 187, 196);">
-															<a href="{{ $menuItemHome or 'www.servisso.com.mx/inicio' }}">
+															<a href="{{ $menuItemHome or 'www.servisso.com.mx' }}">
 																<span style="color: rgb(43, 187, 196);">INICIO</span>
 															</a>
 														</span>
