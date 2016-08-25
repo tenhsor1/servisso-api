@@ -13,7 +13,6 @@ use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
-use App\Mailers\AppMailer;
 use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
@@ -38,7 +37,6 @@ class TaskController extends Controller
                                                         ]]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
-        $this->mailer = new AppMailer();
     }
 
     /**
@@ -51,6 +49,8 @@ class TaskController extends Controller
         $user = \Auth::User();
         $tasks = [];
         $tasks = Task::with('category')
+                        ->with('imagesHidden')
+                        ->with('quotes')
                         ->with('distanceBranches.branch.company')
                         ->searchBy($request)
                         ->betweenBy($request)
@@ -160,7 +160,16 @@ class TaskController extends Controller
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){
-            $numberBranches = $this->sendTaskToBranches($task);
+            $numberBranches = 0;
+            if(config('app.automatic_assign')){
+                $numberBranches = $this->sendTaskToBranches($task);
+            }else{
+                //we send an email to the admin with the new task information
+                $view = \View::make('emails.admin-new-task', ['task' => $task]);
+                $content = $view->render();
+                $this->sendAdminNotificationEmail('Nueva tarea', $content);
+            }
+
             $tokenImage = \Crypt::encrypt(['task_id' => $task->id
                                                 ,'date' => $task->created_at->format('Y-m-d H:i:s')]);
             $task->token_image = $tokenImage;

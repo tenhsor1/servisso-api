@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use JWTAuth;
+use App\Mailers\AppMailer;
 
 abstract class Controller extends BaseController
 {
@@ -17,6 +18,7 @@ abstract class Controller extends BaseController
     public function __construct(){
         $this->noReply = \Config::get('mail.from_no_reply');
         $this->baseUrl = \Config::get('app.front_url');
+        $this->mailer = new AppMailer();
     }
 
     protected function updateModel($request, $model, $attributes){
@@ -70,5 +72,12 @@ abstract class Controller extends BaseController
                 return $user;
             }
         }
+    }
+
+    protected function sendAdminNotificationEmail($subject, $content){
+        $this->mailer->pushToQueue('sendAdminNotification', [
+                    'subject' => $subject,
+                    'content' => $content,
+                ]);
     }
 }

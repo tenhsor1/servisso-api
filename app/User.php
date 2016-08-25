@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Validator;
 use JWTAuth;
 
 class User extends Model implements AuthenticatableContract,
@@ -100,7 +101,7 @@ class User extends Model implements AuthenticatableContract,
         // 1 admin can have one state
         return $this->hasOne('App\State');
     }
-	
+
 	public function invitations(){
 		return $this->hasMany('App\UserInvitation');
 	}
@@ -127,13 +128,27 @@ class User extends Model implements AuthenticatableContract,
         return $branch;
     }
 
+    public static function validatePayloadStore($request){
+        $v = Validator::make($request->all(), User::getRules(), User::getMessages());
+
+        $v->sometimes('captcha', 'required|string', function($input){
+            return strlen($input->val) <= 0;
+        });
+
+        if($v->fails()){
+            $response = json_encode($v->errors());
+            abort(400, $response);
+            return false;
+        }
+        return true;
+    }
+
 	public static function getRules(){
 		$rules = array(
 				'email' => ['required','email','unique:users'],
 				'password' => ['required','min:8'],
 				'name' => ['required','min:3','max:45'],
 				'lastname' => ['required','min:3','max:45'],
-                'captcha' => ['required', 'string'],
 			);
 
 		return $rules;
@@ -142,7 +157,6 @@ class User extends Model implements AuthenticatableContract,
     public static function getMessages(){
         $messages =
         [
-            'captcha.required' => 'Por favor, completa el captcha',
             'email.required' => 'Email es obligatorio',
             'email.email' => 'Email no válido',
             'email.unique' => 'La cuenta de correo ya fue utilizada',

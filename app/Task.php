@@ -132,6 +132,14 @@ class Task extends ServissoModel
     return  $this->hasMany('App\TaskImage');
   }
 
+  public function imagesHidden(){
+    return  $this->hasMany('App\TaskImageHidden');
+  }
+
+  public function quotes(){
+    return $this->hasManyThrough('App\TaskBranchQuote', 'App\TaskBranch');
+  }
+
     public static function getRules(){
         $rules = [
             'description' => ['required','max:500', 'min:30'],

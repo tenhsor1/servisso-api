@@ -48,12 +48,19 @@ class Handler extends ExceptionHandler
             $e = new NotFoundHttpException($e->getMessage(), $e);
         }
 
+        $headers = ['Content-Type' => 'application/json',
+                    'Access-Control-Allow-Origin' => '*',
+                    'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers' => 'Origin, Content-Type, Accept, Authorization, X-Request-With',
+                    'Access-Control-Expose-Headers' => 'Authorization'
+                    ];
+
         if ($e instanceof NotFoundHttpException){
             $message = $e->getMessage() ? $e->getMessage() : 'Endpoint not found';
             $code = $e->getStatusCode() ? $e->getStatusCode() : 404;
 
             $errorJSON = ['error' => $message, 'code' => $code];
-            return response()->json($errorJSON, $code);
+            return response()->json($errorJSON, $code, $headers);
         }
 
         if ($e instanceof HttpException){
@@ -63,14 +70,14 @@ class Handler extends ExceptionHandler
                 $message = $e->getMessage() ? json_decode($e->getMessage()) : 'Bad Request';
 
                 $errorJSON = ['error' => $message, 'message' => 'Bad Request', 'code' => $statusCode];
-                return response()->json($errorJSON, $statusCode);
+                return response()->json($errorJSON, $statusCode, $headers);
             }
 
             if($statusCode == 422){
                 $message = $e->getMessage() ? json_decode($e->getMessage()) : 'Unprocessable Entity';
 
                 $errorJSON = ['error' => 'Bad Request', 'data' => $message, 'code' => $statusCode];
-                return response()->json($errorJSON, $statusCode);
+                return response()->json($errorJSON, $statusCode, $headers);
             }
 
 
@@ -78,7 +85,7 @@ class Handler extends ExceptionHandler
             $code = $e->getStatusCode() ? $e->getStatusCode() : 500;
 
             $errorJSON = ['error' => $message, 'code' => $code];
-            return response()->json($errorJSON, $code);
+            return response()->json($errorJSON, $code, $headers);
         }
 
         return parent::render($request, $e);
