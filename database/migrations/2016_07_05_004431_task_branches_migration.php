@@ -22,6 +22,7 @@ class TaskBranchesMigration extends Migration
 
             $table->foreign('task_id')->references('id')->on('tasks');
             $table->foreign('branch_id')->references('id')->on('branches');
+            $table->unique(['task_id', 'branch_id']);
         });
     }
 

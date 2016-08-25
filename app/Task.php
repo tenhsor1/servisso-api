@@ -174,6 +174,22 @@ class Task extends ServissoModel
         return $messages;
     }
 
+    public static function getAssignRules(){
+        $rules = [
+            'branch_ids' => ['required', 'array']
+        ];
+
+        return $rules;
+    }
+
+    public static function getAssignMessages(){
+        $messages = [
+            'branch_ids.required' => 'las branches son requeridas',
+            'branch_ids.array' => 'Debe de ser un arreglo de ids',
+        ];
+        return $messages;
+    }
+
     public function setGeomAttribute($value) {
         //position 0 = longitude, 1 = latitude
         $this->attributes['geom'] = \DB::raw(sprintf("ST_SetSRID(ST_MakePoint(%s, %s), 4326)", $value[0], $value[1]));
