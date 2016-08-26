@@ -128,4 +128,12 @@ class Utils extends Model{
             return false;
         }
     }
+	
+	/**
+		Se obtiene un parametro que funciona como bandera para saber si una url
+		proviene de un email.
+	*/
+	public static function getFlagParameterEmail(){
+		return 'svsemail='.substr(\Crypt::encrypt(microtime()),0,30);
+	}
 }

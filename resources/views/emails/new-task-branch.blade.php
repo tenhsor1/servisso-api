@@ -31,7 +31,7 @@
                 <tbody>
                     <tr>
                         <td style="font-family:Helvetica, arial, sans-serif; text-align:center; font-weight: 300;" width="auto" align="center" valign="middle" height="36">
-                            <a target="_blank" href="{{$baseUrl}}/panel/proyectos/{{$taskBranchId}}">
+                            <a target="_blank" href="{{$goToUrl}}">
                                 Click aqui para ver completo los detalles de la tarea
                             </a>
                         </td>
