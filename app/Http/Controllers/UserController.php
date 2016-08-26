@@ -53,21 +53,16 @@ class UserController extends Controller
             }
             $request['email'] = $valuesProvider['email'];
         }
-        $rules = User::getRules();
-		$messages = User::getMessages();
 
-		$validator = Validator::make($request->all(),$rules,$messages);
+        User::validatePayloadStore($request);
 
-		if($validator->fails()){
-			$response = ['error' => $validator->errors(),'message' => 'Bad request','code' => 400];
-			return response()->json($response,400);
-		}
-
-        $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
-        if(!$validCaptcha){
-            $response = ['error' => ['captcha' => ['El captcha no es válido']],
-                        'message' => 'Bad request','code' => 400];
-            return response()->json($response,400);
+        if(!$request->input('val', null)){
+            $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
+            if(!$validCaptcha){
+                $response = ['error' => ['captcha' => ['El captcha no es válido']],
+                            'message' => 'Bad request','code' => 400];
+                return response()->json($response,400);
+            }
         }
 
 		$fields = \Input::except('code');
@@ -344,7 +339,7 @@ class UserController extends Controller
                         return response()->json($response,403);
         }
     }
-	
+
 	/*
 	* Se obtienen todas las invitaciones
 	*/
@@ -356,9 +351,9 @@ class UserController extends Controller
 												->where('user_id','=',$user_id)
 												->orderBy('created_at','desc')
 												->get(['to_user_email','comment','created_at']);
-												
+
 			$data = ["invitations_sent" => $invitationsSent ];
-			
+
 			$response = ['code' => 200,'data' => $data];
 			return response()->json($response,200);
 		}else{
@@ -366,12 +361,12 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
 		}
 	}
-	
+
 	/*
 	* Para verificar si un codigo existe.
 	*/
-	public function getInvitation($code){	
-		
+	public function getInvitation($code){
+
 		$invitation = UserInvitation::where('code','=',$code)->get()->first();
 		if($invitation){
 			$response = ['code' => 200,'data' => $invitation];
@@ -381,20 +376,20 @@ class UserController extends Controller
 			return response()->json($response,403);
 		}
 	}
-	
+
 	/*
 	* El asociado crea un código que es enviado a un amigo/persona al correo
 	*/
-	public function createInvitation(Request $request){				
+	public function createInvitation(Request $request){
 		$userRequested = \Auth::User();
 		$user = User::find($userRequested->id);
 		if($user || $userRequested->roleAuth  == "ADMIN"){
-			
+
 			if($userRequested->roleAuth  == "ADMIN")
 				$user = User::find(0);
-			
-			if($user->invitations > 0){						
-				
+
+			if($user->invitations > 0){
+
 				$key = config('app.key');
 				$code = hash_hmac('sha256', str_random(40), $key);
 				$invitation = new UserInvitation;
@@ -402,11 +397,11 @@ class UserController extends Controller
 				$invitation->to_user_email = $request->email;
 				$invitation->comment = $request->comment;
 				$invitation->invitation_type = 'Exclusive Partner Reference';
-				$invitation->code = $code;		
+				$invitation->code = $code;
 				$invitation->save();
 
-				if($invitation){	
-					
+				if($invitation){
+
 					$baseUrl = config('app.front_url');
 					$flagParameterEmail = Utils::getFlagParameterEmail();
 					$data = [
@@ -417,19 +412,19 @@ class UserController extends Controller
 						'profesional_email' => $user->email,
 						'reference_email' => $invitation->to_user_email
 					];
-					
-					$this->mailer->pushToQueue('sendInvitation', $data);			
-				
+
+					$this->mailer->pushToQueue('sendInvitation', $data);
+
 					$user->invitations = $user->invitations - 1;
 					$user->save();
-					
+
 					$response = ['code' => 200,'data' => $invitation];
-					return response()->json($response,200);				
-				}else{				
+					return response()->json($response,200);
+				}else{
 					$response = ['code' => 500,'error' => "It has occurred an error trying to save the invitation"];
-					return response()->json($response,500);			
-				}			
-				
+					return response()->json($response,500);
+				}
+
 			}else{
 				$errorJSON = ['error'   => 'You do not have more invitations available', 'code' => 410];//Gone
 				return response()->json($errorJSON, 410);
@@ -439,7 +434,7 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
 		}
 	}
-	
+
 	/*
 	* Para obtener el número de invitaciones de un usuario
 	*/
@@ -455,7 +450,7 @@ class UserController extends Controller
             return response()->json($errorJSON, 403);
 		}
 	}
-	
+
 	/*
 	* Admins pueden colocarle a un usuario el número de invitaciones que podrán usar.
 	*/
@@ -469,7 +464,7 @@ class UserController extends Controller
 			if($user){
 				$user->invitations = $invitations_number;
 				$user->save();
-				
+
 				$response = ['code' => 200,'message' => $invitations_number." Invitations were added in the ".$user->name."'s account"];
 				return response()->json($response,200);
 			}else{
@@ -480,7 +475,7 @@ class UserController extends Controller
 			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
             return response()->json($errorJSON, 403);
 		}
-		
+
 	}
 
 	public function predict(Request $request){
@@ -518,7 +513,7 @@ class UserController extends Controller
 
 		$issued = time();
 		$expire = $issued + 3600; //los token maximo duran una hora
-		
+
 		$predict_service_acc = env('PREDICT_SERVICE_ACC');
 
 		$payload = '{"iss":"'.$predict_service_acc .'","scope":"https://www.googleapis.com/auth/prediction","aud":"https://www.googleapis.com/oauth2/v4/token","exp":'.$expire.',"iat":'.$issued.'}';

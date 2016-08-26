@@ -132,6 +132,14 @@ class Task extends ServissoModel
     return  $this->hasMany('App\TaskImage');
   }
 
+  public function imagesHidden(){
+    return  $this->hasMany('App\TaskImageHidden');
+  }
+
+  public function quotes(){
+    return $this->hasManyThrough('App\TaskBranchQuote', 'App\TaskBranch');
+  }
+
     public static function getRules(){
         $rules = [
             'description' => ['required','max:500', 'min:30'],
@@ -163,6 +171,22 @@ class Task extends ServissoModel
             'longitude.regex' => 'La longitud no es valida',
         ];
 
+        return $messages;
+    }
+
+    public static function getAssignRules(){
+        $rules = [
+            'branch_ids' => ['required', 'array']
+        ];
+
+        return $rules;
+    }
+
+    public static function getAssignMessages(){
+        $messages = [
+            'branch_ids.required' => 'las branches son requeridas',
+            'branch_ids.array' => 'Debe de ser un arreglo de ids',
+        ];
         return $messages;
     }
 

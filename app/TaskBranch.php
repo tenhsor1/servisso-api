@@ -30,6 +30,8 @@ class TaskBranch extends ServissoModel
     protected $table = 'task_branches';
     use SoftDeletes;
 
+
+    protected $fillable = ['branch_id', 'status'];
     /**
      * The attributes that are not mass assignable.
      *

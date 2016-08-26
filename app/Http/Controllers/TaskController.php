@@ -13,7 +13,6 @@ use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
-use App\Mailers\AppMailer;
 use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
@@ -36,9 +35,9 @@ class TaskController extends Controller
                                                         'showTaskBranch',
                                                         'updateTaskBranch',
                                                         ]]);
+        $this->middleware('jwt.auth:admin', ['only' => ['assignTaskBranches']]);
         $this->middleware('default.headers');
         $this->userTypes = \Config::get('app.user_types');
-        $this->mailer = new AppMailer();
     }
 
     /**
@@ -51,6 +50,8 @@ class TaskController extends Controller
         $user = \Auth::User();
         $tasks = [];
         $tasks = Task::with('category')
+                        ->with('imagesHidden')
+                        ->with('quotes')
                         ->with('distanceBranches.branch.company')
                         ->searchBy($request)
                         ->betweenBy($request)
@@ -160,7 +161,16 @@ class TaskController extends Controller
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){
-            $numberBranches = $this->sendTaskToBranches($task);
+            $numberBranches = 0;
+            if(config('app.automatic_assign')){
+                $numberBranches = $this->sendTaskToBranches($task);
+            }else{
+                //we send an email to the admin with the new task information
+                $view = \View::make('emails.admin-new-task', ['task' => $task]);
+                $content = $view->render();
+                $this->sendAdminNotificationEmail('Nueva tarea', $content);
+            }
+
             $tokenImage = \Crypt::encrypt(['task_id' => $task->id
                                                 ,'date' => $task->created_at->format('Y-m-d H:i:s')]);
             $task->token_image = $tokenImage;
@@ -265,6 +275,7 @@ class TaskController extends Controller
         $user = \Auth::User();
 
         $task = Task::with('category')
+                        ->with('images')
                         ->with('distanceBranches.branch.company')
                         ->where('id', $id)
                         ->where('user_id', $user->id)
@@ -292,29 +303,6 @@ class TaskController extends Controller
 
         $response = ['data' => $taskBranch,'code' => 200,'code' => 200];
         return response()->json($response,200);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
     }
 
     public function updateTaskBranch(Request $request, $taskId, $taskBranchId){
@@ -355,6 +343,35 @@ class TaskController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function assignTaskBranches(Request $request, $id){
+
+        $messages = Task::getAssignMessages();
+        $rules = Task::getAssignRules();
+
+        $v = Validator::make($request->all(),$rules,$messages);
+        if($v->fails()){
+            abort(400, $v->errors());
+        }
+
+        $task = Task::where(['id' => $id])->first();
+        if(!$task){
+            abort(422, json_encode(['task_id' => 'La task no existe']));
+        }
+
+        $branchIds = array_unique($request->input('branch_ids'));
+        $branches = Branch::whereIn('id', $branchIds)->get();
+
+        //if any branch doesn´t exist, then return error
+        if(count($branches) != count($branchIds)){
+            abort(422, json_encode(['branch_ids' => 'Algunas branches no existen']));
+        }
+
+        $this->sendTaskToBranches($task, $branches);
+
+        $response = ['data' => $task,'code' => 200,'code' => 200];
+        return response()->json($response,200);
     }
 
     private function validateTaskBranchOwner($userRequested, $taskId, $taskBranchId, $ownerTask=false){
@@ -422,20 +439,22 @@ class TaskController extends Controller
         return ['code' => 200];
     }
 
-    private function sendTaskToBranches($task){
-        $branches = $task->getNeareastBranches();
+    private function sendTaskToBranches($task, $branches=null){
+        if(!$branches){
+            $branches = $task->getNeareastBranches();
+        }
+        $branchesTask = [];
         //first we save the branches that we found were close to the task
         foreach ($branches as $key => $branch) {
             $taskBranch = new TaskBranch;
             $taskBranch->branch_id = $branch->id;
             $taskBranch->status = 0;
-            $task->branches()->save($taskBranch);
+            $branchTask = $task->branches()->firstOrCreate(['branch_id' => $branch->id, 'status' => 0]);
+            if($branchTask->wasRecentlyCreated){
+                $branchesTask[] = $branchTask;
+            }
         }
-        //then we get the branches branch, company and user information
-        $taskDetail = Task::where(['id' => $task->id])->with('branches.branch.company.user')->first();
-        $branchesTask = $taskDetail['branches'];
         foreach ($branchesTask as $key => $branchTask) {
-
             $branch = $branchTask['branch'];
             $company = $branch['company'];
             $user = isset($company['user']) ? $company['user'] : null;
@@ -450,6 +469,7 @@ class TaskController extends Controller
                     'category' => $task->category->name,
                     'userName' => $task->user->name,
                     'date' => $task->date,
+                    'taskId' => $task->id,
                     'taskBranchId' => $branchTask['id'],
                     'branch_email' => $branchEmail,
                     'branch_name' => $branchName,
