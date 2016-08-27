@@ -403,7 +403,6 @@ class UserController extends Controller
 				if($invitation){
 
 					$baseUrl = config('app.front_url');
-
 					$data = [
 						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
 						'presional_name' => $user->name,
