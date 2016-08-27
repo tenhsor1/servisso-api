@@ -121,7 +121,6 @@ class ServiceController extends Controller
             if($save){
 
 				$baseUrl = \Config::get('app.front_url');
-				$flagParameterEmail = Utils::getFlagParameterEmail();
 
 				//Si es una branch no registrada(inegi) y tiene email, se envia un email para
 				//que el asociado se registre
@@ -130,7 +129,7 @@ class ServiceController extends Controller
 					$company_code = \Crypt::encrypt($branch->company_id);
 					
 					$data = [
-						'btn_url' => $baseUrl.'/auth/sucursal/'.$company_code.'?'.$flagParameterEmail,
+						'btn_url' => $baseUrl.'/auth/sucursal/'.$company_code,
 						'client_name' => $user->name,
 						'created_date' => $service->created_at->format('M d, Y g:i a'),
 						'problem_description' => $service->description,
@@ -143,7 +142,7 @@ class ServiceController extends Controller
 				}else{
 
 					$data = [
-						'service_url' => $baseUrl.'/panel/servicios/'.$branch->id.'/'.$service->id.'?'.$flagParameterEmail,
+						'service_url' => $baseUrl.'/panel/servicios/'.$branch->id.'/'.$service->id,
 						'client_name' => $user->name,
 						'created_date' => $service->created_at->format('M d, Y g:i a'),
 						'problem_description' => $service->description,

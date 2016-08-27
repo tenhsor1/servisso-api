@@ -463,9 +463,8 @@ class TaskController extends Controller
 
             if(isset($branchEmail)){
 							
-				$flagParameterEmail = Utils::getFlagParameterEmail();
                 $this->mailer->pushToQueue('sendNewTaskEmail', [
-                    'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$branchTask['id'].'?'.$flagParameterEmail,
+                    'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$branchTask['id'],
                     'category' => $task->category->name,
                     'userName' => $task->user->name,
                     'date' => $task->date,
@@ -486,11 +485,9 @@ class TaskController extends Controller
         $task = $taskBranch->task;
         $user = $task->user;
         $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
-
-		$flagParameterEmail = Utils::getFlagParameterEmail();
 		
         $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
-            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.taskBranchId.'?'.$flagParameterEmail,
+            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.taskBranchId,
             'taskDescription' => $task->description,
             'taskDate' => $task->date,
             'quotePrice' => number_format($quote->price, 2),

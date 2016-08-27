@@ -403,9 +403,8 @@ class UserController extends Controller
 				if($invitation){
 
 					$baseUrl = config('app.front_url');
-					$flagParameterEmail = Utils::getFlagParameterEmail();
 					$data = [
-						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code.'?'.$flagParameterEmail,
+						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
 						'presional_name' => $user->name,
 						'created_date' => $invitation->created_at->format('M d, Y g:i a'),
 						'comment' => $invitation->comment,
