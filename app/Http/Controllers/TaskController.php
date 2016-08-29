@@ -25,10 +25,10 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
+        $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('jwt.auth:user', ['only' => ['index',
                                                         'indexBranch',
                                                         'indexCompany',
-                                                        'show',
                                                         'update',
                                                         'store',
                                                         'storeQuote',
@@ -273,13 +273,17 @@ class TaskController extends Controller
     public function show($id)
     {
         $user = \Auth::User();
-
-        $task = Task::with('category')
+        $taskQuery = Task::with('category')
                         ->with('images')
-                        ->with('distanceBranches.branch.company')
-                        ->where('id', $id)
-                        ->where('user_id', $user->id)
-                        ->first();
+                        ->with('distanceBranches.branch.company');
+
+        if($user->roleAuth != 'ADMIN'){
+            $taskQuery->where('user_id', $user->id);
+        }else{
+            $taskQuery->with('branches.branch.company');
+        }
+
+        $task = $taskQuery->where('id', $id)->first();
 
         if(!is_null($task)){
 
@@ -449,7 +453,7 @@ class TaskController extends Controller
             $taskBranch = new TaskBranch;
             $taskBranch->branch_id = $branch->id;
             $taskBranch->status = 0;
-            $branchTask = $task->branches()->firstOrCreate(['branch_id' => $branch->id, 'status' => 0]);
+            $branchTask = $task->branches()->firstOrCreate(['branch_id' => $branch->id]);
             if($branchTask->wasRecentlyCreated){
                 $branchesTask[] = $branchTask;
             }
