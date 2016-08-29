@@ -127,7 +127,7 @@ class ServiceController extends Controller
 				if($branch->inegi && $branch->email){
 
 					$company_code = \Crypt::encrypt($branch->company_id);
-
+					
 					$data = [
 						'btn_url' => $baseUrl.'/auth/sucursal/'.$company_code,
 						'client_name' => $user->name,
