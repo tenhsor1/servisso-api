@@ -388,7 +388,7 @@ class UserController extends Controller
 			if($userRequested->roleAuth  == "ADMIN")
 				$user = User::find(0);
 
-			if($user->invitations > 0){
+			if($user->invitations > 0){				
 
 				$key = config('app.key');
 				$code = hash_hmac('sha256', str_random(40), $key);
@@ -402,17 +402,19 @@ class UserController extends Controller
 
 				if($invitation){
 
-					$baseUrl = config('app.front_url');
-					$data = [
-						'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
-						'presional_name' => $user->name,
-						'created_date' => $invitation->created_at->format('M d, Y g:i a'),
-						'comment' => $invitation->comment,
-						'profesional_email' => $user->email,
-						'reference_email' => $invitation->to_user_email
-					];
+					if($request->get('sendEmail') != false){
+						$baseUrl = config('app.front_url');
+						$data = [
+							'btn_url_new_company' => $baseUrl.'/profesionales/'.$code,
+							'presional_name' => $user->name,
+							'created_date' => $invitation->created_at->format('M d, Y g:i a'),
+							'comment' => $invitation->comment,
+							'profesional_email' => $user->email,
+							'reference_email' => $invitation->to_user_email
+						];
 
-					$this->mailer->pushToQueue('sendInvitation', $data);
+						$this->mailer->pushToQueue('sendInvitation', $data);
+					}
 
 					$user->invitations = $user->invitations - 1;
 					$user->save();
