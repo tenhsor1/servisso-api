@@ -21,7 +21,7 @@ class JWTAuth extends BaseJWTMiddleware
     {
 
         if (! $token = $this->auth->setRequest($request)->getToken()) {
-            return $this->respond('tymon.jwt.absent', ['error' => 'token_not_provided','code' => 400], 400);
+            return $this->respond('tymon.jwt.absent', ['error' => 'token_not_provided','code' => 401], 401);
         }
 
         $rolesStr = strtoupper($roles);
