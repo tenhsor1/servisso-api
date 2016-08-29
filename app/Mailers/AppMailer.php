@@ -13,6 +13,7 @@ class AppMailer
     {
         $this->noReply = \Config::get('mail.from_no_reply');
         $this->comment = \Config::get('mail.from_contact');
+        $this->admin = \Config::get('mail.from_admin');
         $this->baseUrl = \Config::get('app.front_url');
     }
     public function pushToQueue($function, $data){
@@ -92,6 +93,18 @@ class AppMailer
             $m->from($data['profesional_email'], $data['presional_name'])
                 ->to($data['reference_email'], '')
                 ->subject($data['presional_name'].' te invita a unirte a Servisso');
+        });
+    }
+
+    /*
+    * Envia una invitación que fue creada por un profesional
+    */
+    public function sendAdminNotification($data){
+        $mailer = $this;
+        Mail::send('emails.admin-notifications', $data, function ($m) use ($data){
+            $m->from($this->admin['address'], $this->admin['name'])
+                ->to($this->admin['address'], '')
+                ->subject($data['subject']);
         });
     }
 }

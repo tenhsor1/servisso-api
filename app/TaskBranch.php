@@ -30,6 +30,8 @@ class TaskBranch extends ServissoModel
     protected $table = 'task_branches';
     use SoftDeletes;
 
+
+    protected $fillable = ['branch_id', 'status'];
     /**
      * The attributes that are not mass assignable.
      *
@@ -147,6 +149,10 @@ class TaskBranch extends ServissoModel
 
     public function quotes(){
         return $this->hasMany('App\TaskBranchQuote');
+    }
+
+    public function latestQuote(){
+        return $this->hasOne('App\TaskBranchQuote')->latest();
     }
 
     public function chatRoom(){

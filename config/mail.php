@@ -62,6 +62,8 @@ return [
 
     'from_contact' => ['address' => env('CONTACT_FROM', 'contact@servisso.com')
                         ,'name' => env('CONTACT_NAME', 'Servisso')],
+    'from_admin' => ['address' => env('ADMIN_FROM', 'admin@servisso.com.mx')
+                        ,'name' => env('ADMIN_NAME', 'Admin Servisso')],
     /*
     |--------------------------------------------------------------------------
     | E-Mail Encryption Protocol

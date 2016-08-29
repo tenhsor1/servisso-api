@@ -104,6 +104,8 @@ class Task extends ServissoModel
 
   public function distanceBranches(){
     return $this->hasMany('App\TaskBranch')
+      ->with('latestQuote')
+      ->with('chatRoom.latestMessage')
       ->join('tasks', 'task_branches.task_id', '=', 'tasks.id')
       ->join('branches', 'task_branches.branch_id', '=', 'branches.id')
       ->whereIn('task_branches.status', TaskBranch::ACCEPTED_STATUSES)
@@ -128,6 +130,14 @@ class Task extends ServissoModel
 
   public function images(){
     return  $this->hasMany('App\TaskImage');
+  }
+
+  public function imagesHidden(){
+    return  $this->hasMany('App\TaskImageHidden');
+  }
+
+  public function quotes(){
+    return $this->hasManyThrough('App\TaskBranchQuote', 'App\TaskBranch');
   }
 
     public static function getRules(){
@@ -161,6 +171,22 @@ class Task extends ServissoModel
             'longitude.regex' => 'La longitud no es valida',
         ];
 
+        return $messages;
+    }
+
+    public static function getAssignRules(){
+        $rules = [
+            'branch_ids' => ['required', 'array']
+        ];
+
+        return $rules;
+    }
+
+    public static function getAssignMessages(){
+        $messages = [
+            'branch_ids.required' => 'las branches son requeridas',
+            'branch_ids.array' => 'Debe de ser un arreglo de ids',
+        ];
         return $messages;
     }
 
