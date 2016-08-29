@@ -18,6 +18,8 @@ class Branch extends ServissoModel
 
     protected $with = ['company'];
 
+    protected $appends = ['numRates'];
+
 	protected $searchFields = [
         'address',
         'phone',
@@ -87,6 +89,16 @@ class Branch extends ServissoModel
         return $this->hasMany('App\UserRate');
     }
 
+    public function rates(){
+        return $this->hasMany('App\BranchRate');
+    }
+
+     public function aggregateRates(){
+      return $this->hasOne('App\BranchRate')
+        ->selectRaw('branch_id, count(*) as num_rates, sum(rate) as sum_rates, sum(rate) / count(*) as avg_rates')
+        ->groupBy('branch_id');
+    }
+
     public function chatParticipants(){
         return $this->morphMany('App\ChatParticipant', 'object');
     }
@@ -131,6 +143,11 @@ class Branch extends ServissoModel
 
     public function getGeomAttribute(){
         return null;
+    }
+
+    public function getNumRatesAttribute(){
+        $related = $this->getRelationValue('aggregateRates');
+        return ($related) ? (int) $related->num_rates : 0;
     }
 
 	/**
