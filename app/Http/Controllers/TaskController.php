@@ -491,7 +491,7 @@ class TaskController extends Controller
         $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
 		
         $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
-            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.taskBranchId,
+            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.$taskBranch->id,
             'taskDescription' => $task->description,
             'taskDate' => $task->date,
             'quotePrice' => number_format($quote->price, 2),
