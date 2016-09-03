@@ -85,6 +85,7 @@ class TaskBranchQuote extends ServissoModel
             'description' => ['required','max:500', 'min:15'],
             'task_branch_id' => ['required','exists:task_branches,id'],
             'price' => ['required','numeric','between:0,10000000.99'],
+			'date' => ['required','date_format:Y-m-d H:i:s', 'after:yesterday']
         ];
         return $rules;
     }
@@ -98,7 +99,10 @@ class TaskBranchQuote extends ServissoModel
             'task_branch_id.exists' => 'La tarea para la sucursal no existe',
             'price.required' => 'El precio es obligatorio',
             'price.numeric' => 'El precio debe de ser un número',
-            'price.between' => 'El precio maximo de cotizacion es $10,000,000'
+            'price.between' => 'El precio maximo de cotizacion es $10,000,000',
+			'date.required' => 'la fecha es obligatoria',
+            'date.date_format' => 'la fecha debe de ser en formato Y-m-d H:i:s',
+            'date.after' => 'la fecha no puede ser anterior a hoy'
         ];
         return $messages;
     }

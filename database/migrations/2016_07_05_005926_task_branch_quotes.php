@@ -18,9 +18,9 @@ class TaskBranchQuotes extends Migration
             $table->decimal('price', 10, 2)->nullable();
             $table->text('description');
 			$table->tinyInteger('status')->default(0)->comment('0 = open, 1 = accepted');
+			$table->dateTime('date');
             $table->softDeletes();
             $table->timestamps();
-
             $table->foreign('task_branch_id')->references('id')->on('task_branches');
         });
     }
