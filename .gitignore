@@ -11,3 +11,4 @@ Homestead.json
 /public/images/*
 /public/thumb/*
 /public/thumbs/*
+.DS_Store

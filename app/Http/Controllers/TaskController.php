@@ -25,10 +25,10 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
+        $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
         $this->middleware('jwt.auth:user', ['only' => ['index',
                                                         'indexBranch',
                                                         'indexCompany',
-                                                        'show',
                                                         'update',
                                                         'store',
                                                         'storeQuote',
@@ -274,12 +274,17 @@ class TaskController extends Controller
     public function show($id)
     {
         $user = \Auth::User();
+        $taskQuery = Task::with('category')
+                        ->with('images')
+                        ->with('distanceBranches.branch.company');
 
-        $task = Task::with('category')
-                        ->with('distanceBranches.branch.company')
-                        ->where('id', $id)
-                        ->where('user_id', $user->id)
-                        ->first();
+        if($user->roleAuth != 'ADMIN'){
+            $taskQuery->where('user_id', $user->id);
+        }else{
+            $taskQuery->with('branches.branch.company');
+        }
+
+        $task = $taskQuery->where('id', $id)->first();
 
         if(!is_null($task)){
 
@@ -449,7 +454,7 @@ class TaskController extends Controller
             $taskBranch = new TaskBranch;
             $taskBranch->branch_id = $branch->id;
             $taskBranch->status = 0;
-            $branchTask = $task->branches()->firstOrCreate(['branch_id' => $branch->id, 'status' => 0]);
+            $branchTask = $task->branches()->firstOrCreate(['branch_id' => $branch->id]);
             if($branchTask->wasRecentlyCreated){
                 $branchesTask[] = $branchTask;
             }
@@ -462,8 +467,9 @@ class TaskController extends Controller
             $branchName = $company['name'];
 
             if(isset($branchEmail)){
+							
                 $this->mailer->pushToQueue('sendNewTaskEmail', [
-                    'baseUrl' => $this->baseUrl,
+                    'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$branchTask['id'],
                     'category' => $task->category->name,
                     'userName' => $task->user->name,
                     'date' => $task->date,
@@ -484,9 +490,9 @@ class TaskController extends Controller
         $task = $taskBranch->task;
         $user = $task->user;
         $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
-
+		
         $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
-            'baseUrl' => $this->baseUrl,
+            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.$taskBranch->id,
             'taskDescription' => $task->description,
             'taskDate' => $task->date,
             'quotePrice' => number_format($quote->price, 2),

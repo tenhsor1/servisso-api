@@ -53,7 +53,7 @@
                 <tbody>
                     <tr>
                         <td style="font-family:Helvetica, arial, sans-serif; text-align:center; font-weight: 600;" width="auto" align="center" valign="middle" height="36">
-                            <a target="_blank" href="{{$baseUrl}}/panel/mis-proyectos/{{$taskId}}/{{$taskBranchId}}">
+                            <a target="_blank" href="{{$goToUrl}}">
                                 Click aqui para ver completo los detalles completos de la cotización y el proveedor de servicios
                             </a>
                         </td>
