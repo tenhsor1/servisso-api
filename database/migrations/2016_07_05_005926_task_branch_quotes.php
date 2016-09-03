@@ -17,6 +17,7 @@ class TaskBranchQuotes extends Migration
             $table->integer('task_branch_id')->unsigned();
             $table->decimal('price', 10, 2)->nullable();
             $table->text('description');
+			$table->dateTime('date');
             $table->softDeletes();
             $table->timestamps();
 

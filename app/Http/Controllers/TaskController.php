@@ -253,6 +253,7 @@ class TaskController extends Controller
         $quote = new TaskBranchQuote;
         $quote->description = $request->input('description');
         $quote->price = $request->input('price');
+        $quote->date = $request->input('date');
 
         $savedQuote = $taskBranch->quotes()->save($quote);
         if($savedQuote){
@@ -497,5 +498,48 @@ class TaskController extends Controller
             'user_name' => $user->name,
             'branchName' => $branch->company->name
         ]);
+    }
+	
+	
+	public function dashboardStatus($id){
+        $open = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 0 group by branch_id) open'), function($join)
+			{
+				$join->on('open.branch_id', '=', 'branches.id');
+				
+			})
+		->select(\DB::raw("open.total as total,branches.id as branch_id"))
+		->groupBy('open.branch_id')
+		->groupBy('open.total')
+		->groupBy('branches.id')
+		->where('company_id','=',$id)
+		->get();
+		
+		$acept = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 2 group by branch_id) acept'), function($join)
+			{
+				$join->on('acept.branch_id', '=', 'branches.id');
+				
+			})
+		->select(\DB::raw("acept.total as total,branches.id as branch_id"))
+		->groupBy('acept.branch_id')
+		->groupBy('acept.total')
+		->groupBy('branches.id')
+		->where('company_id','=',$id)
+		->get();
+		
+		$done = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 4 group by branch_id) done'), function($join)
+			{
+				$join->on('done.branch_id', '=', 'branches.id');
+				
+			})
+		->select(\DB::raw("done.total as total,branches.id as branch_id"))
+		->groupBy('done.branch_id')
+		->groupBy('done.total')
+		->groupBy('branches.id')
+		->where('company_id','=',$id)
+		->get();
+		
+		$data = Branch::where('company_id','=',$id)
+		->get();
+        return response()->json(['data'=>$data,'open'=>$open,'acept'=>$acept,'done'=>$done], 200);
     }
 }
