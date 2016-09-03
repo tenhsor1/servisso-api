@@ -66,6 +66,7 @@ class UserController extends Controller
         }
 
 		$fields = \Input::except('code');
+		$fields['invitations'] = 10;//by default 10 invitations are added
 
         $newUser = User::create($fields);
 
@@ -388,7 +389,7 @@ class UserController extends Controller
 			if($userRequested->roleAuth  == "ADMIN")
 				$user = User::find(0);
 
-			if($user->invitations > 0){				
+			if($user->invitations > 0){
 
 				$key = config('app.key');
 				$code = hash_hmac('sha256', str_random(40), $key);
@@ -427,8 +428,8 @@ class UserController extends Controller
 				}
 
 			}else{
-				$errorJSON = ['error'   => 'You do not have more invitations available', 'code' => 410];//Gone
-				return response()->json($errorJSON, 410);
+				$errorJSON = ['error'   => 'You do not have more invitations available', 'code' => 422];
+				return response()->json($errorJSON, 422);
 			}
 		}else{
 			$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
