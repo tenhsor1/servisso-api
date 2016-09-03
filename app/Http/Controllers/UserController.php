@@ -66,6 +66,7 @@ class UserController extends Controller
         }
 
 		$fields = \Input::except('code');
+		$fields['invitations'] = 10;//by default 10 invitations are added
 
         $newUser = User::create($fields);
 
