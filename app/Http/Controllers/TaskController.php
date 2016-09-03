@@ -17,6 +17,7 @@ use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
 use App\Jobs\SendFunctionJob;
+use App\User;
 
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -34,6 +35,7 @@ class TaskController extends Controller
                                                         'storeQuote',
                                                         'showTaskBranch',
                                                         'updateTaskBranch',
+														'confirmQuote'
                                                         ]]);
         $this->middleware('jwt.auth:admin', ['only' => ['assignTaskBranches']]);
         $this->middleware('default.headers');
@@ -506,6 +508,49 @@ class TaskController extends Controller
         ]);
     }
 	
+	public function confirmQuote(Request $request){
+		$userRequested = \Auth::User();
+		$user = User::find($userRequested->id);
+		if($user){
+			$taskBranch = TaskBranch::find($request->idTask);
+			$quoute = TaskBranchQuote::find($request->idQuote);
+			
+			//Se verifica que la tarea la tenga una sucursal y la cotizacion existan
+			if($taskBranch && $quoute){
+				
+				//Se verifica si el usuario creo esta tarea
+				$task_where = ['id' => $taskBranch->task_id,'user_id' => $user->id];
+				$user_task = Task::where($task_where)->get()->first();
+				
+				//Se verifica que la cotizacion le pertenesca a la tarea de una branch
+				$quote_where = ['id' => $request->idQuote, 'task_branch_id' => $request->idTask];
+				$quote_task = TaskBranchQuote::where($quote_where)->get()->first();
+				
+				if($user_task && $quote_task){	
+					
+					//Se cierra la tarea
+					$user_task->status = 2; //close
+					$user_task->save();									
+					
+					//Se finaliza la tarea que fue asignada a diferentes sucursales
+					$taskBranches = TaskBranch::where('task_id','=',$user_task->id)->get();
+					foreach($taskBranches as $tb){
+						$tb->status = 4; //finish
+						$tb->save();						
+					}	
+
+					$quote_task->status = 1;//cotización aceptada
+					$quote_task->save();
+									
+					$response = ['code' => 200];
+					return response()->json($response,200);
+				}						
+			}		
+		}
+		
+		$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
+        return response()->json($errorJSON, 403);	
+	}
 	
 	public function dashboardStatus($id){
   	
@@ -534,4 +579,5 @@ class TaskController extends Controller
 		->get();
 	return response()->json(['data'=>$data], 200);
     }
+
 }
