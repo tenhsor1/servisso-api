@@ -56,7 +56,7 @@ class CompanyController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {	
+    {
 		$userRequested = \Auth::User();
 
 		$messages = Company::getMessages();
@@ -73,16 +73,16 @@ class CompanyController extends Controller
 
 		//ID DEL ASOCIADO QUE LE PERTENECE LA COMPANY
 		$user_id = $request->user_id;
-		$user = User::find($user_id);		
+		$user = User::find($user_id);
 
 		//SE VALIDA QUE EL USER EXISTA
 		if(!is_null($user)){
 
 			 $companies = Company::where('user_id', $user_id)->get();
-			
+
 			//SE VALIDA QUE EL USUARIO NO TENGA COMPANIES O TENGA HABILITADO LA CREACION DE MULTIPLES COMPAÑIAS/SUCURSALES
 			//PARA PODER GUARDAR UNA NUEVA
-			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') && 
+			if(($userRequested->enabled_companies == \Config::get('app.NO_ENABLED_COMPANIES') &&
 				$companies->count() == 0) || $userRequested->enabled_companies == \Config::get('app.ENABLED_COMPANIES')){
 
 				//SE VERIFICA QUE EL USER QUE HIZO LA PETICION SOLO EL SE PUEDE AGREGAR COMPANIES
@@ -109,7 +109,7 @@ class CompanyController extends Controller
 					$response = ['error'   => 'Unauthorized','code' => 403];
 					return response()->json($response, 403);
 				}
-			
+
 			}else{
 				$response = ['error'   => 'You cannot create more companies','code' => 403];
 				return response()->json($response, 403);
@@ -184,20 +184,19 @@ class CompanyController extends Controller
                         ->where('id','=',$id)
                         ->first();
 
-		foreach($company->branches as $branch){
-
-			$tags = \DB::table('tags_branches')
-			->join('tags','tags_branches.tag_id','=','tags.id')
-			->where('tags_branches.branch_id','=',$branch->id)
-			->select('tags.name','tags.description')
-			->get();
-
-			$branch->tags = $tags;
-		}
-
 
 		//SE VERIFICA QUE LA COMPANY EXISTA
 		if(!is_null($company)){
+            foreach($company->branches as $branch){
+
+                $tags = \DB::table('tags_branches')
+                ->join('tags','tags_branches.tag_id','=','tags.id')
+                ->where('tags_branches.branch_id','=',$branch->id)
+                ->select('tags.name','tags.description')
+                ->get();
+
+                $branch->tags = $tags;
+            }
 
 			$response = ['code' => 200,'data' => $company];
 			return response()->json($response,200);
