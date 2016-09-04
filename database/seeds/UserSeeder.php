@@ -32,7 +32,8 @@ class UserSeeder extends Seeder {
             'phone' => '0000000000',
             'address' => 'NONE',
             'zipcode' => '00000',
-            'state_id' => 1
+            'state_id' => 1,
+			'invitations' => 10000
         ]);
 
         User::create(
@@ -46,7 +47,8 @@ class UserSeeder extends Seeder {
 				'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode,
                 'enabled_companies' => 1,
-                'confirmed' => true
+                'confirmed' => true,
+				'invitations' => 1000
             ]
         );
 
@@ -61,7 +63,8 @@ class UserSeeder extends Seeder {
                 'state_id'=>$faker->numberBetween(1,$stateIds),
                 'zipcode'=>$faker->optional()->postcode,
                 'enabled_companies' => 1,
-                'confirmed' => true
+                'confirmed' => true,
+				'invitations' => 1000
             ]
         );
 
@@ -74,7 +77,8 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->optional()->address,
                 'state_id'=>$faker->numberBetween(1,$stateIds),
-                'zipcode'=>$faker->optional()->postcode
+                'zipcode'=>$faker->optional()->postcode,
+				'invitations' => 1000
             ]
         );
 
@@ -87,7 +91,8 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'zipcode'=>$faker->optional()->postcode
+                'zipcode'=>$faker->optional()->postcode,
+				'invitations' => 1000
             ]
         );
 
@@ -100,7 +105,8 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'zipcode'=>$faker->optional()->postcode
+                'zipcode'=>$faker->optional()->postcode,
+				'invitations' => 1000
             ]
         );
 
@@ -113,7 +119,8 @@ class UserSeeder extends Seeder {
                 'phone'=>$faker->numberBetween($min = 10000000, $max = 99999999),
                 'address'=>$faker->optional()->address,
 				'state_id'=>$faker->numberBetween(1,$stateIds),
-                'zipcode'=>$faker->optional()->postcode
+                'zipcode'=>$faker->optional()->postcode,
+				'invitations' => 1000
             ]
         );
 
