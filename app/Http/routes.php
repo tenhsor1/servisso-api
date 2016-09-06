@@ -90,7 +90,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
     Route::get('project/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
-    Route::get('status/{companyId}/task', 'TaskController@dashboardStatus');
+    Route::get('status/{companyId}/task/{userId}', 'TaskController@dashboardStatus');
 	Route::resource('contact', 'ContactUsController', ['only' => ['index','update', 'destroy', 'show', 'store']]);
 
     Route::put('chats', 'ChatController@updateAll');
