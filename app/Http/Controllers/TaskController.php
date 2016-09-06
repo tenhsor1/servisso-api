@@ -471,7 +471,7 @@ class TaskController extends Controller
             if(isset($branchEmail)){
 
                 $this->mailer->pushToQueue('sendNewTaskEmail', [
-                    'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$branchTask['id'],
+                    'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$task->id.'/'.$branchTask['id'],
                     'category' => $task->category->name,
                     'userName' => $task->user->name,
                     'date' => $task->date,
