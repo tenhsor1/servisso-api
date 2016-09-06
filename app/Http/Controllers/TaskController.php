@@ -13,6 +13,7 @@ use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
+use App\User;
 use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
@@ -552,9 +553,26 @@ class TaskController extends Controller
         return response()->json($errorJSON, 403);	
 	}
 	
-	public function dashboardStatus($id){
-  	
-		$data = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 4 group by branch_id) done'), function($join)
+	public function dashboardStatus($company,$user){
+		
+		$invitation = User::leftJoin(\DB::raw('(SELECT user_id, COUNT(*) total FROM users_invitations where to_user_id = 0 group by user_id) send'), function($join)
+			{
+				$join->on('send.user_id', '=', 'users.id');
+				
+			})
+		->leftJoin(\DB::raw('(SELECT user_id, COUNT(*) total FROM users_invitations where to_user_id > 0 group by user_id) acept'), function($join)
+			{
+				$join->on('acept.user_id', '=', 'users.id');
+				
+			})
+		->select(\DB::raw("users.invitations as enabled,send.total as send,acept.total as acept,users.id, users.name"))
+		->groupBy('send.total')
+		->groupBy('acept.total')
+		->groupBy('users.id')
+		->where('id','=',$user)
+		->get();
+		
+		$branch = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 4 group by branch_id) done'), function($join)
 			{
 				$join->on('done.branch_id', '=', 'branches.id');
 				
@@ -570,14 +588,13 @@ class TaskController extends Controller
 				
 			})
 		->select(\DB::raw("open.total as open,acept.total as acept,done.total as done,branches.id as branch_id,branches.name"))
-		->groupBy('done.branch_id')
 		->groupBy('done.total')
 		->groupBy('acept.total')
 		->groupBy('open.total')
 		->groupBy('branches.id')
-		->where('company_id','=',$id)
+		->where('company_id','=',$company)
 		->get();
-	return response()->json(['data'=>$data], 200);
+	return response()->json(['branch'=>$branch,'invitation'=>$invitation], 200);
     }
 
 }
