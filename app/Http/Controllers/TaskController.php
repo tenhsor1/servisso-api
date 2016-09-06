@@ -17,7 +17,7 @@ use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
 use App\Jobs\SendFunctionJob;
-use App\User;
+use App\User as User;
 
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -469,7 +469,7 @@ class TaskController extends Controller
             $branchName = $company['name'];
 
             if(isset($branchEmail)){
-							
+
                 $this->mailer->pushToQueue('sendNewTaskEmail', [
                     'goToUrl' => $this->baseUrl.'/panel/proyectos/'.$branchTask['id'],
                     'category' => $task->category->name,
@@ -492,7 +492,7 @@ class TaskController extends Controller
         $task = $taskBranch->task;
         $user = $task->user;
         $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
-		
+
         $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
             'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.$taskBranch->id,
             'taskDescription' => $task->description,
@@ -507,67 +507,67 @@ class TaskController extends Controller
             'branchName' => $branch->company->name
         ]);
     }
-	
+
 	public function confirmQuote(Request $request){
 		$userRequested = \Auth::User();
 		$user = User::find($userRequested->id);
 		if($user){
 			$taskBranch = TaskBranch::find($request->idTask);
 			$quoute = TaskBranchQuote::find($request->idQuote);
-			
+
 			//Se verifica que la tarea la tenga una sucursal y la cotizacion existan
 			if($taskBranch && $quoute){
-				
+
 				//Se verifica si el usuario creo esta tarea
 				$task_where = ['id' => $taskBranch->task_id,'user_id' => $user->id];
 				$user_task = Task::where($task_where)->get()->first();
-				
+
 				//Se verifica que la cotizacion le pertenesca a la tarea de una branch
 				$quote_where = ['id' => $request->idQuote, 'task_branch_id' => $request->idTask];
 				$quote_task = TaskBranchQuote::where($quote_where)->get()->first();
-				
-				if($user_task && $quote_task){	
-					
+
+				if($user_task && $quote_task){
+
 					//Se cierra la tarea
 					$user_task->status = 2; //close
-					$user_task->save();									
-					
+					$user_task->save();
+
 					//Se finaliza la tarea que fue asignada a diferentes sucursales
 					$taskBranches = TaskBranch::where('task_id','=',$user_task->id)->get();
 					foreach($taskBranches as $tb){
 						$tb->status = 4; //finish
-						$tb->save();						
-					}	
+						$tb->save();
+					}
 
 					$quote_task->status = 1;//cotización aceptada
 					$quote_task->save();
-									
+
 					$response = ['code' => 200];
 					return response()->json($response,200);
-				}						
-			}		
+				}
+			}
 		}
-		
+
 		$errorJSON = ['error'   => 'Unauthorized', 'code' => 403];
-        return response()->json($errorJSON, 403);	
+        return response()->json($errorJSON, 403);
 	}
-	
+
 	public function dashboardStatus($id){
-  	
+
 		$data = Branch::leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 4 group by branch_id) done'), function($join)
 			{
 				$join->on('done.branch_id', '=', 'branches.id');
-				
+
 			})
 		->leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 2 group by branch_id) acept'), function($join)
 			{
 				$join->on('acept.branch_id', '=', 'branches.id');
-				
+
 			})
 		->leftJoin(\DB::raw('(SELECT branch_id, COUNT(*) total FROM task_branches where status = 0 group by branch_id) open'), function($join)
 			{
 				$join->on('open.branch_id', '=', 'branches.id');
-				
+
 			})
 		->select(\DB::raw("open.total as open,acept.total as acept,done.total as done,branches.id as branch_id,branches.name"))
 		->groupBy('done.branch_id')
