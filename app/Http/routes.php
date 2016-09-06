@@ -86,6 +86,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::put('tasks/{taskId}/assign', 'TaskController@assignTaskBranches');
     Route::get('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@showTaskBranch');
     Route::put('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@updateTaskBranch');
+    Route::put('tasks/{taskId}/quotes/{taskBranchId}/confirm', 'TaskController@confirmQuote');
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
     Route::get('project/{companyId}/company', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);

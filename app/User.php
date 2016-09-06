@@ -39,6 +39,7 @@ class User extends Model implements AuthenticatableContract,
                             , 'address'
                             , 'zipcode'
                             , 'state_id'
+                            , 'invitations'
                         ];
 
     /**
