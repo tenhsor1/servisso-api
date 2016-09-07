@@ -90,7 +90,7 @@ class AppMailer
 	*/
     public function sendInvitation($data){
         Mail::send('emails.invitation', $data, function ($m) use ($data){
-            $m->from($data['profesional_email'], $data['presional_name'])
+            $m->from($this->admin['address'], $data['presional_name'])
                 ->to($data['reference_email'], '')
                 ->subject($data['presional_name'].' te invita a unirte a Servisso');
         });
