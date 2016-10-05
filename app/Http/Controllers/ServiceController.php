@@ -66,8 +66,7 @@ class ServiceController extends Controller
 
         $services = Service::whereCompany($companyId)
                                 ->with('userable')
-                                ->with('userRate')
-                                ->with('partnerRate')
+                                ->with('branch')
                                 ->searchBy($request)
                                 ->betweenBy($request)
                                 ->orderByCustom($request)

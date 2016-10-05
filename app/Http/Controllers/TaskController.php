@@ -13,7 +13,6 @@ use App\Company;
 use App\TaskImage;
 use App\TaskBranch;
 use App\TaskBranchQuote;
-use App\User;
 use Validator;
 use JWTAuth;
 use App\Extensions\Utils;
