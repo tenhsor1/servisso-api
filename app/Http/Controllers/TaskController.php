@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Task;
+use App\User;
 use App\Branch;
 use App\Company;
 use App\TaskImage;
