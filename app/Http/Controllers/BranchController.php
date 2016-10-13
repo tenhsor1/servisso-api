@@ -508,6 +508,7 @@ class BranchController extends Controller
 		}
 		$services = Service::whereBranch($id)
                                 ->with('userable')
+                                ->with('branch')
                                 ->get();
 		return response()->json(['data' => $services], 200);
 	}
