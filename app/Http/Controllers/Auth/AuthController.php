@@ -56,7 +56,7 @@ class AuthController extends Controller
         // if no errors are encountered we can return a JWT
         $user = JWTAuth::toUser($token);
         $user->access = $token;
-
+        $user->companies = $user->companies;
         $response = ['data'=> $user];
 
         return response()->json($response);

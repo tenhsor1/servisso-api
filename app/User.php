@@ -91,6 +91,10 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasMany('App\UserSocial');
     }
 
+    public function companies(){
+        return $this->hasMany('App\Company');
+    }
+
 	public function country()
     {
         // 1 admin can have one country

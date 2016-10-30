@@ -88,7 +88,7 @@ Route::group(['prefix' => 'v1'], function()
     Route::put('tasks/{taskId}/tbranches/{taskBranchId}', 'TaskController@updateTaskBranch');
     Route::put('tasks/{taskId}/quotes/{taskBranchId}/confirm', 'TaskController@confirmQuote');
     Route::get('branches/{branchId}/tasks', 'TaskController@indexBranch');
-    Route::get('project/{companyId}/company', 'TaskController@indexCompany');
+    Route::get('companies/{companyId}/tasks', 'TaskController@indexCompany');
     Route::resource('tasks', 'TaskController', ['only' => ['index', 'show', 'store', 'update']]);
     Route::get('status/{companyId}/task/{userId}', 'TaskController@dashboardStatus');
 	Route::resource('contact', 'ContactUsController', ['only' => ['index','update', 'destroy', 'show', 'store']]);

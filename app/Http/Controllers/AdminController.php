@@ -241,7 +241,7 @@ class AdminController extends Controller
             return response()->json($errorJSON, 403);
         }
     }
-	
+
 	/**
      * Get all the task and contact comment and questions.
      *
@@ -251,32 +251,32 @@ class AdminController extends Controller
 	 public function requirements(Request $request)
     {
 		$userRequested = \Auth::User();
-		$contact = ContactUs::select(\DB::raw("created_at,comment,'contact' as type,email,'Feedback/FQA' as sent_to"))
+		$contact = ContactUs::select(\DB::raw("created_at,comment,'contact' as type,email,'Feedback/FQA' as sent_to, id"))
 		;
-		
+
 		$service = Service::leftjoin('users as u', 'u.id', '=', 'services.userable_id')
 		->leftjoin('branches', 'branches.id', '=', 'services.branch_id')
 		->leftjoin('companies', 'companies.id', '=', 'branches.company_id')
 		->leftjoin('users as ub', 'ub.id', '=', 'companies.user_id')
-		->select(\DB::raw("services.created_at,services.description as comment,'service' as type, u.email,ub.email as sent_to"))
+		->select(\DB::raw("services.created_at,services.description as comment,'service' as type, u.email,ub.email as sent_to, services.id"))
 		;
-		
+
 		$task = Task::leftjoin('categories', 'categories.id', '=', 'tasks.category_id')
 		->leftjoin('users', 'users.id', '=', 'tasks.user_id')
 		->leftJoin(\DB::raw('(SELECT task_id, COUNT(*) total FROM task_branches GROUP BY task_id) tb'), function($join)
 			{
 				$join->on('tb.task_id', '=', 'tasks.id');
 			})
-		->select(\DB::raw("tasks.created_at,CONCAT(tasks.description ,', ',categories.name) as comment,'task' as type,users.email,CONCAT('',tb.total) as sent_to"))
+		->select(\DB::raw("tasks.created_at,CONCAT(tasks.description ,', ',categories.name) as comment,'task' as type,users.email,CONCAT('',tb.total) as sent_to, tasks.id"))
 		->groupBy('tasks.id')
 		->groupBy('users.email')
 		->groupBy('tb.total')
-		->groupBy('categories.name');	
-		
+		->groupBy('categories.name');
+
 		$results = $contact->union($service)->union($task)
 		->orderBy('created_at', 'desc')
 		->get();
-							
+
 		$count = $results->count();
 		if($results){
             $response = ['code' => 200,'count' => $count,'results' => $results];
@@ -285,7 +285,7 @@ class AdminController extends Controller
             $response = ['error' => 'The questions are empty','code' => 404];
             return response()->json($response,404);
 		}
-        
+
     }
 
 }
