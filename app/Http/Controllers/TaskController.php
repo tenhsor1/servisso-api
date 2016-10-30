@@ -26,13 +26,12 @@ class TaskController extends Controller
 {
     public function __construct(){
         parent::__construct();
-        $this->middleware('jwt.auth:user|admin', ['only' => ['show']]);
+        $this->middleware('jwt.auth:user|admin', ['only' => ['show', 'storeQuote']]);
         $this->middleware('jwt.auth:user', ['only' => ['index',
                                                         'indexBranch',
                                                         'indexCompany',
                                                         'update',
                                                         'store',
-                                                        'storeQuote',
                                                         'showTaskBranch',
                                                         'updateTaskBranch',
 														'confirmQuote'
@@ -103,7 +102,8 @@ class TaskController extends Controller
 
 		// \DB::connection()->enableQueryLog();
         $tasks = TaskBranch::with('branch.company')
-						->with('task')
+          ->withDistance()
+            ->with('task')
 						 ->whereHas('branch.company', function($query) use ($companyId){
 									$query->where('id', $companyId);
 								})
@@ -112,7 +112,6 @@ class TaskController extends Controller
                         ->orderByCustom($request)
                         ->limit($request)
                         ->get();
-		// $query = \DB::getQueryLog();
 		if(!$tasks){
             $response = ['error' => 'Resource not found','code' => 404];
             return response()->json($response,404);
@@ -165,7 +164,7 @@ class TaskController extends Controller
         if($task->save()){
             $numberBranches = 0;
             if(config('app.automatic_assign')){
-                $numberBranches = $this->sendTaskToBranches($task);
+                $numberBranches = count($this->sendTaskToBranches($task));
             }else{
                 //we send an email to the admin with the new task information
                 $view = \View::make('emails.admin-new-task', ['task' => $task]);
@@ -229,13 +228,15 @@ class TaskController extends Controller
             $response = ['error' => $v->errors(), 'message' => 'Bad request', 'code' =>  400];
             return response()->json($response,400);
         }
+
         $taskBranchId = $request->input('task_branch_id');
         $taskBranch = TaskBranch::find($taskBranchId);
+
 
         $userRequested = \Auth::User();
         $userBranch = $taskBranch->getOwnerBranch();
         //If the user is not the owner of the branch, then return a 403
-        if($userRequested->id != $userBranch->id){
+        if($userRequested->id != $userBranch->id && $userRequested->roleAuth != 'ADMIN'){
             $response = ['error' => 'Unauthorized',
                         'code' => 403];
             \Log::error(sprintf("User: %s requested add a quote for task: %s with task branch dont own: %s. Real owner: %s",
@@ -375,7 +376,8 @@ class TaskController extends Controller
             abort(422, json_encode(['branch_ids' => 'Algunas branches no existen']));
         }
 
-        $this->sendTaskToBranches($task, $branches);
+        $taskBranches = $this->sendTaskToBranches($task, $branches);
+        $task->taskBranches = $taskBranches;
 
         $response = ['data' => $task,'code' => 200,'code' => 200];
         return response()->json($response,200);
@@ -461,6 +463,7 @@ class TaskController extends Controller
                 $branchesTask[] = $branchTask;
             }
         }
+
         foreach ($branchesTask as $key => $branchTask) {
             $branch = $branchTask['branch'];
             $company = $branch['company'];
@@ -485,7 +488,7 @@ class TaskController extends Controller
             //for each branch, we send an email saying that the task might be interesting for them
 
         }
-        return count($branchesTask);
+        return $branchesTask;
     }
 
     public function sendTaskQuoteEmail($taskBranch, $quote){
@@ -494,7 +497,7 @@ class TaskController extends Controller
         $branch = Branch::where(['id' => $taskBranch->branch_id])->with('company.user')->first();
 
         $this->mailer->pushToQueue('sendNewTaskQuoteEmail', [
-            'goToUrl' => $this->baseUrl.'/panel/mis-proyectos/'.$task->id.'/'.$taskBranch->id,
+            'goToUrl' => $this->baseUrl.'/usuarios/proyectos/'.$task->id.'/'.$taskBranch->id,
             'taskDescription' => $task->description,
             'taskDate' => $task->date,
             'quotePrice' => number_format($quote->price, 2),
