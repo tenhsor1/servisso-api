@@ -38,6 +38,19 @@ class UserController extends Controller
         return 'index';
     }
 
+
+    public function storeFromAdmin(Request $request)
+    {
+        $userRequested = \Auth::User();
+        if($userRequested->roleAuth !== 'ADMIN'){
+            $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+            return response()->json($errorJSON, 403);
+        }
+        $request->ignoreCaptcha = true;
+        return $this->store($request);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -45,7 +58,7 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {					
+    {
 		$valuesProvider = false;
         if($request->input('val', null)){
             //if we are trying to create a user using a social provider, then validate that
@@ -55,34 +68,34 @@ class UserController extends Controller
                 return response()->json($valuesProvider['response'], $valuesProvider['code']);
             }
             $request['email'] = $valuesProvider['email'];
-        }       			
+        }
 
 		/* Se verifica si la validacion del recaptcha sera usada para registrar un usuario */
 		$skip_captcha = false;
 		if($request->bot_code){
 			$bot_data = $this::isValidUserFromServissoBot($request->bot_code);
-			
+
 			if($bot_data['valid_token'] == 1){
 				$skip_captcha = true;
 				$bot_user_info = $bot_data['payload']['data'];
 				$request->request->add([
 									'name' => $bot_user_info['name'],
-									'lastname' => $bot_user_info['lastname'], 
-									'email' => $bot_user_info['email'], 
+									'lastname' => $bot_user_info['lastname'],
+									'email' => $bot_user_info['email'],
 									'password' => $bot_user_info['password'],
 									'captcha_bot' => 'FLAG_FOR_DONT_VALIDATE_CAPTCHA'
 									]);
 			}
 		}
 
-		User::validatePayloadStore($request);		
-		
-		/* 
+		User::validatePayloadStore($request);
+
+		/*
 			$skip_captcha = true, no se validara al usuario usando el recaptcha
 			$skip_captcha = false, se validara al usuario usando el recaptcha
 		*/
 		if(!$skip_captcha){
-			if(!$request->input('val', null)){
+			if(!$request->input('val', null) && !$request->ignoreCaptcha){
 				$validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
 				if(!$validCaptcha){
 					$response = ['error' => ['captcha' => ['El captcha no es válido']],
@@ -150,20 +163,20 @@ class UserController extends Controller
                     ,'code' => 404];
         return response()->json($response,500);
     }
-	
+
 	/*
-		Método para validar si un usuario se puede saltar la validacion del recaptcha.		
+		Método para validar si un usuario se puede saltar la validacion del recaptcha.
 	*/
 	private function isValidUserFromServissoBot($code){
 		try{
-			
-			/* Asi se obtiene devuelta la informacion de un token. */				
+
+			/* Asi se obtiene devuelta la informacion de un token. */
 			JWTAuth::setToken($code);
 			$token = JWTAuth::getToken();
 			$payload = JWTAuth::decode($token)->get(); //payload tiene toda la info necesaria que se mandó.
-			
+
 			$response = ['valid_token' => 1];
-	
+
 		} catch (TokenExpiredException $e) {
 			$response = ['valid_token' => 0, 'error' => 'token_expired'];
 
@@ -173,13 +186,13 @@ class UserController extends Controller
 		} catch (JWTException $e) {
 			$response = ['valid_token' => 0, 'error' => 'token_absent'];
 		}
-		
+
 		if($response['valid_token'] == 1)
-			return array('payload' => $payload, 'valid_token' => 1);	
-		
+			return array('payload' => $payload, 'valid_token' => 1);
+
 		if($response['valid_token'] == 0)
-			return array('token_response' => $response, 'valid_token' => 0);		
-		
+			return array('token_response' => $response, 'valid_token' => 0);
+
 	}
 
     private function getInfoFromProvider(Request $request){
