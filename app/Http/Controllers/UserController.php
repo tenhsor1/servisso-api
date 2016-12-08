@@ -14,6 +14,10 @@ use JWTAuth;
 use Validator;
 use App\Extensions\Utils;
 //use Illuminate\Contracts\Encryption\DecryptException;
+use JWTFactory;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class UserController extends Controller
 {
@@ -41,8 +45,7 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-
+    {					
 		$valuesProvider = false;
         if($request->input('val', null)){
             //if we are trying to create a user using a social provider, then validate that
@@ -52,18 +55,42 @@ class UserController extends Controller
                 return response()->json($valuesProvider['response'], $valuesProvider['code']);
             }
             $request['email'] = $valuesProvider['email'];
-        }
+        }       			
 
-        User::validatePayloadStore($request);
+		/* Se verifica si la validacion del recaptcha sera usada para registrar un usuario */
+		$skip_captcha = false;
+		if($request->bot_code){
+			$bot_data = $this::isValidUserFromServissoBot($request->bot_code);
+			
+			if($bot_data['valid_token'] == 1){
+				$skip_captcha = true;
+				$bot_user_info = $bot_data['payload']['data'];
+				$request->request->add([
+									'name' => $bot_user_info['name'],
+									'lastname' => $bot_user_info['lastname'], 
+									'email' => $bot_user_info['email'], 
+									'password' => $bot_user_info['password'],
+									'captcha_bot' => 'FLAG_FOR_DONT_VALIDATE_CAPTCHA'
+									]);
+			}
+		}
 
-        if(!$request->input('val', null)){
-            $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
-            if(!$validCaptcha){
-                $response = ['error' => ['captcha' => ['El captcha no es válido']],
-                            'message' => 'Bad request','code' => 400];
-                return response()->json($response,400);
-            }
-        }
+		User::validatePayloadStore($request);		
+		
+		/* 
+			$skip_captcha = true, no se validara al usuario usando el recaptcha
+			$skip_captcha = false, se validara al usuario usando el recaptcha
+		*/
+		if(!$skip_captcha){
+			if(!$request->input('val', null)){
+				$validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
+				if(!$validCaptcha){
+					$response = ['error' => ['captcha' => ['El captcha no es válido']],
+								'message' => 'Bad request','code' => 400];
+					return response()->json($response,400);
+				}
+			}
+		}
 
 		$fields = \Input::except('code');
 		$fields['invitations'] = 10;//by default 10 invitations are added
@@ -123,6 +150,37 @@ class UserController extends Controller
                     ,'code' => 404];
         return response()->json($response,500);
     }
+	
+	/*
+		Método para validar si un usuario se puede saltar la validacion del recaptcha.		
+	*/
+	private function isValidUserFromServissoBot($code){
+		try{
+			
+			/* Asi se obtiene devuelta la informacion de un token. */				
+			JWTAuth::setToken($code);
+			$token = JWTAuth::getToken();
+			$payload = JWTAuth::decode($token)->get(); //payload tiene toda la info necesaria que se mandó.
+			
+			$response = ['valid_token' => 1];
+	
+		} catch (TokenExpiredException $e) {
+			$response = ['valid_token' => 0, 'error' => 'token_expired'];
+
+		} catch (TokenInvalidException $e) {
+			$response = ['valid_token' => 0, 'error' => 'token_invalid'];
+
+		} catch (JWTException $e) {
+			$response = ['valid_token' => 0, 'error' => 'token_absent'];
+		}
+		
+		if($response['valid_token'] == 1)
+			return array('payload' => $payload, 'valid_token' => 1);	
+		
+		if($response['valid_token'] == 0)
+			return array('token_response' => $response, 'valid_token' => 0);		
+		
+	}
 
     private function getInfoFromProvider(Request $request){
         try{
