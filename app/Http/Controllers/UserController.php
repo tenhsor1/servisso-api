@@ -34,6 +34,19 @@ class UserController extends Controller
         return 'index';
     }
 
+
+    public function storeFromAdmin(Request $request)
+    {
+        $userRequested = \Auth::User();
+        if($userRequested->roleAuth !== 'ADMIN'){
+            $errorJSON = ['error'   => 'Unauthorized'
+                            , 'code' => 403];
+            return response()->json($errorJSON, 403);
+        }
+        $request->ignoreCaptcha = true;
+        return $this->store($request);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -55,8 +68,7 @@ class UserController extends Controller
         }
 
         User::validatePayloadStore($request);
-
-        if(!$request->input('val', null)){
+        if(!$request->input('val', null) && !$request->ignoreCaptcha){
             $validCaptcha = Utils::validateCaptcha($request->input('captcha'), $request->ip());
             if(!$validCaptcha){
                 $response = ['error' => ['captcha' => ['El captcha no es válido']],
