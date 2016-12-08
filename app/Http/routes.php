@@ -27,7 +27,8 @@ Route::group(['prefix' => 'v1'], function()
     Route::get('password/token/{token}', 'Auth\PassController@checkToken');
 
 
-	Route::post('users/predict', 'UserController@predict');
+	Route::post('admins/users', 'UserController@storeFromAdmin');
+    Route::post('users/predict', 'UserController@predict');
 	Route::post('users/storeSearched', 'UserController@storeSearched');
 	Route::put('users/updateSearched/{id}', 'UserController@updateSearched');
     Route::get('users/confirm/{code}','UserController@confirm');
