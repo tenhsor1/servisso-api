@@ -27,7 +27,9 @@ class UsersMigration extends Migration
             $table->string('token', 600)->nullable();
             $table->boolean('confirmed')->default(false);
 			$table->tinyInteger('enabled_companies')->default(0);
-			$table->integer('invitations')->unsigned()->default(0);
+			$table->integer('invitations')->unsigned()->default(0);		
+			$table->bigInteger('id_origin')->unsigned()->default(0);
+			$table->tinyInteger('type_origin')->default(0)->comment('0 = servisso, 1 = servisso-face-bot');
 			//$table->tinyInteger('user_as')->default(0);
             $table->softDeletes();
             $table->timestamps();

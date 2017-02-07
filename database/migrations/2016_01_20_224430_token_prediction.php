@@ -14,7 +14,7 @@ class TokenPrediction extends Migration
     {
 		Schema::create('token_prediction', function (Blueprint $table) {
             $table->increments('id');
-			$table->string('token',100);
+			$table->string('token',255);
 			$table->integer('expired')->unsigned();
 			$table->integer('issued')->unsigned();
 			$table->softDeletes();
