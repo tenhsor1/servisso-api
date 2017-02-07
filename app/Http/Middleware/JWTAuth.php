@@ -20,12 +20,6 @@ class JWTAuth extends BaseJWTMiddleware
     public function handle($request, \Closure $next, $roles='user')
     {
 
-		/* Auth field exceptions, validacion para saltar autenticacion  */
-		if( ($request->task_from_bot) && $request->exc_key ){
-			if($request->exc_key == \Config::get('app.EXCEPTION_KEY'))
-				return $next($request);
-		}		
-
         if (! $token = $this->auth->setRequest($request)->getToken()) {
             return $this->respond('tymon.jwt.absent', ['error' => 'token_not_provided','code' => 401], 401);
         }

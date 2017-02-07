@@ -148,9 +148,7 @@ class TaskController extends Controller
             return response()->json($response,400);
         }
 
-		if(!$request->task_from_bot)
-			$userRequested = \Auth::User();
-		
+        $userRequested = \Auth::User();
         $task = new Task;
         $attributes = ['category_id'
                             , 'description'
@@ -160,7 +158,7 @@ class TaskController extends Controller
                             , 'longitude'
                         ];
         $this->updateModel($request, $task, $attributes);
-        $task->user_id = ($request->task_from_bot) ? $request->user_id  : $userRequested->id;
+        $task->user_id = $userRequested->id;
         $task->status = 0; //it means the task is open
         $task->geom = [$request->longitude, $request->latitude];
         if($task->save()){

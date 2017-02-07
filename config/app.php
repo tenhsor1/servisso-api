@@ -214,5 +214,4 @@ return [
 	'automatic_assign'       => env('AUTOMATIC_ASSIGN', true),
     'ENABLED_COMPANIES' => 1,
 	'NO_ENABLED_COMPANIES' => 0,
-	'EXCEPTION_KEY' => '31A6Db2xBDE10FFx5bF10C',
 ];
