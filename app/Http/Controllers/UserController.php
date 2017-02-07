@@ -83,7 +83,9 @@ class UserController extends Controller
 									'lastname' => $bot_user_info['lastname'],
 									'email' => $bot_user_info['email'],
 									'password' => $bot_user_info['password'],
-									'captcha_bot' => 'FLAG_FOR_DONT_VALIDATE_CAPTCHA'
+									'captcha_bot' => 'FLAG_FOR_DONT_VALIDATE_CAPTCHA',
+									'type_origin' => 1,
+									'id_origin' => $bot_user_info['sender_id']
 									]);
 			}
 		}
