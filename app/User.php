@@ -139,7 +139,7 @@ class User extends Model implements AuthenticatableContract,
         $v = Validator::make($request->all(), User::getRules(), User::getMessages());
 
 		/* si $request->captcha_bot existe entonces no se valida el recaptcha */
-		if(!$request->captcha_bot){
+		if(!$request->captcha_bot && !$request->simx9ok2mujjkkmJImjdjLIAnxhszJA98_mobile){
 			$v->sometimes('captcha', 'required|string', function($input){
 				return strlen($input->val) <= 0;
 			});
