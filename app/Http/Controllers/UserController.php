@@ -72,6 +72,12 @@ class UserController extends Controller
 
 		/* Se verifica si la validacion del recaptcha sera usada para registrar un usuario */
 		$skip_captcha = false;
+
+        // TODO: implement a encryption logic with a different secret than the used globally,
+        // remove this odd request param (In the meantime, DON'T CHANGE THE STRING)
+        if($request->simx9ok2mujjkkmJImjdjLIAnxhszJA98_mobile){
+            $skip_captcha = true;
+        }
 		if($request->bot_code){
 			$bot_data = $this::isValidUserFromServissoBot($request->bot_code);
 

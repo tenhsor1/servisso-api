@@ -104,6 +104,7 @@ class TaskController extends Controller
         $tasks = TaskBranch::with('branch.company')
           ->withDistance()
             ->with('task')
+            ->with('quotes')
 						 ->whereHas('branch.company', function($query) use ($companyId){
 									$query->where('id', $companyId);
 								})
