@@ -251,14 +251,16 @@ class AdminController extends Controller
 	 public function requirements(Request $request)
     {
 		$userRequested = \Auth::User();
-		$contact = ContactUs::select(\DB::raw("created_at,comment,'contact' as type,email,'Feedback/FQA' as sent_to, id"))
+		$contact = ContactUs::select(\DB::raw("created_at,comment,'contact' as type,email,'Feedback/FQA' as sent_to, id,'No' as step"))
 		;
+		
+		//\DB::connection()->enableQueryLog();
 
 		$service = Service::leftjoin('users as u', 'u.id', '=', 'services.userable_id')
 		->leftjoin('branches', 'branches.id', '=', 'services.branch_id')
 		->leftjoin('companies', 'companies.id', '=', 'branches.company_id')
 		->leftjoin('users as ub', 'ub.id', '=', 'companies.user_id')
-		->select(\DB::raw("services.created_at,services.description as comment,'service' as type, u.email,ub.email as sent_to, services.id"))
+		->select(\DB::raw("services.created_at,services.description as comment,'service' as type, u.email,ub.email as sent_to, services.id,'No' as step"))
 		;
 
 		$task = Task::leftjoin('categories', 'categories.id', '=', 'tasks.category_id')
@@ -267,11 +269,15 @@ class AdminController extends Controller
 			{
 				$join->on('tb.task_id', '=', 'tasks.id');
 			})
-		->select(\DB::raw("tasks.created_at,CONCAT(tasks.description ,', ',categories.name) as comment,'task' as type,users.email,CONCAT('',tb.total) as sent_to, tasks.id"))
+		->select(
+			\DB::raw("tasks.created_at,CONCAT(tasks.description ,', ',categories.name) as comment,'task' as type,users.email,CONCAT('',tb.total) as sent_to, tasks.id"),
+			\DB::raw('(SELECT fcr.step FROM face_chat_responses fcr WHERE fcr.id_chat = (SELECT id FROM face_chat WHERE task_id = tasks.id) ORDER BY fcr.id DESC LIMIT 1) as step'))
 		->groupBy('tasks.id')
 		->groupBy('users.email')
 		->groupBy('tb.total')
 		->groupBy('categories.name');
+
+		//$query = \DB::getQueryLog();
 
 		$results = $contact->union($service)->union($task)
 		->orderBy('created_at', 'desc')

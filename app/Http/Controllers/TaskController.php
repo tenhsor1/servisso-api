@@ -104,6 +104,7 @@ class TaskController extends Controller
         $tasks = TaskBranch::with('branch.company')
           ->withDistance()
             ->with('task')
+            ->with('quotes')
 						 ->whereHas('branch.company', function($query) use ($companyId){
 									$query->where('id', $companyId);
 								})
@@ -278,6 +279,7 @@ class TaskController extends Controller
     {
         $user = \Auth::User();
         $taskQuery = Task::with('category')
+						->with('user')
                         ->with('images')
                         ->with('distanceBranches.branch.company');
 
@@ -288,6 +290,17 @@ class TaskController extends Controller
         }
 
         $task = $taskQuery->where('id', $id)->first();
+		
+		/* Se obtienen los steps de la task */
+		$steps = \DB::table('face_chat_responses')->select('step','response')
+				->where('id_chat','=',\DB::raw('(SELECT id FROM face_chat WHERE task_id = '.$task->id.')'))->get();
+		$step_list = array();		
+		foreach($steps as $step){
+			$step_list[] = $step->step;
+			if($step->step == 'action-selected-quote')
+				$task->selected_profesional = $step->response;
+		}
+		$task->steps = $step_list;
 
         if(!is_null($task)){
 
